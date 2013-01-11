@@ -1,0 +1,40 @@
+* Move Enum Types from Deployment to CommonAPI Library via macro definitions.
+  The CommonAPI generator should generate:
+
+    #ifndef ORG_PACKAGE_MY_ENUM_BACKING_TYPE
+    #define ORG_PACKAGE_MY_ENUM_BACKING_TYPE COMMONAPI_DEFAULT_ENUM_BACKING_TYPE
+    #endif
+    
+    class MyInterface {
+      public:
+        enum class MyEnum: ORG_PACKAGE_MY_ENUM_BACKING_TYPE {
+          // ...
+        };
+    };
+
+  Then we'll need the deployment model simply to define specific backing type
+  per enum. This would make applications able to switch backing types without
+  the need to rerun the generator.
+  
+  The D-Bus Middleware implementation could also use macros to construct the
+  signature:
+    #define DBUS_SIGNATURE_STRING_int16_t     "n"
+    #define DBUS_SIGNATURE_STRING_int32_t     "i"
+    #define DBUS_SIGNATURE_STRING_int64_t     "x"
+    #define DBUS_SIGNATURE_STRING_uint8_t     "y"
+    #define DBUS_SIGNATURE_STRING_uint16_t    "q"
+    #define DBUS_SIGNATURE_STRING_uint32_t    "u"
+    #define DBUS_SIGNATURE_STRING_uint64_t    "t"   
+
+    #define DBUS_SIGNATURE_STRING_FROM_TYPE(ctype)    DBUS_SIGNATURE_STRING_##ctype
+
+    // XXX indirection is needed
+    #define DBUS_ENUM_BACKING_TYPE_SIGNATURE(x)       DBUS_SIGNATURE_STRING_FROM_TYPE(x)
+    
+    // Example
+    DBUS_ENUM_BACKING_TYPE_SIGNATURE(ORG_PACKAGE_MY_ENUM_BACKING_TYPE)
+      -> DBUS_SIGNATURE_STRING_FROM_TYPE(ORG_PACKAGE_MY_ENUM_BACKING_TYPE)
+      -> DBUS_SIGNATURE_STRING_FROM_TYPE(int32_t)
+      -> DBUS_SIGNATURE_STRING_##int32_t
+      -> DBUS_SIGNATURE_STRING_int32_t
+      -> "i"

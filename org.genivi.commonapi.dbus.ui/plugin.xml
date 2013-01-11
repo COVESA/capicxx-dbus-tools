@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="org.genivi.commonapi.dbus.ui.DBusCommandExecutableExtensionFactory:org.genivi.commonapi.dbus.ui.handler.DBusGenerationCommand"
+            commandId="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand">
+      </handler>
+   </extension>
+   <extension point="org.eclipse.ui.commands">
+      <command
+            id="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand"
+            name="Generate D-Bus C++ Code">
+      </command>
+   </extension>
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.genivi.commonapi.core.ui.popup.menu">
+         <command
+               commandId="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand"
+               label="Generate D-Bus C++ Code"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="org.genivi.commonapi.core.ui.FrancaIDL.Resources.selected"></reference>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+</plugin>
