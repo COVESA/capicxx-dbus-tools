@@ -94,7 +94,7 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def private dispatch dbusFTypeSignature(FUnionType fUnionType) {
-        return 'uv'
+        return '(yv)'
     }
 
     def private getElementsDBusSignature(FStructType fStructType) {
