@@ -60,14 +60,18 @@ libcommonapi_tests_TestInterfaceDBusStubAdapter_la_LIBADD = libcommonapi-tests-T
 
 # ------------------------------------------------------------------------------
 check_PROGRAMS = \
-		test-proxy-attribute \
+		test-proxy \
 		test-interface-stub
 
-test_proxy_attribute_SOURCES = src/test-proxy-attribute.cpp
-test_proxy_attribute_LDADD = ${LDADD} libcommonapi-tests-TestInterfaceDBusProxy.la
+test_proxy_SOURCES = src/test-proxy.cpp
+test_proxy_LDADD = ${LDADD}  ${GMOCK_LIBS} libcommonapi-tests-TestInterfaceDBusProxy.la
+test_proxy_CPPFLAGS = ${AM_CPPFLAGS} ${GMOCK_CPPFLAGS} ${GTEST_CPPFLAGS}
+test_proxy_CXXFLAGS = ${GMOCK_CXXFLAGS} ${GETST_CXXFLAGS}
 
 test_interface_stub_SOURCES = src/test-interface-stub.cpp
-test_interface_stub_LDADD = ${LDADD} libcommonapi-tests-TestInterfaceDBusStubAdapter.la
+test_interface_stub_LDADD = ${LDADD} ${GMOCK_LIBS} libcommonapi-tests-TestInterfaceDBusStubAdapter.la
+test_interface_stub_CPPFLAGS = ${AM_CPPFLAGS} ${GMOCK_CPPFLAGS} ${GTEST_CPPFLAGS}
+test_interface_stub_CXXFLAGS = ${GMOCK_CXXFLAGS} ${GETST_CXXFLAGS}
 
 TESTS = ${check_PROGRAMS}
 bin_PROGRAMS = ${check_PROGRAMS}

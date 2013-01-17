@@ -10,6 +10,8 @@
 
 #include <CommonAPI/Runtime.h>
 
+#include <src/StubTest.h>
+
 #include <iostream>
 #include <cassert>
 
@@ -40,7 +42,7 @@ int main(void) {
     std::shared_ptr<CommonAPI::Factory> factory = runtime_->createFactory();
 	const std::string serviceAddress_ = "local:commonapi.tests.TestInterface:commonapi.tests.TestInterface";
 
-    auto myStub = std::make_shared<commonapi::tests::TestInterfaceStubDefault>();
+    auto myStub = std::make_shared<commonapi::tests::StubTest>();
     bool success = factory->registerService(myStub, serviceAddress_);
 
     //myStub->fireTestPredefinedTypeBroadcastEvent(1, "hello");
