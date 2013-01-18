@@ -21,17 +21,25 @@ int main(void) {
 
     DerivedTypeCollection::TestUnionIn out;
 
+    DerivedTypeCollection::TestUnionOut ext(myInt);
+
+    std::cout << "Comparing variant with extended: " << std::boolalpha << (ext == in) << "\n";
+
     CommonAPI::CallStatus callStatus;
     proxy->testUnionMethod(in, callStatus, out);
     std::cout << "Status " << (int) callStatus << "\n";
 
-    std::cout << "Union Method returned ";
-    if (out.isType<std::string>()) {
-        std::cout << out.get<std::string>() << "\n";
-    } else if (out.isType<int16_t>()) {
-        std::cout << out.get<int16_t>() << "\n";
-    } else if (out.isType<double>()) {
-        std::cout << out.get<double>() << "\n";
+    if (callStatus == CommonAPI::CallStatus::SUCCESS) {
+        std::cout << "Union Method returned ";
+        if (out.isType<std::string>()) {
+            std::cout << out.get<std::string>() << "\n";
+        } else if (out.isType<int16_t>()) {
+            std::cout << out.get<int16_t>() << "\n";
+        } else if (out.isType<double>()) {
+            std::cout << out.get<double>() << "\n";
+        }
+    } else {
+        std::cout << "Service not available. \n";
     }
 
     /*while(true) {

@@ -61,10 +61,12 @@ typeCollection DerivedTypeCollection {
 		String text
 	}
 	
-	union TestUnionOut {
+	union TestUnionOut extends TestUnionIn {
 		TestEnumExtended enum
-		Int16 int
-		String text
+	}
+	
+	union TestUnionReallyExtended extends TestUnionOut {
+		TestEnum enum
 	}
 }
 
