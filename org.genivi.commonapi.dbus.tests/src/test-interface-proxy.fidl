@@ -56,7 +56,7 @@ interface TestInterface {
 			DerivedTypeCollection.TestUnionIn inParam
 		}
 		out {
-			DerivedTypeCollection.TestUnionOut outParam
+			DerivedTypeCollection.TestUnionIn outParam
 		}
 	}
 

@@ -12,19 +12,28 @@ using namespace commonapi::tests;
 int main(void) {
     auto runtime_ = CommonAPI::Runtime::load();
     std::shared_ptr<CommonAPI::Factory> factory = runtime_->createFactory();
-	const std::string serviceAddress_ = "local:commonapi.tests.TestInterface:commonapi.tests.TestInterface";
+    const std::string serviceAddress_ = "local:commonapi.tests.TestInterface:commonapi.tests.TestInterface";
 
-	auto proxy = factory->buildProxy<commonapi::tests::TestInterfaceProxy>(serviceAddress_);
+    auto proxy = factory->buildProxy<commonapi::tests::TestInterfaceProxy>(serviceAddress_);
 
-	int16_t myInt = 5;
-	DerivedTypeCollection::TestUnionIn in(myInt);
+    int16_t myInt = 5;
+    DerivedTypeCollection::TestUnionIn in(myInt);
 
-	DerivedTypeCollection::TestUnionOut out;
+    DerivedTypeCollection::TestUnionIn out;
 
-	CommonAPI::CallStatus callStatus;
-	proxy->testUnionMethod(in, callStatus, out);
-	std::cout << "Status" << (int)callStatus << "\n";
+    CommonAPI::CallStatus callStatus;
+    proxy->testUnionMethod(in, callStatus, out);
+    std::cout << "Status " << (int) callStatus << "\n";
+
+    std::cout << "Union Method returned ";
+    if (out.isType<std::string>()) {
+        std::cout << out.get<std::string>() << "\n";
+    } else if (out.isType<int16_t>()) {
+        std::cout << out.get<int16_t>() << "\n";
+    } else if (out.isType<double>()) {
+        std::cout << out.get<double>() << "\n";
+    }
 
     /*while(true) {
-    }*/
+     }*/
 }
