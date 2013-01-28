@@ -202,7 +202,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         ::sendSignal(
                             *this,
                             "«broadcast.name»",
-                            "«broadcast.dbusSignature»",
+                            "«broadcast.dbusSignature»"«IF broadcast.outArgs.size > 0»,«ENDIF»
                             «broadcast.outArgs.map[name].join(', ')»
                     );
             }
