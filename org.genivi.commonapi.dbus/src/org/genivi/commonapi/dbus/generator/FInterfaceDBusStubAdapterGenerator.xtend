@@ -40,6 +40,8 @@ class FInterfaceDBusStubAdapterGenerator {
         class «fInterface.dbusStubAdapterClassName»: public «fInterface.stubAdapterClassName», public «fInterface.dbusStubAdapterHelperClassName» {
          public:
             «fInterface.dbusStubAdapterClassName»(
+                    const std::string& commonApiAddress,
+                    const std::string& dbusInterfaceName,
                     const std::string& dbusBusName,
                     const std::string& dbusObjectPath,
                     const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusConnection,
@@ -71,24 +73,29 @@ class FInterfaceDBusStubAdapterGenerator {
 
         «fInterface.model.generateNamespaceBeginDeclaration»
         
-        std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> create«fInterface.dbusStubAdapterClassName»(std::string busName,
-                                                                   std::string objectPath,
-                                                                   std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> dbusProxyConnection,
-                                                                   std::shared_ptr<CommonAPI::StubBase> stubBase) {
+        std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> create«fInterface.dbusStubAdapterClassName»(
+                           const std::string& commonApiAddress,
+                           const std::string& interfaceName,
+                           const std::string& busName,
+                           const std::string& objectPath,
+                           const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyConnection,
+                           const std::shared_ptr<CommonAPI::StubBase>& stubBase) {
             return std::make_shared<«fInterface.dbusStubAdapterClassName»>(busName, objectPath, dbusProxyConnection, stubBase);
         }
 
         __attribute__((constructor)) void register«fInterface.dbusStubAdapterClassName»(void) {
-            CommonAPI::DBus::DBusFactory::registerAdapterFactoryMethod(«fInterface.name»::getInterfaceName(),
+            CommonAPI::DBus::DBusFactory::registerAdapterFactoryMethod(«fInterface.name»::getInterfaceId(),
                                                                        &create«fInterface.dbusStubAdapterClassName»);
         }
 
         «fInterface.dbusStubAdapterClassName»::«fInterface.dbusStubAdapterClassName»(
+                const std::string& commonApiAddress,
+                const std::string& dbusInterfaceName,
                 const std::string& dbusBusName,
                 const std::string& dbusObjectPath,
                 const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusConnection,
                 const std::shared_ptr<CommonAPI::StubBase>& stub):
-                «fInterface.dbusStubAdapterHelperClassName»(dbusBusName, dbusObjectPath, «fInterface.name»::getInterfaceName(), dbusConnection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(stub)) {
+                «fInterface.dbusStubAdapterHelperClassName»(commonApiAddress, dbusInterfaceName, dbusBusName, dbusObjectPath, dbusConnection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(stub)) {
         }
 
         const char* «fInterface.dbusStubAdapterClassName»::getMethodsDBusIntrospectionXmlData() const {

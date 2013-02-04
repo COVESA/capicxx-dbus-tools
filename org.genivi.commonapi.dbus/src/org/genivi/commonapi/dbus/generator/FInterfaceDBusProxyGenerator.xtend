@@ -48,7 +48,12 @@ class FInterfaceDBusProxyGenerator {
 
         class «fInterface.dbusProxyClassName»: virtual public «fInterface.proxyBaseClassName», virtual public CommonAPI::DBus::DBusProxy {
          public:
-            «fInterface.dbusProxyClassName»(const std::string& busName, const std::string& objectPath, const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection);
+            «fInterface.dbusProxyClassName»(
+                            const std::string& commonApiAddress,
+                            const std::string& interfaceName,
+                            const std::string& busName,
+                            const std::string& objectPath,
+                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection);
 
             «FOR attribute : fInterface.attributes»
                 virtual «attribute.generateGetMethodDefinition»;
@@ -89,19 +94,27 @@ class FInterfaceDBusProxyGenerator {
 
         «fInterface.model.generateNamespaceBeginDeclaration»
         
-        std::shared_ptr<CommonAPI::DBus::DBusProxy> create«fInterface.dbusProxyClassName»(const char* busName,
-                                               const char* objectPath,
-                                               std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> dbusProxyConnection) {
-            return std::make_shared<«fInterface.dbusProxyClassName»>(busName, objectPath, dbusProxyConnection);
+        std::shared_ptr<CommonAPI::DBus::DBusProxy> create«fInterface.dbusProxyClassName»(
+                            const std::string& commonApiAddress,
+                            const std::string& interfaceName,
+                            const std::string& busName,
+                            const std::string& objectPath,
+                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyConnection) {
+            return std::make_shared<«fInterface.dbusProxyClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection);
         }
 
         __attribute__((constructor)) void register«fInterface.dbusProxyClassName»(void) {
-            CommonAPI::DBus::DBusFactory::registerProxyFactoryMethod(«fInterface.name»::getInterfaceName(),
+            CommonAPI::DBus::DBusFactory::registerProxyFactoryMethod(«fInterface.name»::getInterfaceId(),
                &create«fInterface.dbusProxyClassName»);
         }
 
-        «fInterface.dbusProxyClassName»::«fInterface.dbusProxyClassName»(const std::string& busName, const std::string& objectPath, const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
-                CommonAPI::DBus::DBusProxy(busName, objectPath, «fInterface.name»::getInterfaceName(), dbusProxyconnection)
+        «fInterface.dbusProxyClassName»::«fInterface.dbusProxyClassName»(
+                            const std::string& commonApiAddress,
+                            const std::string& interfaceName,
+                            const std::string& busName,
+                            const std::string& objectPath,
+                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
+                CommonAPI::DBus::DBusProxy(busName, objectPath, interfaceName, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
                     «attribute.generateDBusVariableInit»
                 «ENDFOR»
