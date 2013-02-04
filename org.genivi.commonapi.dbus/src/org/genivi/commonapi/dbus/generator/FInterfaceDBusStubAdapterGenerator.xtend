@@ -80,7 +80,7 @@ class FInterfaceDBusStubAdapterGenerator {
                            const std::string& objectPath,
                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyConnection,
                            const std::shared_ptr<CommonAPI::StubBase>& stubBase) {
-            return std::make_shared<«fInterface.dbusStubAdapterClassName»>(busName, objectPath, dbusProxyConnection, stubBase);
+            return std::make_shared<«fInterface.dbusStubAdapterClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection, stubBase);
         }
 
         __attribute__((constructor)) void register«fInterface.dbusStubAdapterClassName»(void) {

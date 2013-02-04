@@ -114,7 +114,7 @@ class FInterfaceDBusProxyGenerator {
                             const std::string& busName,
                             const std::string& objectPath,
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
-                CommonAPI::DBus::DBusProxy(busName, objectPath, interfaceName, dbusProxyconnection)
+                CommonAPI::DBus::DBusProxy(commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
                     «attribute.generateDBusVariableInit»
                 «ENDFOR»
