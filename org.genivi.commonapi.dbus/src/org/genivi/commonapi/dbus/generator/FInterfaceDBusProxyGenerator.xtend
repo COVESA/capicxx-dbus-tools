@@ -55,6 +55,8 @@ class FInterfaceDBusProxyGenerator {
                             const std::string& objectPath,
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection);
 
+            virtual ~«fInterface.dbusProxyClassName»() { }
+
             «FOR attribute : fInterface.attributes»
                 virtual «attribute.generateGetMethodDefinition»;
             «ENDFOR»
