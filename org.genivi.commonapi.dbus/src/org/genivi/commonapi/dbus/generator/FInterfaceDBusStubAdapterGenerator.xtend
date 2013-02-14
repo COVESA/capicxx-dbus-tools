@@ -247,16 +247,16 @@ class FInterfaceDBusStubAdapterGenerator {
     }
 
     def private getAllInTypes(FMethod fMethod) {
-        fMethod.inArgs.map[type.getNameReference(fMethod)].join(', ')
+        fMethod.inArgs.map[type.getNameReference(fMethod.model)].join(', ')
     }
 
     def private getAllOutTypes(FMethod fMethod) {
-        var types = fMethod.outArgs.map[type.getNameReference(fMethod)].join(', ')
+        var types = fMethod.outArgs.map[type.getNameReference(fMethod.model)].join(', ')
 
         if (fMethod.hasError) {
             if (!fMethod.outArgs.empty)
                 types = ', ' + types
-            types = fMethod.getErrorNameReference(fMethod.eContainer) + types
+            types = fMethod.getErrorNameReference(fMethod.model) + types
         }
 
         return types
