@@ -13,6 +13,9 @@ import org.eclipse.xtext.generator.IGenerator
 import org.franca.core.dsl.FrancaPersistenceManager
 import org.genivi.commonapi.core.generator.FrancaGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
+import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessorWrapper
+import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
+import org.franca.deploymodel.core.FDeployedInterface
 
 import static com.google.common.base.Preconditions.*
 
@@ -25,15 +28,39 @@ class FrancaDBusGenerator implements IGenerator {
     @Inject private FrancaGenerator francaGenerator
 
     override doGenerate(Resource input, IFileSystemAccess fileSystemAccess) {
+        if(input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)) {
+            francaGenerator.doGenerate(input, fileSystemAccess);
+            doGenerateStandardFrancaComponents(input, fileSystemAccess)
+        } else if (input.URI.fileExtension.equals("fdepl" /* fDeployPersistenceManager.fileExtension */)) {
+            francaGenerator.doGenerate(input, fileSystemAccess);
+            doGenerateDeployedFrancaComponents(input, fileSystemAccess)
+        } else {
+            checkArgument(false, "Unknown input: " + input)
+        }
+    }
+
+    def private doGenerateStandardFrancaComponents(Resource input, IFileSystemAccess fileSystemAccess) {
         val isFrancaIDLResource = input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)
         checkArgument(isFrancaIDLResource, "Unknown input: " + input)
 
-        francaGenerator.doGenerate(input, fileSystemAccess);
+        val deploymentAccessor = new DeploymentInterfacePropertyAccessorWrapper(null) as DeploymentInterfacePropertyAccessor
 
         val fModel = francaPersistenceManager.loadModel(input.filePath)
         fModel.interfaces.forEach[
-            generateDBusProxy(fileSystemAccess)
-            generateDBusStubAdapter(fileSystemAccess)
+            generateDBusProxy(fileSystemAccess, deploymentAccessor)
+            generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
         ]
+    }
+
+    def doGenerateDeployedFrancaComponents(Resource input, IFileSystemAccess access) {
+//        var fDeployedModel = fDeployPersistenceManager.loadModel(input.filePath);
+//        val fModelExtender = new FDModelExtender(fDeployedModel);
+//
+//        for(FDInterface fdi : fModelExtender.getFDInterfaces()) {
+//            val fDeployedInterface = new FDeployedInterface(fdi);
+//            val fDeployedInterfaceAccessor = new DeploymentInterfacePropertyAccessor(fDeployedInterface);
+//        }
+//
+//        return;
     }
 }

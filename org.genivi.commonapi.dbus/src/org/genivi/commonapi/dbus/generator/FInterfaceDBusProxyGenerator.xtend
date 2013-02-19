@@ -14,6 +14,7 @@ import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
+import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
 
 import static com.google.common.base.Preconditions.*
 
@@ -22,9 +23,9 @@ class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-	def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess) {
+	def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
         fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, fInterface.generateDBusProxyHeader)
-        fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, fInterface.generateDBusProxySource)
+        fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, fInterface.generateDBusProxySource(deploymentAccessor))
 	}
 
     def private generateDBusProxyHeader(FInterface fInterface) '''
@@ -90,7 +91,7 @@ class FInterfaceDBusProxyGenerator {
         #endif // «fInterface.defineName»_DBUS_PROXY_H_
     '''
 
-    def private generateDBusProxySource(FInterface fInterface) '''
+    def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader»
         #include "«fInterface.dbusProxyHeaderFile»"
 
@@ -118,10 +119,10 @@ class FInterfaceDBusProxyGenerator {
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
                 CommonAPI::DBus::DBusProxy(commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
-                    «attribute.generateDBusVariableInit»
+                    «attribute.generateDBusVariableInit(deploymentAccessor)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature»")
+                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
                 «ENDFOR» {
         }
 
@@ -142,7 +143,7 @@ class FInterfaceDBusProxyGenerator {
                 «method.generateDBusProxyHelperClass»::callMethodWithReply(
                     *this,
                     "«method.name»",
-                    "«method.dbusInSignature»",
+                    "«method.dbusInSignature(deploymentAccessor)»",
                     «method.inArgs.map[name].join('', ', ', ', ', [toString])»
                     callStatus
                     «method.outArgs.map[name].join(', ', ', ', '', [toString])»);
@@ -152,7 +153,7 @@ class FInterfaceDBusProxyGenerator {
                     return «method.generateDBusProxyHelperClass»::callMethodAsync(
                         *this,
                         "«method.name»",
-                        "«method.dbusInSignature»",
+                        "«method.dbusInSignature(deploymentAccessor)»",
                         «method.inArgs.map[name].join('', ', ', ', ', [toString])»
                         std::move(callback));
                 }
@@ -210,14 +211,14 @@ class FInterfaceDBusProxyGenerator {
         return type
     }
 
-    def private generateDBusVariableInit(FAttribute fAttribute) {
+    def private generateDBusVariableInit(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor) {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
         if (fAttribute.isObservable)
             ret = ret + ', "' + fAttribute.dbusSignalName + '"'
 
         if (!fAttribute.isReadonly)
-            ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature + '"'
+            ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '"'
 
         ret = ret + ', "' + fAttribute.dbusGetMethodName + '")'
 

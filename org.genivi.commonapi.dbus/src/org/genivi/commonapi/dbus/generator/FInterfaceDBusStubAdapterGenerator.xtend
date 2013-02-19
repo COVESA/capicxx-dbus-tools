@@ -13,14 +13,15 @@ import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
+import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-	def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess) {
+	def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
         fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, fInterface.generateDBusStubAdapterHeader)
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath, fInterface.generateDBusStubAdapterSource)
+        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath, fInterface.generateDBusStubAdapterSource(deploymentAccessor))
 	}
 
     def private generateDBusStubAdapterHeader(FInterface fInterface) '''
@@ -66,7 +67,7 @@ class FInterfaceDBusStubAdapterGenerator {
         #endif // «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
     '''
 
-    def private generateDBusStubAdapterSource(FInterface fInterface) '''
+    def private generateDBusStubAdapterSource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader»
         #include "«fInterface.dbusStubAdapterHeaderFile»"
         #include <«fInterface.headerPath»>
@@ -102,37 +103,37 @@ class FInterfaceDBusStubAdapterGenerator {
             return
                 «FOR attribute : fInterface.attributes»
                     "<method name=\"«attribute.dbusGetMethodName»\">\n"
-                    	"<arg name=\"value\" type=\"«attribute.dbusSignature»\" direction=\"out\" />"
+                    	"<arg name=\"value\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />"
                     "</method>\n"
                     «IF !attribute.isReadonly»
                         "<method name=\"«attribute.dbusSetMethodName»\">\n"
-                            "<arg name=\"requestedValue\" type=\"«attribute.dbusSignature»\" direction=\"in\" />\n"
-                            "<arg name=\"setValue\" type=\"«attribute.dbusSignature»\" direction=\"out\" />\n"
+                            "<arg name=\"requestedValue\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
+                            "<arg name=\"setValue\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                         "</method>\n"
                     «ENDIF»
                     «IF attribute.isObservable»
                         "<signal name=\"«attribute.dbusSignalName»\">\n"
-                            "<arg name=\"changedValue\" type=\"«attribute.dbusSignature»\" />\n"
+                            "<arg name=\"changedValue\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" />\n"
                         "</signal>\n"
                     «ENDIF»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts»
                     "<signal name=\"«broadcast.name»\">\n"
                         «FOR outArg : broadcast.outArgs»
-                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature»\" />\n"
+                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature(deploymentAccessor)»\" />\n"
                         «ENDFOR»
                     "</signal>\n"
                 «ENDFOR»
                 «FOR method : fInterface.methods»
                     "<method name=\"«method.name»\">\n"
                         «FOR inArg : method.inArgs»
-                            "<arg name=\"«inArg.name»\" type=\"«inArg.type.dbusSignature»\" direction=\"in\" />\n"
+                            "<arg name=\"«inArg.name»\" type=\"«inArg.type.dbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
                         «ENDFOR»
                     	«IF method.hasError»
-                    		"<arg name=\"methodError\" type=\"«method.dbusErrorSignature»\" direction=\"out\" />\n"
+                    		"<arg name=\"methodError\" type=\"«method.dbusErrorSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                     	«ENDIF»
                         «FOR outArg : method.outArgs»
-                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature»\" direction=\"out\" />\n"
+                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                         «ENDFOR»
                     "</method>\n"
                 «ENDFOR»
@@ -144,7 +145,7 @@ class FInterfaceDBusStubAdapterGenerator {
             static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
                     «fInterface.stubClassName»,
                     «attribute.type.getNameReference(fInterface.model)»
-                    > «attribute.dbusGetStubDispatcherVariable»(&«fInterface.stubClassName»::«attribute.stubClassGetMethodName», "«attribute.dbusSignature»");
+                    > «attribute.dbusGetStubDispatcherVariable»(&«fInterface.stubClassName»::«attribute.stubClassGetMethodName», "«attribute.dbusSignature(deploymentAccessor)»");
             «IF !attribute.isReadonly»
                 static CommonAPI::DBus::DBusSet«IF attribute.observable»Observable«ENDIF»AttributeStubDispatcher<
                         «fInterface.stubClassName»,
@@ -154,7 +155,7 @@ class FInterfaceDBusStubAdapterGenerator {
                                 &«fInterface.stubRemoteEventClassName»::«attribute.stubRemoteEventClassSetMethodName»,
                                 &«fInterface.stubRemoteEventClassName»::«attribute.stubRemoteEventClassChangedMethodName»,
                                 «IF attribute.observable»&«fInterface.stubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»,«ENDIF»
-                                "«attribute.dbusSignature»");
+                                "«attribute.dbusSignature(deploymentAccessor)»");
             «ENDIF»
             
         «ENDFOR»
@@ -165,12 +166,12 @@ class FInterfaceDBusStubAdapterGenerator {
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>,
                     std::tuple<«method.allOutTypes»>
-                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature»");
+                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
             «ELSE»
                 static CommonAPI::DBus::DBusMethodStubDispatcher<
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>
-                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature»");
+                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
             «ENDIF»
             
         «ENDFOR»
@@ -180,12 +181,12 @@ class FInterfaceDBusStubAdapterGenerator {
             «FOR attribute : fInterface.attributes SEPARATOR ','»
                 { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
                 «IF !attribute.isReadonly»
-                    , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
+                    , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
                 «ENDIF»
             «ENDFOR»
             «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
             «FOR method : fInterface.methods SEPARATOR ','»
-                { { "«method.name»", "«method.dbusInSignature»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
             «ENDFOR»
         };
 
@@ -196,7 +197,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         ::sendSignal(
                             *this,
                             "«attribute.dbusSignalName»",
-                            "«attribute.dbusSignature»",
+                            "«attribute.dbusSignature(deploymentAccessor)»",
                             value
                     );
                 }
@@ -209,7 +210,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         ::sendSignal(
                             *this,
                             "«broadcast.name»",
-                            "«broadcast.dbusSignature»"«IF broadcast.outArgs.size > 0»,«ENDIF»
+                            "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
                             «broadcast.outArgs.map[name].join(', ')»
                     );
             }
