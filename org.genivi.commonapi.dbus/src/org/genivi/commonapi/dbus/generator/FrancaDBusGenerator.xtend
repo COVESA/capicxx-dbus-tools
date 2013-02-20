@@ -18,49 +18,63 @@ import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
 import org.franca.deploymodel.core.FDeployedInterface
 
 import static com.google.common.base.Preconditions.*
+import org.franca.core.franca.FModel
+import java.util.List
+import org.franca.deploymodel.dsl.fDeploy.FDInterface
+import java.util.LinkedList
+import org.franca.deploymodel.dsl.FDeployPersistenceManager
+import org.franca.deploymodel.core.FDModelExtender
 
 class FrancaDBusGenerator implements IGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FInterfaceDBusProxyGenerator
     @Inject private extension FInterfaceDBusStubAdapterGenerator
+    @Inject private extension FrancaGenerator
 
     @Inject private FrancaPersistenceManager francaPersistenceManager
+    @Inject private FDeployPersistenceManager fDeployPersistenceManager
     @Inject private FrancaGenerator francaGenerator
 
     override doGenerate(Resource input, IFileSystemAccess fileSystemAccess) {
+        var FModel fModel
+        var List<FDInterface> deployedInterfaces
+
         if(input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)) {
             francaGenerator.doGenerate(input, fileSystemAccess);
-            doGenerateStandardFrancaComponents(input, fileSystemAccess)
+            fModel = francaPersistenceManager.loadModel(input.filePath)
+            deployedInterfaces = new LinkedList<FDInterface>()
+
         } else if (input.URI.fileExtension.equals("fdepl" /* fDeployPersistenceManager.fileExtension */)) {
             francaGenerator.doGenerate(input, fileSystemAccess);
-            doGenerateDeployedFrancaComponents(input, fileSystemAccess)
+
+            var fDeployedModel = fDeployPersistenceManager.loadModel(input.filePathUrl);
+            val fModelExtender = new FDModelExtender(fDeployedModel);
+
+            checkArgument(fModelExtender.getFDInterfaces().size > 0, "No Interfaces were deployed, nothing to generate.")
+            fModel = fModelExtender.getFDInterfaces().get(0).target.model
+            deployedInterfaces = fModelExtender.getFDInterfaces()
+
         } else {
             checkArgument(false, "Unknown input: " + input)
         }
+
+        doGenerateDBusComponents(fModel, deployedInterfaces, fileSystemAccess)
     }
 
-    def private doGenerateStandardFrancaComponents(Resource input, IFileSystemAccess fileSystemAccess) {
-        val isFrancaIDLResource = input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)
-        checkArgument(isFrancaIDLResource, "Unknown input: " + input)
 
-        val deploymentAccessor = new DeploymentInterfacePropertyAccessorWrapper(null) as DeploymentInterfacePropertyAccessor
+    def private doGenerateDBusComponents(FModel fModel, List<FDInterface> deployedInterfaces, IFileSystemAccess fileSystemAccess) {
+        val defaultDeploymentAccessor = new DeploymentInterfacePropertyAccessorWrapper(null) as DeploymentInterfacePropertyAccessor
 
-        val fModel = francaPersistenceManager.loadModel(input.filePath)
         fModel.interfaces.forEach[
+            val currentInterface = it
+            var DeploymentInterfacePropertyAccessor deploymentAccessor
+            if(deployedInterfaces.exists[it.target == currentInterface]) {
+                deploymentAccessor = new DeploymentInterfacePropertyAccessor(new FDeployedInterface(deployedInterfaces.filter[it.target == currentInterface].last))
+            } else {
+                deploymentAccessor = defaultDeploymentAccessor
+            }
             generateDBusProxy(fileSystemAccess, deploymentAccessor)
             generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
         ]
-    }
-
-    def doGenerateDeployedFrancaComponents(Resource input, IFileSystemAccess access) {
-//        var fDeployedModel = fDeployPersistenceManager.loadModel(input.filePath);
-//        val fModelExtender = new FDModelExtender(fDeployedModel);
-//
-//        for(FDInterface fdi : fModelExtender.getFDInterfaces()) {
-//            val fDeployedInterface = new FDeployedInterface(fdi);
-//            val fDeployedInterfaceAccessor = new DeploymentInterfacePropertyAccessor(fDeployedInterface);
-//        }
-//
-//        return;
     }
 }
