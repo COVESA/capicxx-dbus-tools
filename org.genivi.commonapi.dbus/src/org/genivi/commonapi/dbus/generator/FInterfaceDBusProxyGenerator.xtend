@@ -145,7 +145,8 @@ class FInterfaceDBusProxyGenerator {
                     "«method.name»",
                     "«method.dbusInSignature(deploymentAccessor)»",
                     «method.inArgs.map[name].join('', ', ', ', ', [toString])»
-                    callStatus
+                    callStatus«IF method.hasError»,
+                    methodError«ENDIF»
                     «method.outArgs.map[name].join(', ', ', ', '', [toString])»);
             }
             «IF !method.isFireAndForget»
@@ -195,7 +196,7 @@ class FInterfaceDBusProxyGenerator {
 
     def private generateDBusProxyHelperClass(FMethod fMethod) '''
         CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[type.getNameReference(fMethod.model)].join(', ')»>,
-                                         CommonAPI::DBus::DBusSerializableArguments<«fMethod.outArgs.map[type.getNameReference(fMethod.model)].join(', ')»> >'''
+                                         CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[type.getNameReference(fMethod.model)].join(', ')»> >'''
 
     def private dbusClassName(FAttribute fAttribute) {
         var type = 'CommonAPI::DBus::DBus'
