@@ -68,6 +68,10 @@ typeCollection DerivedTypeCollection {
 	union TestUnionReallyExtended extends TestUnionOut {
 		TestEnum enum
 	}
+	
+	struct TestEmptyStruct {
+	    
+	}
 }
 
 

@@ -12,16 +12,16 @@ LDADD = \
 		${COMMONAPI_DBUS_LIBS} \
 		${GMOCK_LIBS}
 
-lib_LTLIBRARIES =
-
+noinst_LTLIBRARIES =
+ 
 # ------------------------------------------------------------------------------
-lib_LTLIBRARIES += libcommonapi-tests-PredefinedTypeCollection.la
+noinst_LTLIBRARIES += libcommonapi-tests-PredefinedTypeCollection.la
 
 libcommonapi_tests_PredefinedTypeCollection_la_SOURCES = \
 		src-gen/commonapi/tests/PredefinedTypeCollection.h
 
 # ------------------------------------------------------------------------------
-lib_LTLIBRARIES += libcommonapi-tests-DerivedTypeCollection.la
+noinst_LTLIBRARIES += libcommonapi-tests-DerivedTypeCollection.la
 
 libcommonapi_tests_DerivedTypeCollection_la_SOURCES = \
 		src-gen/commonapi/tests/DerivedTypeCollection.h \
@@ -30,7 +30,7 @@ libcommonapi_tests_DerivedTypeCollection_la_LIBADD = \
 		libcommonapi-tests-PredefinedTypeCollection.la
 
 # ------------------------------------------------------------------------------
-lib_LTLIBRARIES += libcommonapi-tests-TestInterface.la
+noinst_LTLIBRARIES += libcommonapi-tests-TestInterface.la
 
 libcommonapi_tests_TestInterface_la_SOURCES = \
 		src-gen/commonapi/tests/TestInterface.h \
@@ -41,7 +41,7 @@ libcommonapi_tests_TestInterface_la_LIBADD = \
 		libcommonapi-tests-DerivedTypeCollection.la
 
 # ------------------------------------------------------------------------------
-lib_LTLIBRARIES += libcommonapi-tests-TestInterfaceDBusProxy.la
+noinst_LTLIBRARIES += libcommonapi-tests-TestInterfaceDBusProxy.la
 
 libcommonapi_tests_TestInterfaceDBusProxy_la_SOURCES = \
 		src-gen/commonapi/tests/TestInterfaceDBusProxy.h \
@@ -49,7 +49,7 @@ libcommonapi_tests_TestInterfaceDBusProxy_la_SOURCES = \
 libcommonapi_tests_TestInterfaceDBusProxy_la_LIBADD = libcommonapi-tests-TestInterface.la
 
 # ------------------------------------------------------------------------------
-lib_LTLIBRARIES += libcommonapi-tests-TestInterfaceDBusStubAdapter.la
+noinst_LTLIBRARIES += libcommonapi-tests-TestInterfaceDBusStubAdapter.la
 
 libcommonapi_tests_TestInterfaceDBusStubAdapter_la_SOURCES = \
 		src-gen/commonapi/tests/TestInterfaceDBusStubAdapter.h \
