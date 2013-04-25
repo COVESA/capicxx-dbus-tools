@@ -7,6 +7,9 @@
 package commonapi.tests
 
 typeCollection PredefinedTypeCollection {
+    
+    version {major 1 minor 0}
+    
 	typedef TestUInt8 is UInt8
 	typedef TestUInt16 is UInt16
 	typedef TestUInt32 is UInt32
