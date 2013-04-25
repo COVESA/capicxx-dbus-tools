@@ -19,6 +19,9 @@ typeCollection DerivedTypeCollection {
 		E_OUT_OF_RANGE = "0x02"
 	    <** @description : not used **>
 		E_NOT_USED = "0x03"
+		E_DE C= "10"
+		E_DEC2 = "11"
+		E_DEC3 = "12"
 	}
 	
 	enumeration TestEnumMissingValue {
