@@ -22,16 +22,17 @@ import org.franca.core.franca.FBroadcast
 import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
 
 import static com.google.common.base.Preconditions.*
+import org.franca.core.franca.FTypedElement
 
 class FrancaDBusGeneratorExtensions {
     @Inject private extension FrancaGeneratorExtensions
 
     def dbusInSignature(FMethod fMethod, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fMethod.inArgs.map[type.dbusSignature(deploymentAccessor)].join;
+        fMethod.inArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
     }
 
     def dbusOutSignature(FMethod fMethod, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        var signature = fMethod.outArgs.map[type.dbusSignature(deploymentAccessor)].join;
+        var signature = fMethod.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
 
         if (fMethod.hasError)
             signature = fMethod.dbusErrorSignature(deploymentAccessor) + signature
@@ -61,11 +62,19 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def String dbusSignature(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fAttribute.type.dbusSignature(deploymentAccessor)
+        fAttribute.getTypeDbusSignature(deploymentAccessor)
     }
 
     def String dbusSignature(FBroadcast fBroadcast, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fBroadcast.outArgs.map[type.dbusSignature(deploymentAccessor)].join
+        fBroadcast.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join
+    }
+    
+    def getTypeDbusSignature(FTypedElement element, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+        if ("[]".equals(element.array)) {
+            return "a" + element.type.dbusSignature(deploymentAccessor)
+        } else {
+            return element.type.dbusSignature(deploymentAccessor)
+        }
     }
 
     def String dbusSignature(FTypeRef fTypeRef, DeploymentInterfacePropertyAccessor deploymentAccessor) {
@@ -99,7 +108,7 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def private getElementsDBusSignature(FStructType fStructType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        var signature = fStructType.elements.map[type.dbusSignature(deploymentAccessor)].join
+        var signature = fStructType.elements.map[getTypeDbusSignature(deploymentAccessor)].join
 
         if (fStructType.base != null) {
             signature = fStructType.base.getElementsDBusSignature(deploymentAccessor) + signature

@@ -50,12 +50,12 @@ class FInterfaceDBusStubAdapterGenerator {
             
             «FOR attribute : fInterface.attributes»
                 «IF attribute.isObservable»
-                    void «attribute.stubAdapterClassFireChangedMethodName»(const «attribute.type.getNameReference(fInterface.model)»& value);
+                    void «attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value);
                 «ENDIF»
             «ENDFOR»
         
             «FOR broadcast: fInterface.broadcasts»
-                void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + type.getNameReference(fInterface.model) + '& ' + name].join(', ')»);
+                void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
             «ENDFOR»
 
          protected:
@@ -120,20 +120,20 @@ class FInterfaceDBusStubAdapterGenerator {
                 «FOR broadcast : fInterface.broadcasts»
                     "<signal name=\"«broadcast.name»\">\n"
                         «FOR outArg : broadcast.outArgs»
-                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature(deploymentAccessor)»\" />\n"
+                            "<arg name=\"«outArg.name»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" />\n"
                         «ENDFOR»
                     "</signal>\n"
                 «ENDFOR»
                 «FOR method : fInterface.methods»
                     "<method name=\"«method.name»\">\n"
                         «FOR inArg : method.inArgs»
-                            "<arg name=\"«inArg.name»\" type=\"«inArg.type.dbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
+                            "<arg name=\"«inArg.name»\" type=\"«inArg.getTypeDbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
                         «ENDFOR»
                     	«IF method.hasError»
                     		"<arg name=\"methodError\" type=\"«method.dbusErrorSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                     	«ENDIF»
                         «FOR outArg : method.outArgs»
-                            "<arg name=\"«outArg.name»\" type=\"«outArg.type.dbusSignature(deploymentAccessor)»\" direction=\"out\" />\n"
+                            "<arg name=\"«outArg.name»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                         «ENDFOR»
                     "</method>\n"
                 «ENDFOR»
@@ -144,12 +144,12 @@ class FInterfaceDBusStubAdapterGenerator {
         «FOR attribute : fInterface.attributes»
             static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
                     «fInterface.stubClassName»,
-                    «attribute.type.getNameReference(fInterface.model)»
+                    «attribute.getTypeName(fInterface.model)»
                     > «attribute.dbusGetStubDispatcherVariable»(&«fInterface.stubClassName»::«attribute.stubClassGetMethodName», "«attribute.dbusSignature(deploymentAccessor)»");
             «IF !attribute.isReadonly»
                 static CommonAPI::DBus::DBusSet«IF attribute.observable»Observable«ENDIF»AttributeStubDispatcher<
                         «fInterface.stubClassName»,
-                        «attribute.type.getNameReference(fInterface.model)»
+                        «attribute.getTypeName(fInterface.model)»
                         > «attribute.dbusSetStubDispatcherVariable»(
                                 &«fInterface.stubClassName»::«attribute.stubClassGetMethodName»,
                                 &«fInterface.stubRemoteEventClassName»::«attribute.stubRemoteEventClassSetMethodName»,
@@ -192,8 +192,8 @@ class FInterfaceDBusStubAdapterGenerator {
 
         «FOR attribute : fInterface.attributes»
             «IF attribute.isObservable»
-                void «fInterface.dbusStubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»(const «attribute.type.getNameReference(fInterface.model)»& value) {
-                	CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«attribute.type.getNameReference(fInterface.model)»>>
+                void «fInterface.dbusStubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value) {
+                	CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«attribute.getTypeName(fInterface.model)»>>
                         ::sendSignal(
                             *this,
                             "«attribute.dbusSignalName»",
@@ -205,8 +205,8 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «FOR broadcast: fInterface.broadcasts»
-            void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + type.getNameReference(fInterface.model) + '& ' + name].join(', ')») {
-                CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«broadcast.outArgs.map[type.getNameReference(fInterface.model)].join(', ')»>>
+            void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')») {
+                CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>>
                         ::sendSignal(
                             *this,
                             "«broadcast.name»",
@@ -248,11 +248,11 @@ class FInterfaceDBusStubAdapterGenerator {
     }
 
     def private getAllInTypes(FMethod fMethod) {
-        fMethod.inArgs.map[type.getNameReference(fMethod.model)].join(', ')
+        fMethod.inArgs.map[getTypeName(fMethod.model)].join(', ')
     }
 
     def private getAllOutTypes(FMethod fMethod) {
-        var types = fMethod.outArgs.map[type.getNameReference(fMethod.model)].join(', ')
+        var types = fMethod.outArgs.map[getTypeName(fMethod.model)].join(', ')
 
         if (fMethod.hasError) {
             if (!fMethod.outArgs.empty)

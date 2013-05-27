@@ -7,6 +7,7 @@
 
 #include <commonapi/tests/TestInterfaceDBusStubAdapter.h>
 #include <commonapi/tests/TestInterfaceStubDefault.h>
+#include <test/bmw/TestStubDefault.h>
 
 #include <CommonAPI/Runtime.h>
 
@@ -44,6 +45,12 @@ int main(void) {
 
     auto myStub = std::make_shared<commonapi::tests::StubTest>();
     bool success = factory->registerService(myStub, serviceAddress_);
+
+    const std::string serviceTestAddress_ = "local:test.bmw.Test:commonapi.tests.TestInterface";
+
+    auto testStub = std::make_shared<test::bmw::TestStubDefault>();
+    success = factory->registerService(testStub, serviceTestAddress_);
+
 
     //myStub->fireTestPredefinedTypeBroadcastEvent(1, "hello");
 

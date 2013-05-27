@@ -1,0 +1,61 @@
+package test.bmw
+
+interface Test {
+	version {
+		major 1
+		minor 0
+	}
+	
+	attribute Int16[] testArrayAttrib
+	
+	method DefGet {
+		in {
+			strArray arraytest
+			String prop
+		}
+		out {
+			UInt8 val
+		}
+	}
+	
+	method Get {
+		in {
+			String[] arraytest
+			String prop
+		}
+		out {
+			UInt8 val
+		}
+	}
+	
+	method Set {
+		in {
+			testStruct setter
+		}
+		out {
+			UInt8 val
+		}
+	}
+	
+	method Unions {
+		in {
+			myUnion setter
+		}
+		out {
+			UInt8 val
+		}
+	}
+	
+	array strArray of String
+	
+	struct testStruct {
+		String hallo
+		UInt32[] where
+	}
+	
+	union myUnion {
+		String hallo
+		UInt32[] where
+		Int16 int
+	}
+}

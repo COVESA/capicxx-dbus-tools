@@ -195,8 +195,8 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private generateDBusProxyHelperClass(FMethod fMethod) '''
-        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[type.getNameReference(fMethod.model)].join(', ')»>,
-                                         CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[type.getNameReference(fMethod.model)].join(', ')»> >'''
+        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[getTypeName(fMethod.model)].join(', ')»>,
+                                         CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[getTypeName(fMethod.model)].join(', ')»> >'''
 
     def private dbusClassName(FAttribute fAttribute) {
         var type = 'CommonAPI::DBus::DBus'

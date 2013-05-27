@@ -23,7 +23,9 @@ test_proxy_SOURCES = src/test-proxy.cpp src-gen/commonapi/tests/PredefinedTypeCo
 		src-gen/commonapi/tests/TestInterfaceProxy.h \
 		src-gen/commonapi/tests/TestInterfaceProxyBase.h \
 		src-gen/commonapi/tests/TestInterfaceDBusProxy.h \
-		src-gen/commonapi/tests/TestInterfaceDBusProxy.cpp
+		src-gen/commonapi/tests/TestInterfaceDBusProxy.cpp \
+		src-gen/test/bmw/TestDBusProxy.cpp \
+		src-gen/test/bmw/Test.cpp
 		
 test_proxy_LDADD = ${LDADD}  ${GMOCK_LIBS}
 test_proxy_CPPFLAGS = ${AM_CPPFLAGS} ${GMOCK_CPPFLAGS} ${GTEST_CPPFLAGS}
@@ -35,7 +37,10 @@ test_interface_stub_SOURCES = src/test-interface-stub.cpp src-gen/commonapi/test
 		src-gen/commonapi/tests/TestInterfaceDBusStubAdapter.h \
 		src-gen/commonapi/tests/TestInterfaceDBusStubAdapter.cpp \
 		src-gen/commonapi/tests/TestInterfaceStubDefault.h \
-		src-gen/commonapi/tests/TestInterfaceStubDefault.cpp 
+		src-gen/commonapi/tests/TestInterfaceStubDefault.cpp \
+		src-gen/test/bmw/TestStubDefault.cpp \
+		src-gen/test/bmw/TestDBusStubAdapter.cpp \
+		src-gen/test/bmw/Test.cpp
 		
 test_interface_stub_LDADD = ${LDADD} ${GMOCK_LIBS}
 test_interface_stub_CPPFLAGS = ${AM_CPPFLAGS} ${GMOCK_CPPFLAGS} ${GTEST_CPPFLAGS}

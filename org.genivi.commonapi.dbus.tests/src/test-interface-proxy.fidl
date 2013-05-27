@@ -18,7 +18,7 @@ interface TestInterface {
 	method testVoidPredefinedTypeMethod {
 		in {
 			UInt32 uint32Value
-			String stringValue
+			String[] stringValue
 		}
 	}
 
