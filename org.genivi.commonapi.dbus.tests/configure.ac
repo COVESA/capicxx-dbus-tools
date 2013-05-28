@@ -15,6 +15,7 @@ dnl silent-rules parallel-tests
 AM_INIT_AUTOMAKE([foreign 1.11 subdir-objects -Wall -Werror])
 dnl AM_SILENT_RULES
 AM_MAINTAINER_MODE
+AM_PROG_AR
 
 AC_PROG_CXX
 AC_LANG([C++])
