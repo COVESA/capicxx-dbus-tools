@@ -96,6 +96,8 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def private dispatch dbusFTypeSignature(FStructType fStructType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+        if (fStructType.isPolymorphic)
+            return '(uv)'
         return '(' + fStructType.getElementsDBusSignature(deploymentAccessor) + ')'
     }
 
