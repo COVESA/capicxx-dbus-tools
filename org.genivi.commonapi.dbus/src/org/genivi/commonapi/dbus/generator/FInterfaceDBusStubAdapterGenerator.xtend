@@ -176,20 +176,6 @@ class FInterfaceDBusStubAdapterGenerator {
             
         «ENDFOR»
 
-        template<>
-        const «fInterface.dbusStubAdapterHelperClassName»::StubDispatcherTable «fInterface.dbusStubAdapterHelperClassName»::stubDispatcherTable_ = {
-            «FOR attribute : fInterface.attributes SEPARATOR ','»
-                { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
-                «IF !attribute.isReadonly»
-                    , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
-                «ENDIF»
-            «ENDFOR»
-            «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
-            «FOR method : fInterface.methods SEPARATOR ','»
-                { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
-            «ENDFOR»
-        };
-
         «FOR attribute : fInterface.attributes»
             «IF attribute.isObservable»
                 void «fInterface.dbusStubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value) {
@@ -217,6 +203,20 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «fInterface.model.generateNamespaceEndDeclaration»
+
+        template<>
+        const «fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterHelperClassName»::StubDispatcherTable «fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterHelperClassName»::stubDispatcherTable_ = {
+            «FOR attribute : fInterface.attributes SEPARATOR ','»
+                { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
+                «IF !attribute.isReadonly»
+                    , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
+                «ENDIF»
+            «ENDFOR»
+            «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
+            «FOR method : fInterface.methods SEPARATOR ','»
+                { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+            «ENDFOR»
+        };
     '''
 
     def private getAbsoluteNamespace(FModelElement fModelElement) {
