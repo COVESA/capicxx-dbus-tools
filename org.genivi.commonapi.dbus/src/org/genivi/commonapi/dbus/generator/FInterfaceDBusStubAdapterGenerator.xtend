@@ -13,7 +13,7 @@ import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions

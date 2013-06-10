@@ -13,9 +13,8 @@ import org.eclipse.xtext.generator.IGenerator
 import org.franca.core.dsl.FrancaPersistenceManager
 import org.genivi.commonapi.core.generator.FrancaGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessorWrapper
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
-import org.franca.deploymodel.core.FDeployedInterface
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessorWrapper
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 
 import static com.google.common.base.Preconditions.*
 import org.franca.core.franca.FModel
@@ -24,6 +23,8 @@ import org.franca.deploymodel.dsl.fDeploy.FDInterface
 import java.util.LinkedList
 import org.franca.deploymodel.dsl.FDeployPersistenceManager
 import org.franca.deploymodel.core.FDModelExtender
+import org.franca.deploymodel.core.FDeployedInterface
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor$PropertiesType
 
 class FrancaDBusGenerator implements IGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -47,7 +48,7 @@ class FrancaDBusGenerator implements IGenerator {
         } else if (input.URI.fileExtension.equals("fdepl" /* fDeployPersistenceManager.fileExtension */)) {
             francaGenerator.doGenerate(input, fileSystemAccess);
 
-            var fDeployedModel = fDeployPersistenceManager.loadModel(input.filePathUrl);
+            var fDeployedModel = fDeployPersistenceManager.loadModel(input.URI, input.URI);
             val fModelExtender = new FDModelExtender(fDeployedModel);
 
             checkArgument(fModelExtender.getFDInterfaces().size > 0, "No Interfaces were deployed, nothing to generate.")
@@ -74,7 +75,11 @@ class FrancaDBusGenerator implements IGenerator {
                 deploymentAccessor = defaultDeploymentAccessor
             }
             generateDBusProxy(fileSystemAccess, deploymentAccessor)
-            generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
+            if (deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
+                generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
+            } else {
+                // Report no Stub here!
+            }
         ]
     }
 }

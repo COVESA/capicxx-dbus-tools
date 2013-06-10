@@ -1,0 +1,7 @@
+import "platform:/plugin/org.genivi.commonapi.core/deployment/deployment.fdepl"
+
+specification org.genivi.commonapi.dbus.deployment.deployment extends org.genivi.commonapi.core.deployment.deployment {
+	for interfaces {
+		PropertiesType: {CommonAPI, freedesktop} (default: CommonAPI);
+	}
+}

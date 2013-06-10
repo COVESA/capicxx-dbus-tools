@@ -19,7 +19,7 @@ import org.franca.core.franca.FUnionType
 import org.franca.core.franca.FBasicTypeId
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FBroadcast
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 
 import static com.google.common.base.Preconditions.*
 import org.franca.core.franca.FTypedElement

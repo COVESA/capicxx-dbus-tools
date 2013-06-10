@@ -14,21 +14,22 @@ import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 
 import static com.google.common.base.Preconditions.*
-
+import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor$PropertiesType
+import org.franca.core.franca.FUnionType
 
 class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
 	def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, fInterface.generateDBusProxyHeader)
+        fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, fInterface.generateDBusProxyHeader(deploymentAccessor))
         fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, fInterface.generateDBusProxySource(deploymentAccessor))
 	}
 
-    def private generateDBusProxyHeader(FInterface fInterface) '''
+    def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader»
         #ifndef «fInterface.defineName»_DBUS_PROXY_H_
         #define «fInterface.defineName»_DBUS_PROXY_H_
@@ -78,7 +79,7 @@ class FInterfaceDBusProxyGenerator {
 
          private:
             «FOR attribute : fInterface.attributes»
-                «attribute.dbusClassName» «attribute.dbusClassVariableName»;
+                «attribute.dbusClassName(deploymentAccessor, fInterface)» «attribute.dbusClassVariableName»;
             «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
@@ -119,7 +120,7 @@ class FInterfaceDBusProxyGenerator {
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
                 CommonAPI::DBus::DBusProxy(commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
-                    «attribute.generateDBusVariableInit(deploymentAccessor)»
+                    «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
                     «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
@@ -198,8 +199,15 @@ class FInterfaceDBusProxyGenerator {
         CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[getTypeName(fMethod.model)].join(', ')»>,
                                          CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[getTypeName(fMethod.model)].join(', ')»> >'''
 
-    def private dbusClassName(FAttribute fAttribute) {
+    def private dbusClassName(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor, FInterface fInterface) {
         var type = 'CommonAPI::DBus::DBus'
+        if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
+            type = type + 'Freedesktop'
+        
+            if (fAttribute.getType.getDerived instanceof FUnionType) {
+                type = type + 'Union'
+            }
+        }
 
         if (fAttribute.isReadonly)
             type = type + 'Readonly'
@@ -207,22 +215,34 @@ class FInterfaceDBusProxyGenerator {
         type = type + 'Attribute<' + fAttribute.className + '>'
 
         if (fAttribute.isObservable)
-            type = 'CommonAPI::DBus::DBusObservableAttribute<' + type + '>'
+            if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
+                if (fAttribute.getType.getDerived instanceof FUnionType) {
+                    type = 'CommonAPI::DBus::DBusFreedesktopUnionObservableAttribute<' + type + '>'
+                } else {
+                    type = 'CommonAPI::DBus::DBusFreedesktopObservableAttribute<' + type + '>'
+                }
+            } else {
+                type = 'CommonAPI::DBus::DBusObservableAttribute<' + type + '>'
+            }
 
         return type
     }
 
-    def private generateDBusVariableInit(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private generateDBusVariableInit(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor, FInterface fInterface) {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
-        if (fAttribute.isObservable)
-            ret = ret + ', "' + fAttribute.dbusSignalName + '"'
+        if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
+            ret = ret + ', interfaceName.c_str(), "' + fAttribute.name + '")'
+        } else {
 
-        if (!fAttribute.isReadonly)
-            ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '"'
+            if (fAttribute.isObservable)
+                ret = ret + ', "' + fAttribute.dbusSignalName + '"'
 
-        ret = ret + ', "' + fAttribute.dbusGetMethodName + '")'
+            if (!fAttribute.isReadonly)
+                ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '"'
 
+            ret = ret + ', "' + fAttribute.dbusGetMethodName + '")'
+        }
         return ret
     }
 
