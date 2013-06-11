@@ -257,7 +257,7 @@ class FInterfaceDBusStubAdapterGenerator {
         if (fMethod.hasError) {
             if (!fMethod.outArgs.empty)
                 types = ', ' + types
-            types = fMethod.getErrorNameReference(fMethod.model) + types
+            types = fMethod.getErrorNameReference(fMethod.eContainer) + types
         }
 
         return types
