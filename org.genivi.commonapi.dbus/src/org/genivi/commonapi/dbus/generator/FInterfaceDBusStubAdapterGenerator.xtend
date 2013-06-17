@@ -30,9 +30,13 @@ class FInterfaceDBusStubAdapterGenerator {
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
 
         #include <«fInterface.stubHeaderPath»>
+        
+        #define COMMONAPI_INTERNAL_COMPILATION
 
         #include <CommonAPI/DBus/DBusStubAdapterHelper.h>
         #include <CommonAPI/DBus/DBusFactory.h>
+        
+        #undef COMMONAPI_INTERNAL_COMPILATION
 
         «fInterface.model.generateNamespaceBeginDeclaration»
 

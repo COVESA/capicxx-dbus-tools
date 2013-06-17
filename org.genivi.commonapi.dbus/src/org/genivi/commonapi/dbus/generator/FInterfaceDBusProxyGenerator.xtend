@@ -35,6 +35,9 @@ class FInterfaceDBusProxyGenerator {
         #define «fInterface.defineName»_DBUS_PROXY_H_
 
         #include <«fInterface.proxyBaseHeaderPath»>
+        
+        #define COMMONAPI_INTERNAL_COMPILATION
+
         #include <CommonAPI/DBus/DBusFactory.h>
         #include <CommonAPI/DBus/DBusProxy.h>
         «IF fInterface.hasAttributes»
@@ -44,6 +47,8 @@ class FInterfaceDBusProxyGenerator {
             #include <CommonAPI/DBus/DBusEvent.h>
         «ENDIF»
 
+        #undef COMMONAPI_INTERNAL_COMPILATION
+        
         #include <string>
 
         «fInterface.model.generateNamespaceBeginDeclaration»
