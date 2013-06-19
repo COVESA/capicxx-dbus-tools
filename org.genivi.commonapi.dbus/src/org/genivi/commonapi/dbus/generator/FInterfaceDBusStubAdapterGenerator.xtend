@@ -14,6 +14,7 @@ import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
+import java.util.HashMap
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -164,20 +165,32 @@ class FInterfaceDBusStubAdapterGenerator {
             
         «ENDFOR»
         
+        «var counterMap = new HashMap<String, Integer>()»
         «FOR method : fInterface.methods»
             «IF !method.isFireAndForget»
                 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>,
                     std::tuple<«method.allOutTypes»>
-                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
+                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, 0)»
+                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «ELSE»
+                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1)» 
+                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «ENDIF»
             «ELSE»
                 static CommonAPI::DBus::DBusMethodStubDispatcher<
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>
-                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
+                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, 0)»
+                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «ELSE»
+                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1)» 
+                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    «ENDIF»
             «ENDIF»
-            
         «ENDFOR»
 
         «FOR attribute : fInterface.attributes»
@@ -217,8 +230,15 @@ class FInterfaceDBusStubAdapterGenerator {
                 «ENDIF»
             «ENDFOR»
             «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
+            «var counterMap2 = new HashMap<String, Integer>()»
             «FOR method : fInterface.methods SEPARATOR ','»
-                { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                «IF !(counterMap2.containsKey(method.dbusStubDispatcherVariable))»
+                    «val ok = counterMap2.put(method.dbusStubDispatcherVariable, 0)»
+                    { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                «ELSE»
+                    «val ok = counterMap2.put(method.dbusStubDispatcherVariable, counterMap2.get(method.dbusStubDispatcherVariable) + 1)»
+                    { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable»«Integer::toString(counterMap2.get(method.dbusStubDispatcherVariable))» }
+                «ENDIF»
             «ENDFOR»
         };
     '''
