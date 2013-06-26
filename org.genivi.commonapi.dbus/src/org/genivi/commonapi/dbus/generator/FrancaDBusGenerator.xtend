@@ -75,7 +75,8 @@ class FrancaDBusGenerator implements IGenerator {
                 deploymentAccessor = defaultDeploymentAccessor
             }
             generateDBusProxy(fileSystemAccess, deploymentAccessor)
-            if (deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
+            if (deploymentAccessor.getPropertiesType(currentInterface) == null || 
+                deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
                 generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
             } else {
                 // Report no Stub here!

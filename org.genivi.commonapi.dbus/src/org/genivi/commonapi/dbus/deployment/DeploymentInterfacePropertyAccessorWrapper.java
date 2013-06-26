@@ -9,8 +9,6 @@ package org.genivi.commonapi.dbus.deployment;
 import org.franca.core.franca.FEnumerationType;
 import org.franca.core.franca.FInterface;
 import org.franca.deploymodel.core.FDeployedInterface;
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor.DefaultEnumBackingType;
-import org.genivi.commonapi.core.deployment.DeploymentInterfacePropertyAccessor.EnumBackingType;
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor;
 
 public class DeploymentInterfacePropertyAccessorWrapper extends DeploymentInterfacePropertyAccessor {
