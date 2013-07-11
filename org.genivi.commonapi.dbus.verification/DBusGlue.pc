@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Common API C++ D-Bus Middleware Gluecode
+Description: GENIVI Common API C++ D-Bus Middleware Gluecode (uninstalled copy)
+Version: 1.0
+Requires: CommonAPI CommonAPI-DBus dbus-1
+Libs: -L${libdir} -lDBusGlue
+Cflags: -I${includedir}/DBusGlue-1.0

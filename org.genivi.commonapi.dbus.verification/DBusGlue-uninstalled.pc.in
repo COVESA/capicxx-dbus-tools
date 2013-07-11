@@ -1,0 +1,11 @@
+abs_top_builddir=@abs_top_builddir@
+abs_top_srcdir=@abs_top_srcdir@
+prefix=
+exec_prefix=
+
+Name: Common API C++ D-Bus Middleware Gluecode
+Description: GENIVI Common API C++ D-Bus Middleware Gluecode (uninstalled copy)
+Version: @PACKAGE_VERSION@
+Requires: CommonAPI CommonAPI-DBus dbus-1
+Libs: ${abs_top_builddir}/libDBusGlue.la
+Cflags: -I${abs_top_srcdir}/src-gen
