@@ -32,7 +32,9 @@ class FInterfaceDBusStubAdapterGenerator {
 
         #include <«fInterface.stubHeaderPath»>
         
+        #if !defined (COMMONAPI_INTERNAL_COMPILATION)
         #define COMMONAPI_INTERNAL_COMPILATION
+        #endif
 
         #include <CommonAPI/DBus/DBusStubAdapterHelper.h>
         #include <CommonAPI/DBus/DBusFactory.h>
@@ -62,6 +64,8 @@ class FInterfaceDBusStubAdapterGenerator {
             «FOR broadcast: fInterface.broadcasts»
                 void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
             «ENDFOR»
+
+            const StubDispatcherTable& getStubDispatcherTable();
 
          protected:
             virtual const char* getMethodsDBusIntrospectionXmlData() const;
@@ -105,7 +109,7 @@ class FInterfaceDBusStubAdapterGenerator {
         }
 
         const char* «fInterface.dbusStubAdapterClassName»::getMethodsDBusIntrospectionXmlData() const {
-            return
+            static const char* introspectionData =
                 «FOR attribute : fInterface.attributes»
                     "<method name=\"«attribute.dbusGetMethodName»\">\n"
                     	"<arg name=\"value\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />"
@@ -143,6 +147,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     "</method>\n"
                 «ENDFOR»
             ;
+            return introspectionData;
         }
 
 
@@ -173,10 +178,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     std::tuple<«method.allInTypes»>,
                     std::tuple<«method.allOutTypes»>
                     «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, 0)»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);""}»
                         > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ELSE»
-                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1)» 
+                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);""}»
                         > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ENDIF»
             «ELSE»
@@ -184,10 +189,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>
                     «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, 0)»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);""}»
                         > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ELSE»
-                        «val ok = counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1)» 
+                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);""}»
                         > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ENDIF»
             «ENDIF»
@@ -219,28 +224,23 @@ class FInterfaceDBusStubAdapterGenerator {
             }
         «ENDFOR»
 
-        «fInterface.model.generateNamespaceEndDeclaration»
+        const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable& «fInterface.dbusStubAdapterClassName»::getStubDispatcherTable() {
+            static const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable stubDispatcherTable = {
+                    «FOR attribute : fInterface.attributes SEPARATOR ','»
+                        { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
+                        «IF !attribute.isReadonly»
+                            , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
+                        «ENDIF»
+                    «ENDFOR»
+                    «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
+                    «FOR method : fInterface.methods SEPARATOR ','»
+                        { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                    «ENDFOR»
+                    };
+            return stubDispatcherTable;
+        }
 
-        template<>
-        const «fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterHelperClassName»::StubDispatcherTable «fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterHelperClassName»::stubDispatcherTable_ = {
-            «FOR attribute : fInterface.attributes SEPARATOR ','»
-                { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
-                «IF !attribute.isReadonly»
-                    , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
-                «ENDIF»
-            «ENDFOR»
-            «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
-            «var counterMap2 = new HashMap<String, Integer>()»
-            «FOR method : fInterface.methods SEPARATOR ','»
-                «IF !(counterMap2.containsKey(method.dbusStubDispatcherVariable))»
-                    «val ok = counterMap2.put(method.dbusStubDispatcherVariable, 0)»
-                    { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
-                «ELSE»
-                    «val ok = counterMap2.put(method.dbusStubDispatcherVariable, counterMap2.get(method.dbusStubDispatcherVariable) + 1)»
-                    { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable»«Integer::toString(counterMap2.get(method.dbusStubDispatcherVariable))» }
-                «ENDIF»
-            «ENDFOR»
-        };
+        «fInterface.model.generateNamespaceEndDeclaration»
     '''
 
     def private getAbsoluteNamespace(FModelElement fModelElement) {
