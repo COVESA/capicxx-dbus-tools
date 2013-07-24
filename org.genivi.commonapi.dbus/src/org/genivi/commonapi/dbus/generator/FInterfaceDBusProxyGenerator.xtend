@@ -24,10 +24,10 @@ class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-	def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
         fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, fInterface.generateDBusProxyHeader(deploymentAccessor))
         fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, fInterface.generateDBusProxySource(deploymentAccessor))
-	}
+    }
 
     def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader»
@@ -35,7 +35,7 @@ class FInterfaceDBusProxyGenerator {
         #define «fInterface.defineName»_DBUS_PROXY_H_
 
         #include <«fInterface.proxyBaseHeaderPath»>
-        
+
         #if !defined (COMMONAPI_INTERNAL_COMPILATION)
         #define COMMONAPI_INTERNAL_COMPILATION
         #endif
@@ -50,7 +50,7 @@ class FInterfaceDBusProxyGenerator {
         «ENDIF»
 
         #undef COMMONAPI_INTERNAL_COMPILATION
-        
+
         #include <string>
 
         «fInterface.model.generateNamespaceBeginDeclaration»
@@ -104,7 +104,7 @@ class FInterfaceDBusProxyGenerator {
         #include "«fInterface.dbusProxyHeaderFile»"
 
         «fInterface.model.generateNamespaceBeginDeclaration»
-        
+
         std::shared_ptr<CommonAPI::DBus::DBusProxy> create«fInterface.dbusProxyClassName»(
                             const std::string& commonApiAddress,
                             const std::string& interfaceName,
@@ -210,7 +210,7 @@ class FInterfaceDBusProxyGenerator {
         var type = 'CommonAPI::DBus::DBus'
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
             type = type + 'Freedesktop'
-        
+
             if (fAttribute.getType.getDerived instanceof FUnionType) {
                 type = type + 'Union'
             }

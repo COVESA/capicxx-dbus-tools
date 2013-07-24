@@ -45,7 +45,7 @@ class FrancaDBusGeneratorExtensions {
 
         if (fMethod.errorEnum != null)
             return fMethod.errorEnum.dbusFTypeSignature(deploymentAccessor)
-        
+
         return fMethod.errors.dbusFTypeSignature(deploymentAccessor)
     }
 

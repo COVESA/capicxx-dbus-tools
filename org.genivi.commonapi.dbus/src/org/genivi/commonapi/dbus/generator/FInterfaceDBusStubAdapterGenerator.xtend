@@ -20,10 +20,10 @@ class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-	def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
         fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, fInterface.generateDBusStubAdapterHeader)
         fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath, fInterface.generateDBusStubAdapterSource(deploymentAccessor))
-	}
+    }
 
     def private generateDBusStubAdapterHeader(FInterface fInterface) '''
         «generateCommonApiLicenseHeader»
@@ -31,14 +31,14 @@ class FInterfaceDBusStubAdapterGenerator {
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
 
         #include <«fInterface.stubHeaderPath»>
-        
+
         #if !defined (COMMONAPI_INTERNAL_COMPILATION)
         #define COMMONAPI_INTERNAL_COMPILATION
         #endif
 
         #include <CommonAPI/DBus/DBusStubAdapterHelper.h>
         #include <CommonAPI/DBus/DBusFactory.h>
-        
+
         #undef COMMONAPI_INTERNAL_COMPILATION
 
         «fInterface.model.generateNamespaceBeginDeclaration»
@@ -60,7 +60,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     void «attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value);
                 «ENDIF»
             «ENDFOR»
-        
+
             «FOR broadcast: fInterface.broadcasts»
                 void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
             «ENDFOR»
@@ -112,7 +112,7 @@ class FInterfaceDBusStubAdapterGenerator {
             static const char* introspectionData =
                 «FOR attribute : fInterface.attributes»
                     "<method name=\"«attribute.dbusGetMethodName»\">\n"
-                    	"<arg name=\"value\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />"
+                        "<arg name=\"value\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />"
                     "</method>\n"
                     «IF !attribute.isReadonly»
                         "<method name=\"«attribute.dbusSetMethodName»\">\n"
@@ -138,9 +138,9 @@ class FInterfaceDBusStubAdapterGenerator {
                         «FOR inArg : method.inArgs»
                             "<arg name=\"«inArg.name»\" type=\"«inArg.getTypeDbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
                         «ENDFOR»
-                    	«IF method.hasError»
-                    		"<arg name=\"methodError\" type=\"«method.dbusErrorSignature(deploymentAccessor)»\" direction=\"out\" />\n"
-                    	«ENDIF»
+                        «IF method.hasError»
+                            "<arg name=\"methodError\" type=\"«method.dbusErrorSignature(deploymentAccessor)»\" direction=\"out\" />\n"
+                        «ENDIF»
                         «FOR outArg : method.outArgs»
                             "<arg name=\"«outArg.name»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" direction=\"out\" />\n"
                         «ENDFOR»
@@ -167,9 +167,9 @@ class FInterfaceDBusStubAdapterGenerator {
                                 «IF attribute.observable»&«fInterface.stubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»,«ENDIF»
                                 "«attribute.dbusSignature(deploymentAccessor)»");
             «ENDIF»
-            
+
         «ENDFOR»
-        
+
         «var counterMap = new HashMap<String, Integer>()»
         «FOR method : fInterface.methods»
             «IF !method.isFireAndForget»
@@ -201,7 +201,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «FOR attribute : fInterface.attributes»
             «IF attribute.isObservable»
                 void «fInterface.dbusStubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value) {
-                	CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«attribute.getTypeName(fInterface.model)»>>
+                    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«attribute.getTypeName(fInterface.model)»>>
                         ::sendSignal(
                             *this,
                             "«attribute.dbusSignalName»",
