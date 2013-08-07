@@ -39,6 +39,9 @@ namespace CommonAPI {
 
 
 namespace std {
+    //hashes for types
+    
+    //hashes for error types
 }
 
 #endif // COMMONAPI_TESTS_Test_Interface_H_

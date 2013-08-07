@@ -59,7 +59,6 @@ class TestInterfaceProxyBase: virtual public CommonAPI::Proxy {
     virtual std::future<CommonAPI::CallStatus> testDerivedTypeMethodAsync(const DerivedTypeCollection::TestEnumExtended2& testEnumExtended2InValue, const DerivedTypeCollection::TestMap& testMapInValue, TestDerivedTypeMethodAsyncCallback callback) = 0;
 };
 
-
 } // namespace tests
 } // namespace commonapi
 

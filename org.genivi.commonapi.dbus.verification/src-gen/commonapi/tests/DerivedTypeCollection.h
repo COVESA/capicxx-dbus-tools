@@ -140,31 +140,31 @@ struct TestEnumExtended2Comparator {
 };
 
 
-inline bool operator==(const TestEnumExtended2& lhs, const TestEnum& rhs) {
+inline bool operator==(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnum& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const TestEnum& lhs, const TestEnumExtended2& rhs) {
+inline bool operator==(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-}
-inline bool operator!=(const TestEnumExtended2& lhs, const TestEnum& rhs) {
+} 
+inline bool operator!=(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnum& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const TestEnum& lhs, const TestEnumExtended2& rhs) {
+inline bool operator!=(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-}
+} 
 
-inline bool operator==(const TestEnumExtended2& lhs, const TestEnumExtended& rhs) {
+inline bool operator==(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
+inline bool operator==(const DerivedTypeCollection::TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-}
-inline bool operator!=(const TestEnumExtended2& lhs, const TestEnumExtended& rhs) {
+} 
+inline bool operator!=(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
+inline bool operator!=(const DerivedTypeCollection::TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-}
+} 
 inline CommonAPI::InputStream& operator>>(CommonAPI::InputStream& inputStream, TestEnumMissingValue& enumValue) {
     return inputStream.readEnumValue<int32_t>(enumValue);
 }
@@ -194,18 +194,18 @@ struct TestEnumExtendedComparator {
 };
 
 
-inline bool operator==(const TestEnumExtended& lhs, const TestEnum& rhs) {
+inline bool operator==(const TestEnumExtended& lhs, const DerivedTypeCollection::TestEnum& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const TestEnum& lhs, const TestEnumExtended& rhs) {
+inline bool operator==(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-}
-inline bool operator!=(const TestEnumExtended& lhs, const TestEnum& rhs) {
+} 
+inline bool operator!=(const TestEnumExtended& lhs, const DerivedTypeCollection::TestEnum& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const TestEnum& lhs, const TestEnumExtended& rhs) {
+inline bool operator!=(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-}
+} 
 bool operator==(const TestStruct& lhs, const TestStruct& rhs);
 inline bool operator!=(const TestStruct& lhs, const TestStruct& rhs) {
     return !(lhs == rhs);
@@ -309,24 +309,28 @@ namespace CommonAPI {
 
 
 namespace std {
+    //Hash for TestEnum
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnum> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnum& testEnum) const {
             return static_cast<int32_t>(testEnum);
         }
     };
+    //Hash for TestEnumExtended2
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumExtended2> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumExtended2& testEnumExtended2) const {
             return static_cast<int32_t>(testEnumExtended2);
         }
     };
+    //Hash for TestEnumMissingValue
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumMissingValue> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumMissingValue& testEnumMissingValue) const {
             return static_cast<int32_t>(testEnumMissingValue);
         }
     };
+    //Hash for TestEnumExtended
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumExtended> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumExtended& testEnumExtended) const {

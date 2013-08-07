@@ -22,14 +22,26 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
     ~TestInterfaceProxy();
 
     /// Returns the wrapper class that provides access to the attribute TestPredefinedTypeAttribute.
-    virtual TestPredefinedTypeAttributeAttribute& getTestPredefinedTypeAttributeAttribute();
+    virtual TestPredefinedTypeAttributeAttribute& getTestPredefinedTypeAttributeAttribute() {
+        return delegate_->getTestPredefinedTypeAttributeAttribute();
+    }
+
     /// Returns the wrapper class that provides access to the attribute TestDerivedStructAttribute.
-    virtual TestDerivedStructAttributeAttribute& getTestDerivedStructAttributeAttribute();
+    virtual TestDerivedStructAttributeAttribute& getTestDerivedStructAttributeAttribute() {
+        return delegate_->getTestDerivedStructAttributeAttribute();
+    }
+
     /// Returns the wrapper class that provides access to the attribute TestDerivedArrayAttribute.
-    virtual TestDerivedArrayAttributeAttribute& getTestDerivedArrayAttributeAttribute();
+    virtual TestDerivedArrayAttributeAttribute& getTestDerivedArrayAttributeAttribute() {
+        return delegate_->getTestDerivedArrayAttributeAttribute();
+    }
+
 
     /// Returns the wrapper class that provides access to the broadcast TestPredefinedTypeBroadcast.
-    virtual TestPredefinedTypeBroadcastEvent& getTestPredefinedTypeBroadcastEvent();
+    virtual TestPredefinedTypeBroadcastEvent& getTestPredefinedTypeBroadcastEvent() {
+        return delegate_->getTestPredefinedTypeBroadcastEvent();
+    }
+
 
 
     /**
@@ -38,7 +50,6 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
      * The CallStatus will be filled when the method returns and indicate either
      * "SUCCESS" or which type of error has occurred. In case of an error, ONLY the CallStatus
      * will be set.
-     * Synchronous calls are not supported (will block indefinitely) when mainloop integration is used.
      */
     virtual void testEmptyMethod(CommonAPI::CallStatus& callStatus);
     /**
@@ -60,7 +71,6 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
      * The CallStatus will be filled when the method returns and indicate either
      * "SUCCESS" or which type of error has occurred. In case of an error, ONLY the CallStatus
      * will be set.
-     * Synchronous calls are not supported (will block indefinitely) when mainloop integration is used.
      */
     virtual void testVoidPredefinedTypeMethod(const uint32_t& uint32Value, const std::string& stringValue, CommonAPI::CallStatus& callStatus);
     /**
@@ -83,7 +93,6 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
      * The CallStatus will be filled when the method returns and indicate either
      * "SUCCESS" or which type of error has occurred. In case of an error, ONLY the CallStatus
      * will be set.
-     * Synchronous calls are not supported (will block indefinitely) when mainloop integration is used.
      */
     virtual void testPredefinedTypeMethod(const uint32_t& uint32InValue, const std::string& stringInValue, CommonAPI::CallStatus& callStatus, uint32_t& uint32OutValue, std::string& stringOutValue);
     /**
@@ -105,7 +114,6 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
      * The CallStatus will be filled when the method returns and indicate either
      * "SUCCESS" or which type of error has occurred. In case of an error, ONLY the CallStatus
      * will be set.
-     * Synchronous calls are not supported (will block indefinitely) when mainloop integration is used.
      */
     virtual void testVoidDerivedTypeMethod(const DerivedTypeCollection::TestEnumExtended2& testEnumExtended2Value, const DerivedTypeCollection::TestMap& testMapValue, CommonAPI::CallStatus& callStatus);
     /**
@@ -128,7 +136,6 @@ class TestInterfaceProxy: virtual public TestInterface, virtual public TestInter
      * The CallStatus will be filled when the method returns and indicate either
      * "SUCCESS" or which type of error has occurred. In case of an error, ONLY the CallStatus
      * will be set.
-     * Synchronous calls are not supported (will block indefinitely) when mainloop integration is used.
      */
     virtual void testDerivedTypeMethod(const DerivedTypeCollection::TestEnumExtended2& testEnumExtended2InValue, const DerivedTypeCollection::TestMap& testMapInValue, CommonAPI::CallStatus& callStatus, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue);
     /**
@@ -246,28 +253,6 @@ TestInterfaceProxy<_AttributeExtensions...>::TestInterfaceProxy(std::shared_ptr<
 template <typename ... _AttributeExtensions>
 TestInterfaceProxy<_AttributeExtensions...>::~TestInterfaceProxy() {
 }
-
-template <typename ... _AttributeExtensions>
-typename TestInterfaceProxy<_AttributeExtensions...>::TestPredefinedTypeAttributeAttribute& TestInterfaceProxy<_AttributeExtensions...>::getTestPredefinedTypeAttributeAttribute() {
-    return delegate_->getTestPredefinedTypeAttributeAttribute();
-}
-
-template <typename ... _AttributeExtensions>
-typename TestInterfaceProxy<_AttributeExtensions...>::TestDerivedStructAttributeAttribute& TestInterfaceProxy<_AttributeExtensions...>::getTestDerivedStructAttributeAttribute() {
-    return delegate_->getTestDerivedStructAttributeAttribute();
-}
-
-template <typename ... _AttributeExtensions>
-typename TestInterfaceProxy<_AttributeExtensions...>::TestDerivedArrayAttributeAttribute& TestInterfaceProxy<_AttributeExtensions...>::getTestDerivedArrayAttributeAttribute() {
-    return delegate_->getTestDerivedArrayAttributeAttribute();
-}
-
-
-template <typename ... _AttributeExtensions>
-typename TestInterfaceProxy<_AttributeExtensions...>::TestPredefinedTypeBroadcastEvent& TestInterfaceProxy<_AttributeExtensions...>::getTestPredefinedTypeBroadcastEvent() {
-    return delegate_->getTestPredefinedTypeBroadcastEvent();
-}
-
 
 template <typename ... _AttributeExtensions>
 void TestInterfaceProxy<_AttributeExtensions...>::testEmptyMethod(CommonAPI::CallStatus& callStatus) {
