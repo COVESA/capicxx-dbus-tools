@@ -8,18 +8,10 @@
 #ifndef COMMONAPI_TESTS_Predefined_Type_Collection_H_
 #define COMMONAPI_TESTS_Predefined_Type_Collection_H_
 
-
-
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
 #include <CommonAPI/ByteBuffer.h>
 #include <CommonAPI/types.h>
 #include <cstdint>
 #include <string>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 namespace commonapi {
 namespace tests {
@@ -55,8 +47,7 @@ namespace PredefinedTypeCollection {
 
 
 static inline const char* getTypeCollectionName() {
-    static const char* typeCollectionName = "commonapi.tests.PredefinedTypeCollection";
-    return typeCollectionName;
+    return "commonapi.tests.PredefinedTypeCollection";
 }
 
 

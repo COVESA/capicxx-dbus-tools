@@ -8,26 +8,14 @@
 #ifndef COMMONAPI_TESTS_Test_Interface_STUB_H_
 #define COMMONAPI_TESTS_Test_Interface_STUB_H_
 
-
-
-#include <commonapi/tests/DerivedTypeCollection.h>
-
-#include "TestInterface.h"
-
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
-#include <CommonAPI/InputStream.h>
-#include <CommonAPI/OutputStream.h>
-#include <cstdint>
 #include <unordered_map>
+#include <cstdint>
+#include <commonapi/tests/DerivedTypeCollection.h>
+#include <CommonAPI/InputStream.h>
 #include <vector>
-
+#include <CommonAPI/OutputStream.h>
+#include "TestInterface.h"
 #include <CommonAPI/Stub.h>
-#include <CommonAPI/types.h>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 namespace commonapi {
 namespace tests {
@@ -72,17 +60,17 @@ class TestInterfaceStubRemoteEvent {
     virtual ~TestInterfaceStubRemoteEvent() { }
 
     /// Verification callback for remote set requests on the attribute TestPredefinedTypeAttribute.
-    virtual bool onRemoteSetTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId, uint32_t TestPredefinedTypeAttribute) = 0;
+    virtual bool onRemoteSetTestPredefinedTypeAttributeAttribute(uint32_t TestPredefinedTypeAttribute) = 0;
     /// Action callback for remote set requests on the attribute TestPredefinedTypeAttribute.
     virtual void onRemoteTestPredefinedTypeAttributeAttributeChanged() = 0;
 
     /// Verification callback for remote set requests on the attribute TestDerivedStructAttribute.
-    virtual bool onRemoteSetTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestStructExtended TestDerivedStructAttribute) = 0;
+    virtual bool onRemoteSetTestDerivedStructAttributeAttribute(DerivedTypeCollection::TestStructExtended TestDerivedStructAttribute) = 0;
     /// Action callback for remote set requests on the attribute TestDerivedStructAttribute.
     virtual void onRemoteTestDerivedStructAttributeAttributeChanged() = 0;
 
     /// Verification callback for remote set requests on the attribute TestDerivedArrayAttribute.
-    virtual bool onRemoteSetTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestArrayUInt64 TestDerivedArrayAttribute) = 0;
+    virtual bool onRemoteSetTestDerivedArrayAttributeAttribute(DerivedTypeCollection::TestArrayUInt64 TestDerivedArrayAttribute) = 0;
     /// Action callback for remote set requests on the attribute TestDerivedArrayAttribute.
     virtual void onRemoteTestDerivedArrayAttributeAttributeChanged() = 0;
 
@@ -100,22 +88,22 @@ class TestInterfaceStub : public CommonAPI::Stub<TestInterfaceStubAdapter , Test
     virtual ~TestInterfaceStub() { }
 
     /// Provides getter access to the attribute TestPredefinedTypeAttribute.
-    virtual const uint32_t& getTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId) = 0;
+    virtual const uint32_t& getTestPredefinedTypeAttributeAttribute() = 0;
     /// Provides getter access to the attribute TestDerivedStructAttribute.
-    virtual const DerivedTypeCollection::TestStructExtended& getTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId) = 0;
+    virtual const DerivedTypeCollection::TestStructExtended& getTestDerivedStructAttributeAttribute() = 0;
     /// Provides getter access to the attribute TestDerivedArrayAttribute.
-    virtual const DerivedTypeCollection::TestArrayUInt64& getTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId) = 0;
+    virtual const DerivedTypeCollection::TestArrayUInt64& getTestDerivedArrayAttributeAttribute() = 0;
 
     /// This is the method that will be called on remote calls on the method testEmptyMethod.
-    virtual void testEmptyMethod(const CommonAPI::ClientId& clientId) = 0;
+    virtual void testEmptyMethod() = 0;
     /// This is the method that will be called on remote calls on the method testVoidPredefinedTypeMethod.
-    virtual void testVoidPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32Value, std::string stringValue) = 0;
+    virtual void testVoidPredefinedTypeMethod(uint32_t uint32Value, std::string stringValue) = 0;
     /// This is the method that will be called on remote calls on the method testPredefinedTypeMethod.
-    virtual void testPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue) = 0;
+    virtual void testPredefinedTypeMethod(uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue) = 0;
     /// This is the method that will be called on remote calls on the method testVoidDerivedTypeMethod.
-    virtual void testVoidDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue) = 0;
+    virtual void testVoidDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue) = 0;
     /// This is the method that will be called on remote calls on the method testDerivedTypeMethod.
-    virtual void testDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue) = 0;
+    virtual void testDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue) = 0;
     
     /// Sends a broadcast event for TestPredefinedTypeBroadcast.
     virtual void fireTestPredefinedTypeBroadcastEvent(const uint32_t& uint32Value, const std::string& stringValue) = 0;

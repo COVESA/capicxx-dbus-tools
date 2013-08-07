@@ -7,7 +7,6 @@
 */
 #include "DerivedTypeCollection.h"
 
-
 namespace commonapi {
 namespace tests {
 namespace DerivedTypeCollection {
@@ -17,7 +16,6 @@ TestStructExtended::TestStructExtended(const PredefinedTypeCollection::TestStrin
         testEnumExtended2(testEnumExtended2Value)
 {
 }
-
 
 bool operator==(const TestStructExtended& lhs, const TestStructExtended& rhs) {
     if (&lhs == &rhs)
@@ -43,7 +41,6 @@ TestStruct::TestStruct(const PredefinedTypeCollection::TestString& testStringVal
         uintValue(uintValueValue)
 {
 }
-
 
 bool operator==(const TestStruct& lhs, const TestStruct& rhs) {
     if (&lhs == &rhs)

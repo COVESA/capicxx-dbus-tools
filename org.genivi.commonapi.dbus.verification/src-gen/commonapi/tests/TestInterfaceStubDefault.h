@@ -30,32 +30,24 @@ class TestInterfaceStubDefault : public TestInterfaceStub {
     TestInterfaceStubRemoteEvent* initStubAdapter(const std::shared_ptr<TestInterfaceStubAdapter>& stubAdapter);
 
     virtual const uint32_t& getTestPredefinedTypeAttributeAttribute();
-    virtual const uint32_t& getTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId);
     virtual void setTestPredefinedTypeAttributeAttribute(uint32_t value);
-    virtual void setTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId, uint32_t value);
+
     virtual const DerivedTypeCollection::TestStructExtended& getTestDerivedStructAttributeAttribute();
-    virtual const DerivedTypeCollection::TestStructExtended& getTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId);
     virtual void setTestDerivedStructAttributeAttribute(DerivedTypeCollection::TestStructExtended value);
-    virtual void setTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestStructExtended value);
+
     virtual const DerivedTypeCollection::TestArrayUInt64& getTestDerivedArrayAttributeAttribute();
-    virtual const DerivedTypeCollection::TestArrayUInt64& getTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId);
     virtual void setTestDerivedArrayAttributeAttribute(DerivedTypeCollection::TestArrayUInt64 value);
-    virtual void setTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestArrayUInt64 value);
+
 
     virtual void testEmptyMethod();
-    virtual void testEmptyMethod(const CommonAPI::ClientId& clientId);
 
     virtual void testVoidPredefinedTypeMethod(uint32_t uint32Value, std::string stringValue);
-    virtual void testVoidPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32Value, std::string stringValue);
 
     virtual void testPredefinedTypeMethod(uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue);
-    virtual void testPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue);
 
     virtual void testVoidDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue);
-    virtual void testVoidDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue);
 
     virtual void testDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue);
-    virtual void testDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue);
 
     
     virtual void fireTestPredefinedTypeBroadcastEvent(const uint32_t& uint32Value, const std::string& stringValue);
@@ -80,15 +72,12 @@ class TestInterfaceStubDefault : public TestInterfaceStub {
         RemoteEventHandler(TestInterfaceStubDefault* defaultStub);
 
         virtual bool onRemoteSetTestPredefinedTypeAttributeAttribute(uint32_t value);
-        virtual bool onRemoteSetTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId, uint32_t value);
         virtual void onRemoteTestPredefinedTypeAttributeAttributeChanged();
 
         virtual bool onRemoteSetTestDerivedStructAttributeAttribute(DerivedTypeCollection::TestStructExtended value);
-        virtual bool onRemoteSetTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestStructExtended value);
         virtual void onRemoteTestDerivedStructAttributeAttributeChanged();
 
         virtual bool onRemoteSetTestDerivedArrayAttributeAttribute(DerivedTypeCollection::TestArrayUInt64 value);
-        virtual bool onRemoteSetTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestArrayUInt64 value);
         virtual void onRemoteTestDerivedArrayAttributeAttributeChanged();
 
 

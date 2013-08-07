@@ -23,18 +23,10 @@ const uint32_t& TestInterfaceStubDefault::getTestPredefinedTypeAttributeAttribut
     return testPredefinedTypeAttributeAttributeValue_;
 }
 
-const uint32_t& TestInterfaceStubDefault::getTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId) {
-    return getTestPredefinedTypeAttributeAttribute();
-}
-
 void TestInterfaceStubDefault::setTestPredefinedTypeAttributeAttribute(uint32_t value) {
     const bool valueChanged = trySetTestPredefinedTypeAttributeAttribute(std::move(value));
     if (valueChanged)
         stubAdapter_->fireTestPredefinedTypeAttributeAttributeChanged(testPredefinedTypeAttributeAttributeValue_);
-}
-
-void TestInterfaceStubDefault::setTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId, uint32_t value) {
-       setTestPredefinedTypeAttributeAttribute(value);
 }
 
 void TestInterfaceStubDefault::onRemoteTestPredefinedTypeAttributeAttributeChanged() {
@@ -58,10 +50,6 @@ bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestPredefinedType
     return defaultStub_->trySetTestPredefinedTypeAttributeAttribute(std::move(value));
 }
 
-bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestPredefinedTypeAttributeAttribute(const CommonAPI::ClientId& clientId, uint32_t value) {
-    return onRemoteSetTestPredefinedTypeAttributeAttribute(value);
-}
-
 void TestInterfaceStubDefault::RemoteEventHandler::onRemoteTestPredefinedTypeAttributeAttributeChanged() {
     defaultStub_->onRemoteTestPredefinedTypeAttributeAttributeChanged();
 }
@@ -70,18 +58,10 @@ const DerivedTypeCollection::TestStructExtended& TestInterfaceStubDefault::getTe
     return testDerivedStructAttributeAttributeValue_;
 }
 
-const DerivedTypeCollection::TestStructExtended& TestInterfaceStubDefault::getTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId) {
-    return getTestDerivedStructAttributeAttribute();
-}
-
 void TestInterfaceStubDefault::setTestDerivedStructAttributeAttribute(DerivedTypeCollection::TestStructExtended value) {
     const bool valueChanged = trySetTestDerivedStructAttributeAttribute(std::move(value));
     if (valueChanged)
         stubAdapter_->fireTestDerivedStructAttributeAttributeChanged(testDerivedStructAttributeAttributeValue_);
-}
-
-void TestInterfaceStubDefault::setTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestStructExtended value) {
-       setTestDerivedStructAttributeAttribute(value);
 }
 
 void TestInterfaceStubDefault::onRemoteTestDerivedStructAttributeAttributeChanged() {
@@ -105,10 +85,6 @@ bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestDerivedStructA
     return defaultStub_->trySetTestDerivedStructAttributeAttribute(std::move(value));
 }
 
-bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestDerivedStructAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestStructExtended value) {
-    return onRemoteSetTestDerivedStructAttributeAttribute(value);
-}
-
 void TestInterfaceStubDefault::RemoteEventHandler::onRemoteTestDerivedStructAttributeAttributeChanged() {
     defaultStub_->onRemoteTestDerivedStructAttributeAttributeChanged();
 }
@@ -117,18 +93,10 @@ const DerivedTypeCollection::TestArrayUInt64& TestInterfaceStubDefault::getTestD
     return testDerivedArrayAttributeAttributeValue_;
 }
 
-const DerivedTypeCollection::TestArrayUInt64& TestInterfaceStubDefault::getTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId) {
-    return getTestDerivedArrayAttributeAttribute();
-}
-
 void TestInterfaceStubDefault::setTestDerivedArrayAttributeAttribute(DerivedTypeCollection::TestArrayUInt64 value) {
     const bool valueChanged = trySetTestDerivedArrayAttributeAttribute(std::move(value));
     if (valueChanged)
         stubAdapter_->fireTestDerivedArrayAttributeAttributeChanged(testDerivedArrayAttributeAttributeValue_);
-}
-
-void TestInterfaceStubDefault::setTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestArrayUInt64 value) {
-       setTestDerivedArrayAttributeAttribute(value);
 }
 
 void TestInterfaceStubDefault::onRemoteTestDerivedArrayAttributeAttributeChanged() {
@@ -152,10 +120,6 @@ bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestDerivedArrayAt
     return defaultStub_->trySetTestDerivedArrayAttributeAttribute(std::move(value));
 }
 
-bool TestInterfaceStubDefault::RemoteEventHandler::onRemoteSetTestDerivedArrayAttributeAttribute(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestArrayUInt64 value) {
-    return onRemoteSetTestDerivedArrayAttributeAttribute(value);
-}
-
 void TestInterfaceStubDefault::RemoteEventHandler::onRemoteTestDerivedArrayAttributeAttributeChanged() {
     defaultStub_->onRemoteTestDerivedArrayAttributeAttributeChanged();
 }
@@ -165,50 +129,20 @@ void TestInterfaceStubDefault::testEmptyMethod() {
     // No operation in default
 }
 
-
-void TestInterfaceStubDefault::testEmptyMethod(const CommonAPI::ClientId& clientId) {
-    // Call compatibility interface
-    testEmptyMethod();
-}
-
 void TestInterfaceStubDefault::testVoidPredefinedTypeMethod(uint32_t uint32Value, std::string stringValue) {
     // No operation in default
-}
-
-
-void TestInterfaceStubDefault::testVoidPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32Value, std::string stringValue) {
-    // Call compatibility interface
-    testVoidPredefinedTypeMethod(uint32Value, stringValue);
 }
 
 void TestInterfaceStubDefault::testPredefinedTypeMethod(uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue) {
     // No operation in default
 }
 
-
-void TestInterfaceStubDefault::testPredefinedTypeMethod(const CommonAPI::ClientId& clientId, uint32_t uint32InValue, std::string stringInValue, uint32_t& uint32OutValue, std::string& stringOutValue) {
-    // Call compatibility interface
-    testPredefinedTypeMethod(uint32InValue, stringInValue, uint32OutValue, stringOutValue);
-}
-
 void TestInterfaceStubDefault::testVoidDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue) {
     // No operation in default
 }
 
-
-void TestInterfaceStubDefault::testVoidDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2Value, DerivedTypeCollection::TestMap testMapValue) {
-    // Call compatibility interface
-    testVoidDerivedTypeMethod(testEnumExtended2Value, testMapValue);
-}
-
 void TestInterfaceStubDefault::testDerivedTypeMethod(DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue) {
     // No operation in default
-}
-
-
-void TestInterfaceStubDefault::testDerivedTypeMethod(const CommonAPI::ClientId& clientId, DerivedTypeCollection::TestEnumExtended2 testEnumExtended2InValue, DerivedTypeCollection::TestMap testMapInValue, DerivedTypeCollection::TestEnumExtended2& testEnumExtended2OutValue, DerivedTypeCollection::TestMap& testMapOutValue) {
-    // Call compatibility interface
-    testDerivedTypeMethod(testEnumExtended2InValue, testMapInValue, testEnumExtended2OutValue, testMapOutValue);
 }
 
 

@@ -8,23 +8,15 @@
 #ifndef COMMONAPI_TESTS_Derived_Type_Collection_H_
 #define COMMONAPI_TESTS_Derived_Type_Collection_H_
 
-
-#include <commonapi/tests/PredefinedTypeCollection.h>
-
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
 #include <CommonAPI/InputStream.h>
 #include <CommonAPI/OutputStream.h>
 #include <CommonAPI/SerializableStruct.h>
 #include <CommonAPI/types.h>
+#include <commonapi/tests/PredefinedTypeCollection.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 namespace commonapi {
 namespace tests {
@@ -36,7 +28,6 @@ namespace DerivedTypeCollection {
     
         TestStruct() = default;
         TestStruct(const PredefinedTypeCollection::TestString& testString, const uint16_t& uintValue);
-    
     
         virtual void readFromInputStream(CommonAPI::InputStream& inputStream);
         virtual void writeToOutputStream(CommonAPI::OutputStream& outputStream) const;
@@ -58,7 +49,7 @@ namespace DerivedTypeCollection {
         E_NOT_USED = 0x3
     };
     
-    // Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
+    // XXX Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
     struct TestEnumComparator;
     
     enum class TestEnumExtended: int32_t {
@@ -70,7 +61,7 @@ namespace DerivedTypeCollection {
         E_NEW = 0x4
     };
     
-    // Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
+    // XXX Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
     struct TestEnumExtendedComparator;
     
     enum class TestEnumExtended2: int32_t {
@@ -84,7 +75,7 @@ namespace DerivedTypeCollection {
         E_NEW2 = 0x5
     };
     
-    // Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
+    // XXX Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
     struct TestEnumExtended2Comparator;
     
     struct TestStructExtended: TestStruct {
@@ -92,7 +83,6 @@ namespace DerivedTypeCollection {
     
         TestStructExtended() = default;
         TestStructExtended(const PredefinedTypeCollection::TestString& testString, const uint16_t& uintValue, const TestEnumExtended2& testEnumExtended2);
-    
     
         virtual void readFromInputStream(CommonAPI::InputStream& inputStream);
         virtual void writeToOutputStream(CommonAPI::OutputStream& outputStream) const;
@@ -111,7 +101,7 @@ namespace DerivedTypeCollection {
         E3 = 2
     };
     
-    // Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
+    // XXX Definition of a comparator still is necessary for GCC 4.4.1, topic is fixed since 4.5.1
     struct TestEnumMissingValueComparator;
     
     typedef std::vector<uint64_t> TestArrayUInt64;
@@ -150,31 +140,31 @@ struct TestEnumExtended2Comparator {
 };
 
 
-inline bool operator==(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnum& rhs) {
+inline bool operator==(const TestEnumExtended2& lhs, const TestEnum& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended2& rhs) {
+inline bool operator==(const TestEnum& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-} 
-inline bool operator!=(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnum& rhs) {
+}
+inline bool operator!=(const TestEnumExtended2& lhs, const TestEnum& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended2& rhs) {
+inline bool operator!=(const TestEnum& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-} 
+}
 
-inline bool operator==(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnumExtended& rhs) {
+inline bool operator==(const TestEnumExtended2& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const DerivedTypeCollection::TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
+inline bool operator==(const TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-} 
-inline bool operator!=(const TestEnumExtended2& lhs, const DerivedTypeCollection::TestEnumExtended& rhs) {
+}
+inline bool operator!=(const TestEnumExtended2& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const DerivedTypeCollection::TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
+inline bool operator!=(const TestEnumExtended& lhs, const TestEnumExtended2& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-} 
+}
 inline CommonAPI::InputStream& operator>>(CommonAPI::InputStream& inputStream, TestEnumMissingValue& enumValue) {
     return inputStream.readEnumValue<int32_t>(enumValue);
 }
@@ -204,18 +194,18 @@ struct TestEnumExtendedComparator {
 };
 
 
-inline bool operator==(const TestEnumExtended& lhs, const DerivedTypeCollection::TestEnum& rhs) {
+inline bool operator==(const TestEnumExtended& lhs, const TestEnum& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
 }
-inline bool operator==(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended& rhs) {
+inline bool operator==(const TestEnum& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) == static_cast<int32_t>(rhs);
-} 
-inline bool operator!=(const TestEnumExtended& lhs, const DerivedTypeCollection::TestEnum& rhs) {
+}
+inline bool operator!=(const TestEnumExtended& lhs, const TestEnum& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
 }
-inline bool operator!=(const DerivedTypeCollection::TestEnum& lhs, const TestEnumExtended& rhs) {
+inline bool operator!=(const TestEnum& lhs, const TestEnumExtended& rhs) {
     return static_cast<int32_t>(lhs) != static_cast<int32_t>(rhs);
-} 
+}
 bool operator==(const TestStruct& lhs, const TestStruct& rhs);
 inline bool operator!=(const TestStruct& lhs, const TestStruct& rhs) {
     return !(lhs == rhs);
@@ -223,8 +213,7 @@ inline bool operator!=(const TestStruct& lhs, const TestStruct& rhs) {
 
 
 static inline const char* getTypeCollectionName() {
-    static const char* typeCollectionName = "commonapi.tests.DerivedTypeCollection";
-    return typeCollectionName;
+    return "commonapi.tests.DerivedTypeCollection";
 }
 
 
@@ -320,28 +309,24 @@ namespace CommonAPI {
 
 
 namespace std {
-    //Hash for TestEnum
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnum> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnum& testEnum) const {
             return static_cast<int32_t>(testEnum);
         }
     };
-    //Hash for TestEnumExtended2
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumExtended2> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumExtended2& testEnumExtended2) const {
             return static_cast<int32_t>(testEnumExtended2);
         }
     };
-    //Hash for TestEnumMissingValue
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumMissingValue> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumMissingValue& testEnumMissingValue) const {
             return static_cast<int32_t>(testEnumMissingValue);
         }
     };
-    //Hash for TestEnumExtended
     template<>
     struct hash<commonapi::tests::DerivedTypeCollection::TestEnumExtended> {
         inline size_t operator()(const commonapi::tests::DerivedTypeCollection::TestEnumExtended& testEnumExtended) const {

@@ -9,17 +9,10 @@
 #define COMMONAPI_TESTS_Test_Interface_DBUS_PROXY_H_
 
 #include <commonapi/tests/TestInterfaceProxyBase.h>
-
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
 #include <CommonAPI/DBus/DBusFactory.h>
 #include <CommonAPI/DBus/DBusProxy.h>
 #include <CommonAPI/DBus/DBusAttribute.h>
 #include <CommonAPI/DBus/DBusEvent.h>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 #include <string>
 

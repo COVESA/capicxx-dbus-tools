@@ -37,7 +37,7 @@ TestInterfaceDBusStubAdapter::TestInterfaceDBusStubAdapter(
 }
 
 const char* TestInterfaceDBusStubAdapter::getMethodsDBusIntrospectionXmlData() const {
-    static const char* introspectionData =
+    return
         "<method name=\"getTestPredefinedTypeAttributeAttribute\">\n"
         	"<arg name=\"value\" type=\"u\" direction=\"out\" />"
         "</method>\n"
@@ -95,7 +95,6 @@ const char* TestInterfaceDBusStubAdapter::getMethodsDBusIntrospectionXmlData() c
             "<arg name=\"testMapOutValue\" type=\"a{ua(sq)}\" direction=\"out\" />\n"
         "</method>\n"
     ;
-    return introspectionData;
 }
 
 
@@ -147,26 +146,47 @@ static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
     std::tuple<>,
     std::tuple<>
     > testEmptyMethodStubDispatcher(&TestInterfaceStub::testEmptyMethod, "");
+
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
     TestInterfaceStub,
     std::tuple<uint32_t, std::string>,
     std::tuple<>
     > testVoidPredefinedTypeMethodStubDispatcher(&TestInterfaceStub::testVoidPredefinedTypeMethod, "");
+
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
     TestInterfaceStub,
     std::tuple<uint32_t, std::string>,
     std::tuple<uint32_t, std::string>
     > testPredefinedTypeMethodStubDispatcher(&TestInterfaceStub::testPredefinedTypeMethod, "us");
+
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
     TestInterfaceStub,
     std::tuple<DerivedTypeCollection::TestEnumExtended2, DerivedTypeCollection::TestMap>,
     std::tuple<>
     > testVoidDerivedTypeMethodStubDispatcher(&TestInterfaceStub::testVoidDerivedTypeMethod, "");
+
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
     TestInterfaceStub,
     std::tuple<DerivedTypeCollection::TestEnumExtended2, DerivedTypeCollection::TestMap>,
     std::tuple<DerivedTypeCollection::TestEnumExtended2, DerivedTypeCollection::TestMap>
     > testDerivedTypeMethodStubDispatcher(&TestInterfaceStub::testDerivedTypeMethod, "ia{ua(sq)}");
+
+
+template<>
+const TestInterfaceDBusStubAdapterHelper::StubDispatcherTable TestInterfaceDBusStubAdapterHelper::stubDispatcherTable_ = {
+    { { "getTestPredefinedTypeAttributeAttribute", "" }, &commonapi::tests::getTestPredefinedTypeAttributeAttributeStubDispatcher }
+    , { { "setTestPredefinedTypeAttributeAttribute", "u" }, &commonapi::tests::setTestPredefinedTypeAttributeAttributeStubDispatcher },
+    { { "getTestDerivedStructAttributeAttribute", "" }, &commonapi::tests::getTestDerivedStructAttributeAttributeStubDispatcher }
+    , { { "setTestDerivedStructAttributeAttribute", "(sqi)" }, &commonapi::tests::setTestDerivedStructAttributeAttributeStubDispatcher },
+    { { "getTestDerivedArrayAttributeAttribute", "" }, &commonapi::tests::getTestDerivedArrayAttributeAttributeStubDispatcher }
+    , { { "setTestDerivedArrayAttributeAttribute", "at" }, &commonapi::tests::setTestDerivedArrayAttributeAttributeStubDispatcher }
+    ,
+    { { "testEmptyMethod", "" }, &commonapi::tests::testEmptyMethodStubDispatcher },
+    { { "testVoidPredefinedTypeMethod", "us" }, &commonapi::tests::testVoidPredefinedTypeMethodStubDispatcher },
+    { { "testPredefinedTypeMethod", "us" }, &commonapi::tests::testPredefinedTypeMethodStubDispatcher },
+    { { "testVoidDerivedTypeMethod", "ia{ua(sq)}" }, &commonapi::tests::testVoidDerivedTypeMethodStubDispatcher },
+    { { "testDerivedTypeMethod", "ia{ua(sq)}" }, &commonapi::tests::testDerivedTypeMethodStubDispatcher }
+};
 
 void TestInterfaceDBusStubAdapter::fireTestPredefinedTypeAttributeAttributeChanged(const uint32_t& value) {
 	CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<uint32_t>>
@@ -204,24 +224,6 @@ void TestInterfaceDBusStubAdapter::fireTestPredefinedTypeBroadcastEvent(const ui
                 "us",
                 uint32Value, stringValue
         );
-}
-
-const TestInterfaceDBusStubAdapter::StubDispatcherTable& TestInterfaceDBusStubAdapter::getStubDispatcherTable() {
-    static const TestInterfaceDBusStubAdapter::StubDispatcherTable stubDispatcherTable = {
-            { { "getTestPredefinedTypeAttributeAttribute", "" }, &commonapi::tests::getTestPredefinedTypeAttributeAttributeStubDispatcher }
-            , { { "setTestPredefinedTypeAttributeAttribute", "u" }, &commonapi::tests::setTestPredefinedTypeAttributeAttributeStubDispatcher },
-            { { "getTestDerivedStructAttributeAttribute", "" }, &commonapi::tests::getTestDerivedStructAttributeAttributeStubDispatcher }
-            , { { "setTestDerivedStructAttributeAttribute", "(sqi)" }, &commonapi::tests::setTestDerivedStructAttributeAttributeStubDispatcher },
-            { { "getTestDerivedArrayAttributeAttribute", "" }, &commonapi::tests::getTestDerivedArrayAttributeAttributeStubDispatcher }
-            , { { "setTestDerivedArrayAttributeAttribute", "at" }, &commonapi::tests::setTestDerivedArrayAttributeAttributeStubDispatcher }
-            ,
-            { { "testEmptyMethod", "" }, &commonapi::tests::testEmptyMethodStubDispatcher },
-            { { "testVoidPredefinedTypeMethod", "us" }, &commonapi::tests::testVoidPredefinedTypeMethodStubDispatcher },
-            { { "testPredefinedTypeMethod", "us" }, &commonapi::tests::testPredefinedTypeMethodStubDispatcher },
-            { { "testVoidDerivedTypeMethod", "ia{ua(sq)}" }, &commonapi::tests::testVoidDerivedTypeMethodStubDispatcher },
-            { { "testDerivedTypeMethod", "ia{ua(sq)}" }, &commonapi::tests::testDerivedTypeMethodStubDispatcher }
-            };
-    return stubDispatcherTable;
 }
 
 } // namespace tests

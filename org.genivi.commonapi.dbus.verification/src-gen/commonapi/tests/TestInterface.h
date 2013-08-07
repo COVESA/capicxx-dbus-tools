@@ -8,15 +8,7 @@
 #ifndef COMMONAPI_TESTS_Test_Interface_H_
 #define COMMONAPI_TESTS_Test_Interface_H_
 
-
-
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
 #include <CommonAPI/types.h>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 namespace commonapi {
 namespace tests {
@@ -30,8 +22,7 @@ class TestInterface {
 };
 
 const char* TestInterface::getInterfaceId() {
-    static const char* interfaceId = "commonapi.tests.TestInterface";
-    return interfaceId;
+    return "commonapi.tests.TestInterface";
 }
 
 CommonAPI::Version TestInterface::getInterfaceVersion() {
@@ -48,9 +39,6 @@ namespace CommonAPI {
 
 
 namespace std {
-    //hashes for types
-    
-    //hashes for error types
 }
 
 #endif // COMMONAPI_TESTS_Test_Interface_H_

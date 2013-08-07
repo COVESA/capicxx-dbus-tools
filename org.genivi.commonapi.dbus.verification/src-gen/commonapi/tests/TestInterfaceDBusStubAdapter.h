@@ -10,14 +10,8 @@
 
 #include <commonapi/tests/TestInterfaceStub.h>
 
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
 #include <CommonAPI/DBus/DBusStubAdapterHelper.h>
 #include <CommonAPI/DBus/DBusFactory.h>
-
-#undef COMMONAPI_INTERNAL_COMPILATION
 
 namespace commonapi {
 namespace tests {
@@ -39,8 +33,6 @@ class TestInterfaceDBusStubAdapter: public TestInterfaceStubAdapter, public Test
     void fireTestDerivedArrayAttributeAttributeChanged(const DerivedTypeCollection::TestArrayUInt64& value);
 
     void fireTestPredefinedTypeBroadcastEvent(const uint32_t& uint32Value, const std::string& stringValue);
-
-    const StubDispatcherTable& getStubDispatcherTable();
 
  protected:
     virtual const char* getMethodsDBusIntrospectionXmlData() const;
