@@ -2,15 +2,13 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
 AC_INIT(DBus-Gluecode, 1.0)
-
 AC_CONFIG_MACRO_DIR([m4])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([build-aux/config.h])
 
-
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE()
+AM_INIT_AUTOMAKE([foreign])
 
 AC_PROG_CXX
 AC_LANG([C++])
@@ -24,10 +22,8 @@ PKG_CHECK_MODULES(COMMONAPI, [CommonAPI >= 0.7])
 PKG_CHECK_MODULES(DBUS, [dbus-1 >= 1.4.6])
 PKG_CHECK_MODULES(COMMONAPI_DBUS, [CommonAPI-DBus >= 0.7])
 
-
 GTEST_MIN_VERSION="1.6.0"
 GTEST_URL="http://code.google.com/p/googletest"
-
 
 AC_ARG_VAR([GTEST_CONFIG], [The exact path of Google Test's 'gtest-config' script.])
 AC_ARG_VAR([GTEST_CPPFLAGS], [C-like preprocessor flags for Google Test.])
@@ -50,7 +46,6 @@ AS_IF([test -f "${GTEST_CONFIG}"],
       ]
       []
 )
-
 
 AC_MSG_RESULT([
         $PACKAGE_NAME v$VERSION
@@ -81,6 +76,5 @@ AC_CONFIG_FILES([
         Makefile
         DBusGlue.pc
         DBusGlue-uninstalled.pc])
-
 
 AC_OUTPUT

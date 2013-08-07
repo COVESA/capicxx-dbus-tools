@@ -1,0 +1,45 @@
+GENIVI_org.genivi.commonapi.dbus.verification
+======================
+:Author: Juergen Gehring - juergen.gehring@bmw.de, Manfred Bathelt - manfred.bathelt@bmw.de
+:doctitle: GENIVI_org.genivi.commonapi.core.verification
+
+Copyright
+---------
+Copyright (C) 2013, GENIVI Alliance, Inc.
+Copyright (C) 2013, BMW AG
+
+This file is part of GENIVI Project IPC Common API.
+ 
+Contributions are licensed to the GENIVI Alliance under one or more
+Contribution License Agreements or MPL 2.0 .
+ 
+(C) Copyright
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v. 2.0. If a  copy of the MPL was not distributed with
+this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+For further information see https://collab.genivi.org/wiki/display/genivi/SysInfraEGCommonIDLCommonAPIGuide
+
+== License
+This project is licensed under MPL 2.0
+
+Contribution is done under GENIVI CLA or MPL2.0. 
+
+== Version
+The current version can be taken from the git.
+
+== Description
+
+This project is used to create the gluecode for the DBus binding used for running the verification tests from
+org.genivi.commonapi.core.verification within CommonAPI-Tools package.
+
+== Build Instructions
+
+Please generate the DBus C++ Code for all .fidl files in src directory. The generated files should be in src-gen afterwards.
+Then run:
+
+# autoreconv -i
+# configure
+# make all
+
+This will build the gluecode in .libs, which you can then use for running the CommonAPI verification tests.
