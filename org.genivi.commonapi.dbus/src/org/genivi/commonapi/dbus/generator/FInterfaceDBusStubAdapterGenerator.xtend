@@ -171,7 +171,7 @@ class FInterfaceDBusStubAdapterGenerator {
                 static CommonAPI::DBus::DBusMethodStubDispatcher<
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>
-                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name», "«method.dbusOutSignature(deploymentAccessor)»");
+                    > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.name»);
             «ENDIF»
             
         «ENDFOR»

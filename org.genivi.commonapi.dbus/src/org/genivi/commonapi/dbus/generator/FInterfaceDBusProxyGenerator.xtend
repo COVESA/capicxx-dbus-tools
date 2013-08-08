@@ -219,9 +219,9 @@ class FInterfaceDBusProxyGenerator {
             ret = ret + ', "' + fAttribute.dbusSignalName + '"'
 
         if (!fAttribute.isReadonly)
-            ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '"'
-
-        ret = ret + ', "' + fAttribute.dbusGetMethodName + '")'
+            ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '")'
+        else
+            ret = ret + ', "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '")'
 
         return ret
     }
