@@ -47,6 +47,9 @@ class FInterfaceDBusProxyGenerator {
         «ENDIF»
         «IF fInterface.hasBroadcasts»
             #include <CommonAPI/DBus/DBusEvent.h>
+            «IF fInterface.hasSelectiveBroadcasts»
+                #include <CommonAPI/types.h>
+            «ENDIF»
         «ENDIF»
 
         #undef COMMONAPI_INTERNAL_COMPILATION
@@ -72,6 +75,11 @@ class FInterfaceDBusProxyGenerator {
 
             «FOR broadcast : fInterface.broadcasts»
                 virtual «broadcast.generateGetMethodDefinition»;
+
+                «IF !broadcast.selective.nullOrEmpty»
+                    virtual CommonAPI::SelectiveBroadcastSubscriptionResult<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>::SubscriptionResult «broadcast.subscribeSelectiveMethodName»(CommonAPI::SelectiveBroadcastFunctorHelper<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(", ")»>::SelectiveBroadcastFunctor callback);
+                    virtual void «broadcast.unsubscribeSelectiveMethodName»(«broadcast.className»::Subscription subscription);
+                «ENDIF»
             «ENDFOR»
 
             «FOR method : fInterface.methods»
@@ -81,7 +89,7 @@ class FInterfaceDBusProxyGenerator {
                     virtual «method.generateAsyncDefinition»;
                 «ENDIF»
             «ENDFOR»
-            
+
             virtual void getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const;
 
          private:
@@ -130,7 +138,7 @@ class FInterfaceDBusProxyGenerator {
                     «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
+                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»", «(!broadcast.selective.nullOrEmpty).toString»)
                 «ENDFOR» {
         }
 
@@ -168,7 +176,37 @@ class FInterfaceDBusProxyGenerator {
                 }
             «ENDIF»
         «ENDFOR»
-        
+
+        «FOR selectiveBroadcast : fInterface.broadcasts.filter[!selective.nullOrEmpty]»
+            CommonAPI::SelectiveBroadcastSubscriptionResult<«selectiveBroadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>::SubscriptionResult «fInterface.dbusProxyClassName»::«selectiveBroadcast.subscribeSelectiveMethodName»(CommonAPI::SelectiveBroadcastFunctorHelper<«selectiveBroadcast.outArgs.map[getTypeName(fInterface.model)].join(", ")»>::SelectiveBroadcastFunctor callback) {
+                bool success = false;
+                CommonAPI::CallStatus callStatus;
+
+                CommonAPI::Event<«selectiveBroadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>::Subscription subscription = «selectiveBroadcast.generateDBusProxyHelperClass»::callSubscribeForSelectiveBroadcast<«selectiveBroadcast.className», void(«selectiveBroadcast.outArgs.map[getTypeName(fInterface.model)].join(", ")»), CommonAPI::DBus::DBusProxy>(
+                    *this,
+                    "«selectiveBroadcast.name»",
+                    &«selectiveBroadcast.dbusClassVariableName»,
+                    "",
+                    callStatus,
+                    success,
+                    callback
+                    );
+
+                return CommonAPI::SelectiveBroadcastSubscriptionResult<«selectiveBroadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>::SubscriptionResult(success, subscription);
+            }
+            void «fInterface.dbusProxyClassName»::«selectiveBroadcast.unsubscribeSelectiveMethodName»(«selectiveBroadcast.className»::Subscription subscription) {
+                CommonAPI::CallStatus callStatus;
+
+                «selectiveBroadcast.generateDBusProxyHelperClassUnsubscribe»::callUnsubscribeFromSelectiveBroadcast<«selectiveBroadcast.className», CommonAPI::DBus::DBusProxy>(
+                    *this,
+                    "«selectiveBroadcast.name»",
+                    &«selectiveBroadcast.dbusClassVariableName»,
+                    callStatus,
+                    subscription
+                    );
+            }
+        «ENDFOR»
+
         void «fInterface.dbusProxyClassName»::getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const {
             ownVersionMajor = «fInterface.version.major»;
             ownVersionMinor = «fInterface.version.minor»;
@@ -180,6 +218,18 @@ class FInterfaceDBusProxyGenerator {
     def private dbusClassVariableName(FModelElement fModelElement) {
         checkArgument(!fModelElement.name.nullOrEmpty, 'FModelElement has no name: ' + fModelElement)
         fModelElement.name.toFirstLower + '_'
+    }
+
+    def private dbusClassVariableName(FBroadcast fBroadcast) {
+        checkArgument(!fBroadcast.name.nullOrEmpty, 'FModelElement has no name: ' + fBroadcast)
+        var classVariableName = fBroadcast.name.toFirstLower
+
+        if(!fBroadcast.selective.nullOrEmpty)
+            classVariableName = classVariableName + 'Selective'
+
+        classVariableName = classVariableName + '_'
+
+        return classVariableName
     }
 
     def private dbusProxyHeaderFile(FInterface fInterface) {
@@ -205,6 +255,15 @@ class FInterfaceDBusProxyGenerator {
     def private generateDBusProxyHelperClass(FMethod fMethod) '''
         CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[getTypeName(fMethod.model)].join(', ')»>,
                                          CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[getTypeName(fMethod.model)].join(', ')»> >'''
+
+    def private generateDBusProxyHelperClass(FBroadcast fBroadcast) '''
+        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
+                                         CommonAPI::DBus::DBusSerializableArguments<bool> >'''
+
+    def private generateDBusProxyHelperClassUnsubscribe(FBroadcast fBroadcast) '''
+        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
+                                         CommonAPI::DBus::DBusSerializableArguments<> >'''
+
 
     def private dbusClassName(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor, FInterface fInterface) {
         var type = 'CommonAPI::DBus::DBus'

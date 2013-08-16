@@ -15,6 +15,7 @@ import org.franca.core.franca.FModelElement
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 import java.util.HashMap
+import org.franca.core.franca.FBroadcast
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -54,7 +55,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     const std::string& dbusObjectPath,
                     const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusConnection,
                     const std::shared_ptr<CommonAPI::StubBase>& stub);
-            
+
             «FOR attribute : fInterface.attributes»
                 «IF attribute.isObservable»
                     void «attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value);
@@ -62,7 +63,15 @@ class FInterfaceDBusStubAdapterGenerator {
             «ENDFOR»
 
             «FOR broadcast: fInterface.broadcasts»
-                void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
+                «IF !broadcast.selective.nullOrEmpty»
+                    void «broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)»);
+                    void «broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, true)»);
+                    void «broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
+                    void «broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
+                    CommonAPI::ClientIdList* const «broadcast.stubAdapterClassSubscribersMethodName»();
+                «ELSE»
+                    void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
+                «ENDIF»
             «ENDFOR»
 
             const StubDispatcherTable& getStubDispatcherTable();
@@ -82,7 +91,7 @@ class FInterfaceDBusStubAdapterGenerator {
         #include <«fInterface.headerPath»>
 
         «fInterface.model.generateNamespaceBeginDeclaration»
-        
+
         std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> create«fInterface.dbusStubAdapterClassName»(
                            const std::string& commonApiAddress,
                            const std::string& interfaceName,
@@ -213,15 +222,70 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «FOR broadcast: fInterface.broadcasts»
-            void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')») {
-                CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>>
-                        ::sendSignal(
-                            *this,
-                            "«broadcast.name»",
-                            "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
-                            «broadcast.outArgs.map[name].join(', ')»
-                    );
-            }
+            «IF !broadcast.selective.nullOrEmpty»
+                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                    «fInterface.stubClassName»,
+                    std::tuple<>,
+                    std::tuple<bool>
+                    > «broadcast.dbusStubDispatcherVariableSubscribe»(&«fInterface.stubClassName + "::" + broadcast.subscribeSelectiveMethodName», "b");
+
+                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                    «fInterface.stubClassName»,
+                    std::tuple<>,
+                    std::tuple<>
+                    > «broadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubClassName + "::" + broadcast.unsubscribeSelectiveMethodName», "");
+
+
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)») {
+                    std::shared_ptr<CommonAPI::DBus::DBusClientId> dbusClientId = std::dynamic_pointer_cast<CommonAPI::DBus::DBusClientId, CommonAPI::ClientId>(clientId);
+
+                    if(dbusClientId != NULL)
+                    {
+                        CommonAPI::DBus::DBusMessage dbusMethodCall = dbusClientId->createMessage(getObjectPath(), getInterfaceName(), "«broadcast.name»");
+                        getDBusConnection()->sendDBusMessage(dbusMethodCall);
+                    }
+                }
+
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, false)») {
+                    const CommonAPI::ClientIdList* actualReceiverList;
+                    actualReceiverList = receivers;
+
+                    if(receivers == NULL)
+                        actualReceiverList = &«broadcast.stubAdapterClassSubscriberListPropertyName»;
+
+                    for (auto clientIdIterator = actualReceiverList->cbegin();
+                               clientIdIterator != actualReceiverList->cend();
+                               clientIdIterator++) {
+                        if(receivers == NULL || «broadcast.stubAdapterClassSubscriberListPropertyName».find(*clientIdIterator) != «broadcast.stubAdapterClassSubscriberListPropertyName».end()) {
+                            «broadcast.stubAdapterClassFireSelectiveMethodName»(*clientIdIterator«IF(!broadcast.outArgs.empty)», «ENDIF»«broadcast.outArgs.map[name].join(', ')»);
+                        }
+                    }
+                }
+
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
+                    «broadcast.stubAdapterClassSubscriberListPropertyName».insert(clientId);
+                }
+
+
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
+                    «broadcast.stubAdapterClassSubscriberListPropertyName».erase(clientId);
+                }
+
+                CommonAPI::ClientIdList* const «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSubscribersMethodName»() {
+                    return &«broadcast.stubAdapterClassSubscriberListPropertyName»;
+                }
+
+            «ELSE»
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')») {
+                    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>>
+                            ::sendSignal(
+                                *this,
+                                "«broadcast.name»",
+                                "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
+                                «broadcast.outArgs.map[name].join(', ')»
+                        );
+                }
+            «ENDIF»
         «ENDFOR»
 
         const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable& «fInterface.dbusStubAdapterClassName»::getStubDispatcherTable() {
@@ -235,6 +299,11 @@ class FInterfaceDBusStubAdapterGenerator {
                     «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
                     «FOR method : fInterface.methods SEPARATOR ','»
                         { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                    «ENDFOR»
+                    «IF fInterface.hasSelectiveBroadcasts»,«ENDIF»
+                    «FOR broadcast : fInterface.broadcasts.filter[!selective.nullOrEmpty] SEPARATOR ','»
+                        { { "«broadcast.subscribeSelectiveMethodName»", "" }, &«fInterface.absoluteNamespace»::«broadcast.dbusStubDispatcherVariableSubscribe» },
+                        { { "«broadcast.unsubscribeSelectiveMethodName»", "" }, &«fInterface.absoluteNamespace»::«broadcast.dbusStubDispatcherVariableUnsubscribe» }
                     «ENDFOR»
                     };
             return stubDispatcherTable;
@@ -297,5 +366,17 @@ class FInterfaceDBusStubAdapterGenerator {
 
     def private dbusSetStubDispatcherVariable(FAttribute fAttribute) {
         fAttribute.dbusSetMethodName + 'StubDispatcher'
+    }
+
+    def private dbusStubDispatcherVariable(FBroadcast fBroadcast) {
+        fBroadcast.name.toFirstLower + if(!fBroadcast.selective.isNullOrEmpty){'Selective'} + 'StubDispatcher'
+    }
+
+    def private dbusStubDispatcherVariableSubscribe(FBroadcast fBroadcast) {
+        "subscribe" + fBroadcast.dbusStubDispatcherVariable.toFirstUpper
+    }
+
+    def private dbusStubDispatcherVariableUnsubscribe(FBroadcast fBroadcast) {
+        "unsubscribe" + fBroadcast.dbusStubDispatcherVariable.toFirstUpper
     }
 }
