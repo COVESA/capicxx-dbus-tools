@@ -19,6 +19,7 @@ import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 import static com.google.common.base.Preconditions.*
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor$PropertiesType
 import org.franca.core.franca.FUnionType
+import org.genivi.commonapi.core.generator.FTypeGenerator
 
 class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -31,6 +32,7 @@ class FInterfaceDBusProxyGenerator {
 
     def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader(fInterface)»
+        «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_PROXY_H_
         #define «fInterface.defineName»_DBUS_PROXY_H_
 
@@ -79,6 +81,7 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
 
             «FOR method : fInterface.methods»
+                «FTypeGenerator::generateComments(method, false)»
                 virtual «method.generateDefinition»;
                 «IF !method.isFireAndForget»
                     virtual «method.generateAsyncDefinition»;
@@ -104,6 +107,7 @@ class FInterfaceDBusProxyGenerator {
 
     def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader(fInterface)»
+        «FTypeGenerator::generateComments(fInterface, false)»
         #include "«fInterface.dbusProxyHeaderFile»"
 
         «fInterface.model.generateNamespaceBeginDeclaration»
@@ -150,6 +154,7 @@ class FInterfaceDBusProxyGenerator {
         «ENDFOR»
 
         «FOR method : fInterface.methods»
+            «FTypeGenerator::generateComments(method, false)»
             «method.generateDefinitionWithin(fInterface.dbusProxyClassName)» {
                 «method.generateDBusProxyHelperClass»::callMethodWithReply(
                     *this,

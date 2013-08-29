@@ -16,6 +16,7 @@ import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 import java.util.HashMap
 import org.franca.core.franca.FBroadcast
+import org.genivi.commonapi.core.generator.FTypeGenerator
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -28,6 +29,7 @@ class FInterfaceDBusStubAdapterGenerator {
 
     def private generateDBusStubAdapterHeader(FInterface fInterface) '''
         «generateCommonApiLicenseHeader(fInterface)»
+        «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
 
@@ -58,11 +60,13 @@ class FInterfaceDBusStubAdapterGenerator {
 
             «FOR attribute : fInterface.attributes»
                 «IF attribute.isObservable»
+                    «FTypeGenerator::generateComments(attribute, false)»
                     void «attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value);
                 «ENDIF»
             «ENDFOR»
 
             «FOR broadcast: fInterface.broadcasts»
+                «FTypeGenerator::generateComments(broadcast, false)»
                 «IF !broadcast.selective.nullOrEmpty»
                     void «broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)»);
                     void «broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, true)»);
@@ -136,6 +140,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     «ENDIF»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts»
+                    «FTypeGenerator::generateComments(broadcast, false)»
                     "<signal name=\"«broadcast.name»\">\n"
                         «FOR outArg : broadcast.outArgs»
                             "<arg name=\"«outArg.name»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" />\n"
@@ -143,6 +148,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     "</signal>\n"
                 «ENDFOR»
                 «FOR method : fInterface.methods»
+                    «FTypeGenerator::generateComments(method, false)»
                     "<method name=\"«method.name»\">\n"
                         «FOR inArg : method.inArgs»
                             "<arg name=\"«inArg.name»\" type=\"«inArg.getTypeDbusSignature(deploymentAccessor)»\" direction=\"in\" />\n"
@@ -161,6 +167,7 @@ class FInterfaceDBusStubAdapterGenerator {
 
 
         «FOR attribute : fInterface.attributes»
+            «FTypeGenerator::generateComments(attribute, false)»
             static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
                     «fInterface.stubClassName»,
                     «attribute.getTypeName(fInterface.model)»
@@ -181,6 +188,7 @@ class FInterfaceDBusStubAdapterGenerator {
 
         «var counterMap = new HashMap<String, Integer>()»
         «FOR method : fInterface.methods»
+            «FTypeGenerator::generateComments(method, false)»
             «IF !method.isFireAndForget»
                 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                     «fInterface.stubClassName»,
@@ -208,6 +216,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «FOR attribute : fInterface.attributes»
+            «FTypeGenerator::generateComments(attribute, false)»
             «IF attribute.isObservable»
                 void «fInterface.dbusStubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»(const «attribute.getTypeName(fInterface.model)»& value) {
                     CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«attribute.getTypeName(fInterface.model)»>>
@@ -222,6 +231,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «FOR broadcast: fInterface.broadcasts»
+            «FTypeGenerator::generateComments(broadcast, false)»
             «IF !broadcast.selective.nullOrEmpty»
                 static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
                     «fInterface.stubClassName»,
@@ -301,6 +311,7 @@ class FInterfaceDBusStubAdapterGenerator {
         const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable& «fInterface.dbusStubAdapterClassName»::getStubDispatcherTable() {
             static const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable stubDispatcherTable = {
                     «FOR attribute : fInterface.attributes SEPARATOR ','»
+                        «FTypeGenerator::generateComments(attribute, false)»
                         { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
                         «IF !attribute.isReadonly»
                             , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
@@ -308,6 +319,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     «ENDFOR»
                     «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
                     «FOR method : fInterface.methods SEPARATOR ','»
+                        «FTypeGenerator::generateComments(method, false)»
                         { { "«method.name»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
                     «ENDFOR»
                     «IF fInterface.hasSelectiveBroadcasts»,«ENDIF»
