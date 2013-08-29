@@ -30,7 +30,7 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiLicenseHeader»
+        «generateCommonApiLicenseHeader(fInterface)»
         #ifndef «fInterface.defineName»_DBUS_PROXY_H_
         #define «fInterface.defineName»_DBUS_PROXY_H_
 
@@ -103,7 +103,7 @@ class FInterfaceDBusProxyGenerator {
     '''
 
     def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiLicenseHeader»
+        «generateCommonApiLicenseHeader(fInterface)»
         #include "«fInterface.dbusProxyHeaderFile»"
 
         «fInterface.model.generateNamespaceBeginDeclaration»
