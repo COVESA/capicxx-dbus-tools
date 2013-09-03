@@ -66,7 +66,7 @@ class FInterfaceDBusStubAdapterGenerator {
                 «IF !broadcast.selective.nullOrEmpty»
                     void «broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)»);
                     void «broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, true)»);
-                    void «broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
+                    void «broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId, bool& success);
                     void «broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
                     CommonAPI::ClientIdList* const «broadcast.stubAdapterClassSubscribersMethodName»();
                 «ELSE»
@@ -223,17 +223,19 @@ class FInterfaceDBusStubAdapterGenerator {
 
         «FOR broadcast: fInterface.broadcasts»
             «IF !broadcast.selective.nullOrEmpty»
-                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
                     «fInterface.stubClassName»,
+                    «fInterface.stubAdapterClassName»,
                     std::tuple<>,
                     std::tuple<bool>
-                    > «broadcast.dbusStubDispatcherVariableSubscribe»(&«fInterface.stubClassName + "::" + broadcast.subscribeSelectiveMethodName», "b");
+                    > «broadcast.dbusStubDispatcherVariableSubscribe»(&«fInterface.stubAdapterClassName + "::" + broadcast.subscribeSelectiveMethodName», "b");
 
-                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
                     «fInterface.stubClassName»,
+                    «fInterface.stubAdapterClassName»,
                     std::tuple<>,
                     std::tuple<>
-                    > «broadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubClassName + "::" + broadcast.unsubscribeSelectiveMethodName», "");
+                    > «broadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubAdapterClassName + "::" + broadcast.unsubscribeSelectiveMethodName», "");
 
 
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)») {
@@ -262,13 +264,21 @@ class FInterfaceDBusStubAdapterGenerator {
                     }
                 }
 
-                void «fInterface.dbusStubAdapterClassName»::«broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
-                    «broadcast.stubAdapterClassSubscriberListPropertyName».insert(clientId);
+                void «fInterface.dbusStubAdapterClassName»::«broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId, bool& success) {
+                    bool ok = stub_->«broadcast.subscriptionRequestedMethodName»(clientId);
+                    if (ok) {
+                        «broadcast.stubAdapterClassSubscriberListPropertyName».insert(clientId);
+                        stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::SUBSCRIBED);
+                        success = true;
+                    } else {
+                        success = false;
+                    }
                 }
 
 
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
                     «broadcast.stubAdapterClassSubscriberListPropertyName».erase(clientId);
+                    stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::UNSUBSCRIBED);
                 }
 
                 CommonAPI::ClientIdList* const «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSubscribersMethodName»() {
