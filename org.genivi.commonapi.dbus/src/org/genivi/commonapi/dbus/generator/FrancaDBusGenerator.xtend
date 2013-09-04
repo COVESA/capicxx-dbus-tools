@@ -25,12 +25,21 @@ import org.franca.deploymodel.dsl.FDeployPersistenceManager
 import org.franca.deploymodel.core.FDModelExtender
 import org.franca.deploymodel.core.FDeployedInterface
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor$PropertiesType
+import org.eclipse.core.runtime.preferences.DefaultScope
+import org.genivi.commonapi.core.preferences.PreferenceConstants
+import org.eclipse.core.runtime.preferences.InstanceScope
+import org.eclipse.core.resources.ResourcesPlugin
+import org.genivi.commonapi.core.preferences.FPreferences
+import org.eclipse.core.runtime.QualifiedName
+import org.eclipse.xtext.builder.EclipseResourceFileSystemAccess2
+import org.eclipse.core.resources.IResource
+import org.eclipse.core.runtime.preferences.IEclipsePreferences
+import org.osgi.framework.FrameworkUtil
 
 class FrancaDBusGenerator implements IGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FInterfaceDBusProxyGenerator
     @Inject private extension FInterfaceDBusStubAdapterGenerator
-    @Inject private extension FrancaGenerator
 
     @Inject private FrancaPersistenceManager francaPersistenceManager
     @Inject private FDeployPersistenceManager fDeployPersistenceManager
@@ -39,13 +48,15 @@ class FrancaDBusGenerator implements IGenerator {
     override doGenerate(Resource input, IFileSystemAccess fileSystemAccess) {
         var FModel fModel
         var List<FDInterface> deployedInterfaces
+        var IResource res = null
+        var EclipseResourceFileSystemAccess2 accessspez
 
-        if(input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)) {
+        if (input.URI.fileExtension.equals(francaPersistenceManager.fileExtension)) {
             francaGenerator.doGenerate(input, fileSystemAccess);
             fModel = francaPersistenceManager.loadModel(input.filePath)
             deployedInterfaces = new LinkedList<FDInterface>()
 
-        } else if (input.URI.fileExtension.equals("fdepl" /* fDeployPersistenceManager.fileExtension */)) {
+        } else if (input.URI.fileExtension.equals("fdepl"/* fDeployPersistenceManager.fileExtension */)) {
             francaGenerator.doGenerate(input, fileSystemAccess);
 
             var fDeployedModel = fDeployPersistenceManager.loadModel(input.URI, input.URI);
@@ -58,28 +69,83 @@ class FrancaDBusGenerator implements IGenerator {
         } else {
             checkArgument(false, "Unknown input: " + input)
         }
-
-        doGenerateDBusComponents(fModel, deployedInterfaces, fileSystemAccess)
+        try {
+            var pathfile = input.URI.toPlatformString(false)
+            if (pathfile == null) {
+                pathfile = FPreferences::instance.getModelPath(fModel)
+            }
+            if (pathfile.startsWith("platform:/")) {
+                pathfile = pathfile.substring(pathfile.indexOf("platform") + 10)
+                pathfile = pathfile.substring(pathfile.indexOf(System.getProperty("file.separator")))
+            }
+            res = ResourcesPlugin.workspace.root.findMember(pathfile)
+            accessspez = fileSystemAccess as EclipseResourceFileSystemAccess2
+            FPreferences.instance.addPreferences(res);
+            if (FPreferences.instance.useModelSpecific(res)) {
+                var output = res.getPersistentProperty(
+                    new QualifiedName(PreferenceConstants.PROJECT_PAGEID, PreferenceConstants.P_OUTPUT))
+                if (output != null && output.length != 0) {
+                    accessspez.setOutputPath(output)
+                }
+            }
+        } catch (IllegalStateException e) {} //will be thrown only when the cli calls the francagenerator
+        doGenerateDBusComponents(fModel, deployedInterfaces, fileSystemAccess, res)
+        if(res != null) {
+            var deflt = DefaultScope::INSTANCE.getNode(PreferenceConstants::SCOPE).get(PreferenceConstants::P_OUTPUT,
+                PreferenceConstants::DEFAULT_OUTPUT);
+            deflt = InstanceScope::INSTANCE.getNode(PreferenceConstants::SCOPE).get(PreferenceConstants::P_LICENSE,
+                        deflt)
+            deflt = FPreferences.instance.getPreference(res, PreferenceConstants.P_OUTPUT, deflt)
+            accessspez.setOutputPath(deflt)
+        }
     }
 
-
-    def private doGenerateDBusComponents(FModel fModel, List<FDInterface> deployedInterfaces, IFileSystemAccess fileSystemAccess) {
+    def private doGenerateDBusComponents(FModel fModel, List<FDInterface> deployedInterfaces,
+        IFileSystemAccess fileSystemAccess, IResource res) {
         val defaultDeploymentAccessor = new DeploymentInterfacePropertyAccessorWrapper(null) as DeploymentInterfacePropertyAccessor
 
-        fModel.interfaces.forEach[
+        fModel.interfaces.forEach [
             val currentInterface = it
             var DeploymentInterfacePropertyAccessor deploymentAccessor
-            if(deployedInterfaces.exists[it.target == currentInterface]) {
-                deploymentAccessor = new DeploymentInterfacePropertyAccessor(new FDeployedInterface(deployedInterfaces.filter[it.target == currentInterface].last))
+            if (deployedInterfaces.exists[it.target == currentInterface]) {
+                deploymentAccessor = new DeploymentInterfacePropertyAccessor(
+                    new FDeployedInterface(deployedInterfaces.filter[it.target == currentInterface].last))
             } else {
                 deploymentAccessor = defaultDeploymentAccessor
             }
-            generateDBusProxy(fileSystemAccess, deploymentAccessor)
-            if (deploymentAccessor.getPropertiesType(currentInterface) == null || 
-                deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
-                generateDBusStubAdapter(fileSystemAccess, deploymentAccessor)
-            } else {
-                // Report no Stub here!
+
+            val booleanTrue = Boolean.toString(true)
+            var IEclipsePreferences node
+
+            var String finalValue = booleanTrue
+            if (FrameworkUtil::getBundle(this.getClass()) != null) {
+                node = DefaultScope::INSTANCE.getNode(PreferenceConstants::SCOPE)
+                finalValue = node.get(PreferenceConstants::P_GENERATEPROXY, booleanTrue)
+
+                node = InstanceScope::INSTANCE.getNode(PreferenceConstants::SCOPE)
+                finalValue = node.get(PreferenceConstants::P_GENERATEPROXY, finalValue)
+            }
+            finalValue = FPreferences::instance.getPreference(res, PreferenceConstants::P_GENERATEPROXY, finalValue)
+            if (finalValue.equals(booleanTrue)) {
+                it.generateDBusProxy(fileSystemAccess, deploymentAccessor, res)
+            }
+
+            finalValue = booleanTrue
+            if (FrameworkUtil::getBundle(this.getClass()) != null) {
+                node = DefaultScope::INSTANCE.getNode(PreferenceConstants::SCOPE)
+                finalValue = node.get(PreferenceConstants::P_GENERATESTUB, booleanTrue)
+                node = InstanceScope::INSTANCE.getNode(PreferenceConstants::SCOPE)
+                finalValue = node.get(PreferenceConstants::P_GENERATESTUB, finalValue)
+            }
+
+            finalValue = FPreferences::instance.getPreference(res, PreferenceConstants::P_GENERATESTUB, finalValue)
+            if (finalValue.equals(booleanTrue)) {
+                if (deploymentAccessor.getPropertiesType(currentInterface) == null ||
+                    deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
+                    generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
+                } else {
+                    // Report no Stub here!
+                }
             }
         ]
     }

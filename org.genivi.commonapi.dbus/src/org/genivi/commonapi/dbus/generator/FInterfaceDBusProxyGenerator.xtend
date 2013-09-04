@@ -20,18 +20,23 @@ import static com.google.common.base.Preconditions.*
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor$PropertiesType
 import org.franca.core.franca.FUnionType
 import org.genivi.commonapi.core.generator.FTypeGenerator
+import org.eclipse.core.resources.IResource
 
 class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-    def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, fInterface.generateDBusProxyHeader(deploymentAccessor))
-        fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, fInterface.generateDBusProxySource(deploymentAccessor))
+    def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess,
+        DeploymentInterfacePropertyAccessor deploymentAccessor, IResource modelid) {
+        fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath,
+            fInterface.generateDBusProxyHeader(deploymentAccessor, modelid))
+        fileSystemAccess.generateFile(fInterface.dbusProxySourcePath,
+            fInterface.generateDBusProxySource(deploymentAccessor, modelid))
     }
 
-    def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiDBusLicenseHeader(fInterface)»
+    def private generateDBusProxyHeader(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor,
+        IResource modelid) '''
+        «generateCommonApiLicenseHeader(fInterface, modelid)»
         «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_PROXY_H_
         #define «fInterface.defineName»_DBUS_PROXY_H_
@@ -73,30 +78,30 @@ class FInterfaceDBusProxyGenerator {
             virtual ~«fInterface.dbusProxyClassName»() { }
 
             «FOR attribute : fInterface.attributes»
-                virtual «attribute.generateGetMethodDefinition»;
+            virtual «attribute.generateGetMethodDefinition»;
             «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
-                virtual «broadcast.generateGetMethodDefinition»;
+            virtual «broadcast.generateGetMethodDefinition»;
             «ENDFOR»
 
             «FOR method : fInterface.methods»
-                «FTypeGenerator::generateComments(method, false)»
-                virtual «method.generateDefinition»;
-                «IF !method.isFireAndForget»
-                    virtual «method.generateAsyncDefinition»;
-                «ENDIF»
+            «FTypeGenerator::generateComments(method, false)»
+            virtual «method.generateDefinition»;
+            «IF !method.isFireAndForget»
+                virtual «method.generateAsyncDefinition»;
+            «ENDIF»
             «ENDFOR»
 
             virtual void getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const;
 
          private:
-            «FOR attribute : fInterface.attributes»
-                «attribute.dbusClassName(deploymentAccessor, fInterface)» «attribute.dbusClassVariableName»;
-            «ENDFOR»
+           «FOR attribute : fInterface.attributes»
+               «attribute.dbusClassName(deploymentAccessor, fInterface)» «attribute.dbusClassVariableName»;
+           «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
-                «broadcast.dbusClassName» «broadcast.dbusClassVariableName»;
+            «broadcast.dbusClassName» «broadcast.dbusClassVariableName»;
             «ENDFOR»
         };
 
@@ -105,8 +110,9 @@ class FInterfaceDBusProxyGenerator {
         #endif // «fInterface.defineName»_DBUS_PROXY_H_
     '''
 
-    def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiDBusLicenseHeader(fInterface)»
+    def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor,
+        IResource modelid) '''
+        «generateCommonApiLicenseHeader(fInterface, modelid)»
         «FTypeGenerator::generateComments(fInterface, false)»
         #include "«fInterface.dbusProxyHeaderFile»"
 
@@ -134,10 +140,11 @@ class FInterfaceDBusProxyGenerator {
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
                 CommonAPI::DBus::DBusProxy(commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
-                    «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
+            «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
+            «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(
+            deploymentAccessor)»")
                 «ENDFOR» {
         }
 
@@ -195,7 +202,7 @@ class FInterfaceDBusProxyGenerator {
         checkArgument(!fBroadcast.name.nullOrEmpty, 'FModelElement has no name: ' + fBroadcast)
         var classVariableName = fBroadcast.name.toFirstLower
 
-        if(!fBroadcast.selective.nullOrEmpty)
+        if (!fBroadcast.selective.nullOrEmpty)
             classVariableName = classVariableName + 'Selective'
 
         classVariableName = classVariableName + '_'
@@ -224,19 +231,22 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private generateDBusProxyHelperClass(FMethod fMethod) '''
-        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[getTypeName(fMethod.model)].join(', ')»>,
-                                         CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[getTypeName(fMethod.model)].join(', ')»> >'''
+    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[
+        getTypeName(fMethod.model)].join(', ')»>,
+                                     CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.
+        getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[
+        getTypeName(fMethod.model)].join(', ')»> >'''
 
     def private generateDBusProxyHelperClass(FBroadcast fBroadcast) '''
-        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
-                                         CommonAPI::DBus::DBusSerializableArguments<bool> >'''
+    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
+                                     CommonAPI::DBus::DBusSerializableArguments<bool> >'''
 
     def private generateDBusProxyHelperClassUnsubscribe(FBroadcast fBroadcast) '''
-        CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
-                                         CommonAPI::DBus::DBusSerializableArguments<> >'''
+    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
+                                     CommonAPI::DBus::DBusSerializableArguments<> >'''
 
-
-    def private dbusClassName(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor, FInterface fInterface) {
+    def private dbusClassName(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor,
+        FInterface fInterface) {
         var type = 'CommonAPI::DBus::DBus'
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
             type = type + 'Freedesktop'
@@ -265,7 +275,8 @@ class FInterfaceDBusProxyGenerator {
         return type
     }
 
-    def private generateDBusVariableInit(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor, FInterface fInterface) {
+    def private generateDBusVariableInit(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor,
+        FInterface fInterface) {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {

@@ -17,18 +17,19 @@ import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 import java.util.HashMap
 import org.franca.core.franca.FBroadcast
 import org.genivi.commonapi.core.generator.FTypeGenerator
+import org.eclipse.core.resources.IResource
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
-    def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, fInterface.generateDBusStubAdapterHeader)
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath, fInterface.generateDBusStubAdapterSource(deploymentAccessor))
+    def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, DeploymentInterfacePropertyAccessor deploymentAccessor, IResource modelid) {
+        fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, fInterface.generateDBusStubAdapterHeader(modelid))
+        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath, fInterface.generateDBusStubAdapterSource(deploymentAccessor, modelid))
     }
 
-    def private generateDBusStubAdapterHeader(FInterface fInterface) '''
-        «generateCommonApiDBusLicenseHeader(fInterface)»
+    def private generateDBusStubAdapterHeader(FInterface fInterface, IResource modelid) '''
+        «generateCommonApiLicenseHeader(fInterface, modelid)»
         «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
@@ -89,8 +90,8 @@ class FInterfaceDBusStubAdapterGenerator {
         #endif // «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
     '''
 
-    def private generateDBusStubAdapterSource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiDBusLicenseHeader(fInterface)»
+    def private generateDBusStubAdapterSource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor, IResource modelid) '''
+        «generateCommonApiLicenseHeader(fInterface, modelid)»
         #include "«fInterface.dbusStubAdapterHeaderFile»"
         #include <«fInterface.headerPath»>
 
