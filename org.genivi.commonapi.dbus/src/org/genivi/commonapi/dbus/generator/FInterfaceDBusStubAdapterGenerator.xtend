@@ -28,7 +28,7 @@ class FInterfaceDBusStubAdapterGenerator {
     }
 
     def private generateDBusStubAdapterHeader(FInterface fInterface) '''
-        «generateCommonApiLicenseHeader(fInterface)»
+        «generateCommonApiDBusLicenseHeader(fInterface)»
         «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
@@ -90,7 +90,7 @@ class FInterfaceDBusStubAdapterGenerator {
     '''
 
     def private generateDBusStubAdapterSource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
-        «generateCommonApiLicenseHeader(fInterface)»
+        «generateCommonApiDBusLicenseHeader(fInterface)»
         #include "«fInterface.dbusStubAdapterHeaderFile»"
         #include <«fInterface.headerPath»>
 
