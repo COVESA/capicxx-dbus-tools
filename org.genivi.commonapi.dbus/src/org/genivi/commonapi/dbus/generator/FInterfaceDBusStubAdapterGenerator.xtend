@@ -251,10 +251,16 @@ class FInterfaceDBusStubAdapterGenerator {
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)») {
                     std::shared_ptr<CommonAPI::DBus::DBusClientId> dbusClientId = std::dynamic_pointer_cast<CommonAPI::DBus::DBusClientId, CommonAPI::ClientId>(clientId);
 
-                    if(dbusClientId != NULL)
+                    if(dbusClientId)
                     {
-                        CommonAPI::DBus::DBusMessage dbusMethodCall = dbusClientId->createMessage(getObjectPath(), getInterfaceName(), "«broadcast.name»");
-                        getDBusConnection()->sendDBusMessage(dbusMethodCall);
+                        CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<«broadcast.outArgs.map[getTypeName(fInterface.model)].join(', ')»>>
+                            ::sendSignal(
+                                dbusClientId->getDBusId(),
+                                *this,
+                                "«broadcast.name»",
+                                "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
+                                «broadcast.outArgs.map[name].join(', ')»
+                        );
                     }
                 }
 
