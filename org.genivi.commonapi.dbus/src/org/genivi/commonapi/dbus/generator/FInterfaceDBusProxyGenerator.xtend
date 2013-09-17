@@ -59,6 +59,9 @@ class FInterfaceDBusProxyGenerator {
                 #include <CommonAPI/DBus/DBusSelectiveEvent.h>
             «ENDIF»
         «ENDIF»
+        «IF !fInterface.managedInterfaces.empty»
+            #include <CommonAPI/DBus/DBusProxyManager.h>
+        «ENDIF»
 
         #undef COMMONAPI_INTERNAL_COMPILATION
 
@@ -69,6 +72,7 @@ class FInterfaceDBusProxyGenerator {
         class «fInterface.dbusProxyClassName»: virtual public «fInterface.proxyBaseClassName», virtual public CommonAPI::DBus::DBusProxy {
          public:
             «fInterface.dbusProxyClassName»(
+                            const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                             const std::string& commonApiAddress,
                             const std::string& interfaceName,
                             const std::string& busName,
@@ -92,6 +96,10 @@ class FInterfaceDBusProxyGenerator {
                 virtual «method.generateAsyncDefinition»;
             «ENDIF»
             «ENDFOR»
+            
+            «FOR managed : fInterface.managedInterfaces»
+                virtual CommonAPI::ProxyManager& «managed.proxyManagerGetterName»();
+            «ENDFOR»
 
             virtual void getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const;
 
@@ -103,7 +111,13 @@ class FInterfaceDBusProxyGenerator {
             «FOR broadcast : fInterface.broadcasts»
             «broadcast.dbusClassName» «broadcast.dbusClassVariableName»;
             «ENDFOR»
+            
+            «FOR managed : fInterface.managedInterfaces»
+                CommonAPI::DBus::DBusProxyManager «managed.proxyManagerMemberName»;
+            «ENDFOR»
         };
+        
+        
 
         «fInterface.model.generateNamespaceEndDeclaration»
 
@@ -119,12 +133,13 @@ class FInterfaceDBusProxyGenerator {
         «fInterface.model.generateNamespaceBeginDeclaration»
 
         std::shared_ptr<CommonAPI::DBus::DBusProxy> create«fInterface.dbusProxyClassName»(
+                            const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                             const std::string& commonApiAddress,
                             const std::string& interfaceName,
                             const std::string& busName,
                             const std::string& objectPath,
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyConnection) {
-            return std::make_shared<«fInterface.dbusProxyClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection);
+            return std::make_shared<«fInterface.dbusProxyClassName»>(factory, commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection);
         }
 
         __attribute__((constructor)) void register«fInterface.dbusProxyClassName»(void) {
@@ -133,20 +148,24 @@ class FInterfaceDBusProxyGenerator {
         }
 
         «fInterface.dbusProxyClassName»::«fInterface.dbusProxyClassName»(
+                            const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                             const std::string& commonApiAddress,
                             const std::string& interfaceName,
                             const std::string& busName,
                             const std::string& objectPath,
                             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyconnection):
-                CommonAPI::DBus::DBusProxy(commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
+                CommonAPI::DBus::DBusProxy(factory, commonApiAddress, interfaceName, busName, objectPath, dbusProxyconnection)
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
             «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-            «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(
-            deploymentAccessor)»")
-                «ENDFOR» {
-        }
+                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
+                «ENDFOR»
+                «FOR managed : fInterface.managedInterfaces BEFORE ',' SEPARATOR ','»
+                    «managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName»", factory)
+                «ENDFOR»
+            {
+            }
 
         «FOR attribute : fInterface.attributes»
             «attribute.generateGetMethodDefinitionWithin(fInterface.dbusProxyClassName)» {
@@ -182,6 +201,12 @@ class FInterfaceDBusProxyGenerator {
                         std::move(callback));
                 }
             «ENDIF»
+        «ENDFOR»
+        
+        «FOR managed : fInterface.managedInterfaces»
+            CommonAPI::ProxyManager& «fInterface.dbusProxyClassName»::«managed.proxyManagerGetterName»() {
+                return «managed.proxyManagerMemberName»;
+            }
         «ENDFOR»
 
 
@@ -236,14 +261,6 @@ class FInterfaceDBusProxyGenerator {
                                      CommonAPI::DBus::DBusSerializableArguments<«IF fMethod.hasError»«fMethod.
         getErrorNameReference(fMethod.eContainer)»«IF !fMethod.outArgs.empty», «ENDIF»«ENDIF»«fMethod.outArgs.map[
         getTypeName(fMethod.model)].join(', ')»> >'''
-
-    def private generateDBusProxyHelperClass(FBroadcast fBroadcast) '''
-    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
-                                     CommonAPI::DBus::DBusSerializableArguments<bool> >'''
-
-    def private generateDBusProxyHelperClassUnsubscribe(FBroadcast fBroadcast) '''
-    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<>,
-                                     CommonAPI::DBus::DBusSerializableArguments<> >'''
 
     def private dbusClassName(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor,
         FInterface fInterface) {

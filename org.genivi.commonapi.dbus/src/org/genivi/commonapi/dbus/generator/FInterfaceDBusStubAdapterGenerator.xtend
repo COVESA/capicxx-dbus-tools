@@ -41,7 +41,9 @@ class FInterfaceDBusStubAdapterGenerator {
         #endif
 
         #include <CommonAPI/DBus/DBusStubAdapterHelper.h>
+        #include <CommonAPI/DBus/DBusStubAdapter.h>
         #include <CommonAPI/DBus/DBusFactory.h>
+        #include <CommonAPI/DBus/DBusServicePublisher.h>
 
         #undef COMMONAPI_INTERNAL_COMPILATION
 
@@ -52,12 +54,15 @@ class FInterfaceDBusStubAdapterGenerator {
         class «fInterface.dbusStubAdapterClassName»: public «fInterface.stubAdapterClassName», public «fInterface.dbusStubAdapterHelperClassName» {
          public:
             «fInterface.dbusStubAdapterClassName»(
+                    const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                     const std::string& commonApiAddress,
                     const std::string& dbusInterfaceName,
                     const std::string& dbusBusName,
                     const std::string& dbusObjectPath,
                     const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusConnection,
                     const std::shared_ptr<CommonAPI::StubBase>& stub);
+
+            ~«fInterface.dbusStubAdapterClassName»();
 
             «FOR attribute : fInterface.attributes»
                 «IF attribute.isObservable»
@@ -73,16 +78,29 @@ class FInterfaceDBusStubAdapterGenerator {
                     void «broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, true)»);
                     void «broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId, bool& success);
                     void «broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
-                    CommonAPI::ClientIdList* const «broadcast.stubAdapterClassSubscribersMethodName»();
+                    std::shared_ptr<CommonAPI::ClientIdList> const «broadcast.stubAdapterClassSubscribersMethodName»();
                 «ELSE»
                     void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface.model) + '& ' + name].join(', ')»);
                 «ENDIF»
             «ENDFOR»
+            
+            «FOR managed: fInterface.managedInterfaces»
+                «managed.stubRegisterManagedMethod»;
+                bool «managed.stubDeregisterManagedName»(const std::string&);
+                std::set<std::string>& «managed.stubManagedSetGetterName»();
+            «ENDFOR»
 
             const StubDispatcherTable& getStubDispatcherTable();
+            
+            void deactivateManagedInstances();
 
          protected:
             virtual const char* getMethodsDBusIntrospectionXmlData() const;
+            
+          private:
+            «FOR managed: fInterface.managedInterfaces»
+                std::set<std::string> «managed.stubManagedSetName»;
+            «ENDFOR»
         };
 
         «fInterface.model.generateNamespaceEndDeclaration»
@@ -98,13 +116,14 @@ class FInterfaceDBusStubAdapterGenerator {
         «fInterface.model.generateNamespaceBeginDeclaration»
 
         std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> create«fInterface.dbusStubAdapterClassName»(
+                           const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                            const std::string& commonApiAddress,
                            const std::string& interfaceName,
                            const std::string& busName,
                            const std::string& objectPath,
                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusProxyConnection,
                            const std::shared_ptr<CommonAPI::StubBase>& stubBase) {
-            return std::make_shared<«fInterface.dbusStubAdapterClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection, stubBase);
+            return std::make_shared<«fInterface.dbusStubAdapterClassName»>(factory, commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection, stubBase);
         }
 
         __attribute__((constructor)) void register«fInterface.dbusStubAdapterClassName»(void) {
@@ -113,13 +132,41 @@ class FInterfaceDBusStubAdapterGenerator {
         }
 
         «fInterface.dbusStubAdapterClassName»::«fInterface.dbusStubAdapterClassName»(
+                const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
                 const std::string& commonApiAddress,
                 const std::string& dbusInterfaceName,
                 const std::string& dbusBusName,
                 const std::string& dbusObjectPath,
                 const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection>& dbusConnection,
                 const std::shared_ptr<CommonAPI::StubBase>& stub):
-                «fInterface.dbusStubAdapterHelperClassName»(commonApiAddress, dbusInterfaceName, dbusBusName, dbusObjectPath, dbusConnection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(stub)) {
+                «fInterface.dbusStubAdapterHelperClassName»(factory, commonApiAddress, dbusInterfaceName, dbusBusName, dbusObjectPath, 
+                    dbusConnection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(stub),
+                    «IF !fInterface.managedInterfaces.nullOrEmpty»
+                        new CommonAPI::DBus::DBusObjectManagerStub(dbusObjectPath, dbusConnection))
+                    «ELSE»
+                        NULL)
+                    «ENDIF»
+                    {
+            «FOR broadcast : fInterface.broadcasts»
+                «IF !broadcast.selective.nullOrEmpty»
+                    «broadcast.getStubAdapterClassSubscriberListPropertyName» = std::make_shared<CommonAPI::ClientIdList>();
+                «ENDIF»
+            «ENDFOR»
+        }
+
+        «fInterface.dbusStubAdapterClassName»::~«fInterface.dbusStubAdapterClassName»() {
+            deactivateManagedInstances();
+            deinit();
+            stub_.reset();
+        }
+        
+        void «fInterface.dbusStubAdapterClassName»::deactivateManagedInstances() {
+            «FOR managed : fInterface.managedInterfaces»
+                for(std::set<std::string>::iterator iter = «managed.stubManagedSetName».begin();
+                        iter != «managed.stubManagedSetName».end(); ++iter) {
+                    «managed.stubDeregisterManagedName»(*iter);
+                }
+            «ENDFOR»
         }
 
         const char* «fInterface.dbusStubAdapterClassName»::getMethodsDBusIntrospectionXmlData() const {
@@ -266,16 +313,16 @@ class FInterfaceDBusStubAdapterGenerator {
                 }
 
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSendSelectiveMethodName»(«generateSendSelectiveSignatur(broadcast, fInterface, false)») {
-                    const CommonAPI::ClientIdList* actualReceiverList;
+                    std::shared_ptr<CommonAPI::ClientIdList> actualReceiverList;
                     actualReceiverList = receivers;
 
                     if(receivers == NULL)
-                        actualReceiverList = &«broadcast.stubAdapterClassSubscriberListPropertyName»;
+                        actualReceiverList = «broadcast.stubAdapterClassSubscriberListPropertyName»;
 
                     for (auto clientIdIterator = actualReceiverList->cbegin();
                                clientIdIterator != actualReceiverList->cend();
                                clientIdIterator++) {
-                        if(receivers == NULL || «broadcast.stubAdapterClassSubscriberListPropertyName».find(*clientIdIterator) != «broadcast.stubAdapterClassSubscriberListPropertyName».end()) {
+                        if(receivers == NULL || «broadcast.stubAdapterClassSubscriberListPropertyName»->find(*clientIdIterator) != «broadcast.stubAdapterClassSubscriberListPropertyName»->end()) {
                             «broadcast.stubAdapterClassFireSelectiveMethodName»(*clientIdIterator«IF(!broadcast.outArgs.empty)», «ENDIF»«broadcast.outArgs.map[name].join(', ')»);
                         }
                     }
@@ -284,7 +331,7 @@ class FInterfaceDBusStubAdapterGenerator {
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId, bool& success) {
                     bool ok = stub_->«broadcast.subscriptionRequestedMethodName»(clientId);
                     if (ok) {
-                        «broadcast.stubAdapterClassSubscriberListPropertyName».insert(clientId);
+                        «broadcast.stubAdapterClassSubscriberListPropertyName»->insert(clientId);
                         stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::SUBSCRIBED);
                         success = true;
                     } else {
@@ -294,12 +341,12 @@ class FInterfaceDBusStubAdapterGenerator {
 
 
                 void «fInterface.dbusStubAdapterClassName»::«broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
-                    «broadcast.stubAdapterClassSubscriberListPropertyName».erase(clientId);
+                    «broadcast.stubAdapterClassSubscriberListPropertyName»->erase(clientId);
                     stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::UNSUBSCRIBED);
                 }
 
-                CommonAPI::ClientIdList* const «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSubscribersMethodName»() {
-                    return &«broadcast.stubAdapterClassSubscriberListPropertyName»;
+                std::shared_ptr<CommonAPI::ClientIdList> const «fInterface.dbusStubAdapterClassName»::«broadcast.stubAdapterClassSubscribersMethodName»() {
+                    return «broadcast.stubAdapterClassSubscriberListPropertyName»;
                 }
 
             «ELSE»
@@ -337,6 +384,62 @@ class FInterfaceDBusStubAdapterGenerator {
                     };
             return stubDispatcherTable;
         }
+        
+        «FOR managed : fInterface.managedInterfaces»
+            
+            bool «fInterface.dbusStubAdapterClassName»::«managed.stubRegisterManagedMethodImpl» {
+                if («managed.stubManagedSetName».find(instance) == «managed.stubManagedSetName».end()) {
+                    std::string commonApiAddress = "local:«managed.fullyQualifiedName»:" + instance;
+
+                    std::string interfaceName;
+                    std::string connectionName;
+                    std::string objectPath;
+
+                    CommonAPI::DBus::DBusAddressTranslator::getInstance().searchForDBusAddress(
+                            commonApiAddress,
+                            interfaceName,
+                            connectionName,
+                            objectPath);
+
+                    if (objectPath.compare(0, dbusObjectPath_.length(), dbusObjectPath_) == 0) {
+                        auto dbusStubAdapter = factory_->createDBusStubAdapter(stub, "«managed.fullyQualifiedName»",
+                                instance, "«managed.fullyQualifiedName»", "local");
+                        bool ok = CommonAPI::DBus::DBusServicePublisher::getInstance()->registerManagedService(dbusStubAdapter);
+                        if (ok) {
+                            bool isServiceExportSuccessful = managerStub->exportDBusStubAdapter(dbusStubAdapter.get());
+                            if (isServiceExportSuccessful) {
+                                «managed.stubManagedSetName».insert(instance);
+                                return true;
+                            } else {
+                                const bool isManagedDeregistrationSuccessful =
+                                    CommonAPI::DBus::DBusServicePublisher::getInstance()->unregisterManagedService(
+                                                    commonApiAddress);
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            
+            bool «fInterface.dbusStubAdapterClassName»::«managed.stubDeregisterManagedName»(const std::string& instance) {
+                std::string commonApiAddress = "local:«managed.fullyQualifiedName»:" + instance;
+                if («managed.stubManagedSetName».find(instance) != «managed.stubManagedSetName».end()) {
+                    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter =
+                                CommonAPI::DBus::DBusServicePublisher::getInstance()->getRegisteredService(commonApiAddress);
+                    if (adapter != nullptr) {
+                        managerStub->unexportDBusStubAdapter(adapter.get());
+                        CommonAPI::DBus::DBusServicePublisher::getInstance()->unregisterManagedService(commonApiAddress);
+                        «managed.stubManagedSetName».erase(instance);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            std::set<std::string>& «fInterface.dbusStubAdapterClassName»::«managed.stubManagedSetGetterName»() {
+                return «managed.stubManagedSetName»;
+            }
+        «ENDFOR»
 
         «fInterface.model.generateNamespaceEndDeclaration»
     '''
@@ -364,7 +467,7 @@ class FInterfaceDBusStubAdapterGenerator {
     def private dbusStubAdapterClassName(FInterface fInterface) {
         fInterface.name + 'DBusStubAdapter'
     }
-
+    
     def private dbusStubAdapterHelperClassName(FInterface fInterface) {
         fInterface.name + 'DBusStubAdapterHelper'
     }

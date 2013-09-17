@@ -142,11 +142,28 @@ class FrancaDBusGenerator implements IGenerator {
             if (finalValue.equals(booleanTrue)) {
                 if (deploymentAccessor.getPropertiesType(currentInterface) == null ||
                     deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI) {
-                    generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
+                    it.generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
                 } else {
                     // Report no Stub here!
                 }
             }
+
+            it.managedInterfaces.forEach[
+                val currentManagedInterface = it
+                var DeploymentInterfacePropertyAccessor managedDeploymentAccessor
+                if(deployedInterfaces.exists[it.target == currentManagedInterface]) {
+                    managedDeploymentAccessor = new DeploymentInterfacePropertyAccessor(new FDeployedInterface(deployedInterfaces.filter[it.target == currentManagedInterface].last))
+                } else {
+                    managedDeploymentAccessor = defaultDeploymentAccessor
+                }
+                it.generateDBusProxy(fileSystemAccess, managedDeploymentAccessor, res)
+                if (managedDeploymentAccessor.getPropertiesType(currentManagedInterface) == null || 
+                    managedDeploymentAccessor.getPropertiesType(currentManagedInterface) == PropertiesType::CommonAPI) {
+                    it.generateDBusStubAdapter(fileSystemAccess, managedDeploymentAccessor, res)
+                } else {
+                    // Report no Stub here!
+                }
+            ]
         ]
     }
 }
