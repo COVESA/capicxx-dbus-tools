@@ -16,6 +16,6 @@ Require-Bundle: org.eclipse.ui,
  com.google.inject;bundle-version="3.0.0",
  org.genivi.commonapi.core.ui;bundle-version="2.1.1",
  org.genivi.commonapi.dbus;bundle-version="2.1.1"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
 Import-Package: javax.inject
