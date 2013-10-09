@@ -9,7 +9,7 @@
 #include <commonapi/tests/TestInterfaceStubDefault.h>
 #include <test/bmw/TestStubDefault.h>
 
-#include <CommonAPI/Runtime.h>
+#include <CommonAPI/CommonAPI.h>
 
 #include <src/StubTest.h>
 

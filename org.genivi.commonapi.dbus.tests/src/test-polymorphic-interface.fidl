@@ -18,8 +18,7 @@ interface TestPolymorphicInterface {
         }
     }
 
-    <** @experimental: polymorphic **>
-    struct TestBaseStruct {
+    struct TestBaseStruct polymorphic {
         UInt16 testBaseStructUInt16Value
         String testBaseStructStringValue
     }

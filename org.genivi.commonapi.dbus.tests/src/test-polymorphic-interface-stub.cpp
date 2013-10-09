@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 #include <commonapi/tests/TestPolymorphicInterfaceStubDefault.h>
 
-#include <CommonAPI/Runtime.h>
+#include <CommonAPI/CommonAPI.h>
 
 #include <iostream>
 #include <cassert>
