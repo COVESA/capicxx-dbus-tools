@@ -141,12 +141,7 @@ class FInterfaceDBusStubAdapterGenerator {
                 const std::shared_ptr<CommonAPI::StubBase>& stub):
                 «fInterface.dbusStubAdapterHelperClassName»(factory, commonApiAddress, dbusInterfaceName, dbusBusName, dbusObjectPath, 
                     dbusConnection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(stub),
-                    «IF !fInterface.managedInterfaces.nullOrEmpty»
-                        new CommonAPI::DBus::DBusObjectManagerStub(dbusObjectPath, dbusConnection))
-                    «ELSE»
-                        NULL)
-                    «ENDIF»
-                    {
+                    «IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF») {
             «FOR broadcast : fInterface.broadcasts»
                 «IF !broadcast.selective.nullOrEmpty»
                     «broadcast.getStubAdapterClassSubscriberListPropertyName» = std::make_shared<CommonAPI::ClientIdList>();
@@ -408,9 +403,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     if (objectPath.compare(0, dbusObjectPath_.length(), dbusObjectPath_) == 0) {
                         auto dbusStubAdapter = factory_->createDBusStubAdapter(stub, "«managed.fullyQualifiedName»",
                                 instance, "«managed.fullyQualifiedName»", "local");
-                        bool ok = CommonAPI::DBus::DBusServicePublisher::getInstance()->registerManagedService(dbusStubAdapter);
-                        if (ok) {
-                            bool isServiceExportSuccessful = managerStub->exportDBusStubAdapter(dbusStubAdapter.get());
+
+                        bool success = CommonAPI::DBus::DBusServicePublisher::getInstance()->registerManagedService(dbusStubAdapter);
+                        if (success) {
+                            bool isServiceExportSuccessful = dbusConnection_->getDBusObjectManager()->exportManagedDBusStubAdapter(dbusObjectPath_, dbusStubAdapter);
                             if (isServiceExportSuccessful) {
                                 «managed.stubManagedSetName».insert(instance);
                                 return true;
@@ -428,10 +424,10 @@ class FInterfaceDBusStubAdapterGenerator {
             bool «fInterface.dbusStubAdapterClassName»::«managed.stubDeregisterManagedName»(const std::string& instance) {
                 std::string commonApiAddress = "local:«managed.fullyQualifiedName»:" + instance;
                 if («managed.stubManagedSetName».find(instance) != «managed.stubManagedSetName».end()) {
-                    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter =
+                    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> dbusStubAdapter =
                                 CommonAPI::DBus::DBusServicePublisher::getInstance()->getRegisteredService(commonApiAddress);
-                    if (adapter != nullptr) {
-                        managerStub->unexportDBusStubAdapter(adapter.get());
+                    if (dbusStubAdapter != nullptr) {
+                        dbusConnection_->getDBusObjectManager()->unexportManagedDBusStubAdapter(dbusObjectPath_, dbusStubAdapter);
                         CommonAPI::DBus::DBusServicePublisher::getInstance()->unregisterManagedService(commonApiAddress);
                         «managed.stubManagedSetName».erase(instance);
                         return true;
