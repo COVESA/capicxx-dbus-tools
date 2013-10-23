@@ -71,6 +71,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «generateCommonApiLicenseHeader»
         #include "«fInterface.dbusStubAdapterHeaderFile»"
         #include <«fInterface.headerPath»>
+        #include <CommonAPI/types.h>
 
         «fInterface.model.generateNamespaceBeginDeclaration»
         
@@ -84,7 +85,7 @@ class FInterfaceDBusStubAdapterGenerator {
             return std::make_shared<«fInterface.dbusStubAdapterClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection, stubBase);
         }
 
-        __attribute__((constructor)) void register«fInterface.dbusStubAdapterClassName»(void) {
+        INITIALIZER(register«fInterface.dbusStubAdapterClassName») {
             CommonAPI::DBus::DBusFactory::registerAdapterFactoryMethod(«fInterface.name»::getInterfaceId(),
                                                                        &create«fInterface.dbusStubAdapterClassName»);
         }
