@@ -209,6 +209,10 @@ class FInterfaceDBusStubAdapterGenerator {
                         «ENDFOR»
                     "</method>\n"
                 «ENDFOR»
+                
+                «IF fInterface.attributes.empty && fInterface.broadcasts.empty && fInterface.methods.empty»
+                    ""
+                «ENDIF»
             ;
             return introspectionData;
         }
