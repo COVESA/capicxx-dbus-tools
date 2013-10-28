@@ -143,7 +143,7 @@ class FInterfaceDBusProxyGenerator {
         }
 
         __attribute__((constructor)) void register«fInterface.dbusProxyClassName»(void) {
-            CommonAPI::DBus::DBusFactory::registerProxyFactoryMethod(«fInterface.name»::getInterfaceId(),
+            CommonAPI::DBus::DBusFactory::registerProxyFactoryMethod(«fInterface.elementName»::getInterfaceId(),
                &create«fInterface.dbusProxyClassName»);
         }
 
@@ -159,7 +159,7 @@ class FInterfaceDBusProxyGenerator {
             «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-                    «broadcast.dbusClassVariableName»(*this, "«broadcast.name»", "«broadcast.dbusSignature(deploymentAccessor)»")
+                    «broadcast.dbusClassVariableName»(*this, "«broadcast.elementName»", "«broadcast.dbusSignature(deploymentAccessor)»")
                 «ENDFOR»
                 «FOR managed : fInterface.managedInterfaces BEFORE ',' SEPARATOR ','»
                     «managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName»", factory)
@@ -184,20 +184,20 @@ class FInterfaceDBusProxyGenerator {
             «method.generateDefinitionWithin(fInterface.dbusProxyClassName)» {
                 «method.generateDBusProxyHelperClass»::callMethodWithReply(
                     *this,
-                    "«method.name»",
+                    "«method.elementName»",
                     "«method.dbusInSignature(deploymentAccessor)»",
-                    «method.inArgs.map[name].join('', ', ', ', ', [toString])»
+                    «method.inArgs.map[elementName].join('', ', ', ', ', [toString])»
                     callStatus«IF method.hasError»,
                     methodError«ENDIF»
-                    «method.outArgs.map[name].join(', ', ', ', '', [toString])»);
+                    «method.outArgs.map[elementName].join(', ', ', ', '', [toString])»);
             }
             «IF !method.isFireAndForget»
                 «method.generateAsyncDefinitionWithin(fInterface.dbusProxyClassName)» {
                     return «method.generateDBusProxyHelperClass»::callMethodAsync(
                         *this,
-                        "«method.name»",
+                        "«method.elementName»",
                         "«method.dbusInSignature(deploymentAccessor)»",
-                        «method.inArgs.map[name].join('', ', ', ', ', [toString])»
+                        «method.inArgs.map[elementName].join('', ', ', ', ', [toString])»
                         std::move(callback));
                 }
             «ENDIF»
@@ -219,13 +219,13 @@ class FInterfaceDBusProxyGenerator {
     '''
 
     def private dbusClassVariableName(FModelElement fModelElement) {
-        checkArgument(!fModelElement.name.nullOrEmpty, 'FModelElement has no name: ' + fModelElement)
-        fModelElement.name.toFirstLower + '_'
+        checkArgument(!fModelElement.elementName.nullOrEmpty, 'FModelElement has no name: ' + fModelElement)
+        fModelElement.elementName.toFirstLower + '_'
     }
 
     def private dbusClassVariableName(FBroadcast fBroadcast) {
-        checkArgument(!fBroadcast.name.nullOrEmpty, 'FModelElement has no name: ' + fBroadcast)
-        var classVariableName = fBroadcast.name.toFirstLower
+        checkArgument(!fBroadcast.elementName.nullOrEmpty, 'FModelElement has no name: ' + fBroadcast)
+        var classVariableName = fBroadcast.elementName.toFirstLower
 
         if (!fBroadcast.selective.nullOrEmpty)
             classVariableName = classVariableName + 'Selective'
@@ -236,7 +236,7 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private dbusProxyHeaderFile(FInterface fInterface) {
-        fInterface.name + "DBusProxy.h"
+        fInterface.elementName + "DBusProxy.h"
     }
 
     def private dbusProxyHeaderPath(FInterface fInterface) {
@@ -244,7 +244,7 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private dbusProxySourceFile(FInterface fInterface) {
-        fInterface.name + "DBusProxy.cpp"
+        fInterface.elementName + "DBusProxy.cpp"
     }
 
     def private dbusProxySourcePath(FInterface fInterface) {
@@ -252,7 +252,7 @@ class FInterfaceDBusProxyGenerator {
     }
 
     def private dbusProxyClassName(FInterface fInterface) {
-        fInterface.name + 'DBusProxy'
+        fInterface.elementName + 'DBusProxy'
     }
 
     def private generateDBusProxyHelperClass(FMethod fMethod) '''
@@ -297,7 +297,7 @@ class FInterfaceDBusProxyGenerator {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertiesType::freedesktop) {
-            ret = ret + ', interfaceName.c_str(), "' + fAttribute.name + '")'
+            ret = ret + ', interfaceName.c_str(), "' + fAttribute.elementName + '")'
         } else {
 
             if (fAttribute.isObservable)
