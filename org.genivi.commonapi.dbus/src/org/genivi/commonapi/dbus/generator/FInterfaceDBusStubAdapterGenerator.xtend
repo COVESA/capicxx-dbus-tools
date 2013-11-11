@@ -234,6 +234,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDFOR»
 
         «var counterMap = new HashMap<String, Integer>()»
+        «var methodnumberMap = new HashMap<FMethod, Integer>()»
         «FOR method : fInterface.methods»
             «FTypeGenerator::generateComments(method, false)»
             «IF !method.isFireAndForget»
@@ -242,10 +243,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     std::tuple<«method.allInTypes»>,
                     std::tuple<«method.allOutTypes»>
                     «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);""}»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);  methodnumberMap.put(method, 0);""}»
                         > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ELSE»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);""}»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(method, counterMap.get(method.dbusStubDispatcherVariable));""}»
                         > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ENDIF»
             «ELSE»
@@ -253,10 +254,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     «fInterface.stubClassName»,
                     std::tuple<«method.allInTypes»>
                     «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);""}»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, 0); methodnumberMap.put(method, 0);""}»
                         > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ELSE»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);""}»
+                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(method, counterMap.get(method.dbusStubDispatcherVariable));""}»
                         > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
                     «ENDIF»
             «ENDIF»
@@ -373,7 +374,11 @@ class FInterfaceDBusStubAdapterGenerator {
                     «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
                     «FOR method : fInterface.methods SEPARATOR ','»
                         «FTypeGenerator::generateComments(method, false)»
+                        «IF methodnumberMap.get(method)==0»
                         { { "«method.elementName»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                        «ELSE»
+                        { { "«method.elementName»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable»«methodnumberMap.get(method)» }
+                        «ENDIF»
                     «ENDFOR»
                     «IF fInterface.hasSelectiveBroadcasts»,«ENDIF»
                     «FOR broadcast : fInterface.broadcasts.filter[!selective.nullOrEmpty] SEPARATOR ','»
