@@ -26,6 +26,7 @@ import org.franca.core.franca.FTypedElement
 import org.osgi.framework.FrameworkUtil
 import org.franca.core.franca.FModelElement
 import org.eclipse.core.resources.IResource
+import org.osgi.framework.Version
 
 class FrancaDBusGeneratorExtensions {
     @Inject private extension FrancaGeneratorExtensions
@@ -151,6 +152,7 @@ class FrancaDBusGeneratorExtensions {
                 }
             }
         }
+        return new Version("2.1.4");
     }
 
     def generateCommonApiDBusLicenseHeader(FModelElement model, IResource modelid) '''
