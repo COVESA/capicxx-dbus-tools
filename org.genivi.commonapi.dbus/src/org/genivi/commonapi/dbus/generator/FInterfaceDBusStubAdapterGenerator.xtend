@@ -255,10 +255,10 @@ class FInterfaceDBusStubAdapterGenerator {
                     std::tuple<«method.allInTypes»>
                     «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
                         «{counterMap.put(method.dbusStubDispatcherVariable, 0); methodnumberMap.put(method, 0);""}»
-                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
+                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName»);
                     «ELSE»
                         «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(method, counterMap.get(method.dbusStubDispatcherVariable));""}»
-                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
+                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName»);
                     «ENDIF»
             «ENDIF»
         «ENDFOR»
