@@ -6,18 +6,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
+import java.util.HashMap
 import javax.inject.Inject
+import org.eclipse.core.resources.IResource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.franca.core.franca.FAttribute
+import org.franca.core.franca.FBroadcast
 import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
+import org.genivi.commonapi.core.generator.FTypeGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
-import java.util.HashMap
-import org.franca.core.franca.FBroadcast
-import org.genivi.commonapi.core.generator.FTypeGenerator
-import org.eclipse.core.resources.IResource
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -166,6 +166,9 @@ class FInterfaceDBusStubAdapterGenerator {
 
         const char* «fInterface.dbusStubAdapterClassName»::getMethodsDBusIntrospectionXmlData() const {
             static const char* introspectionData =
+                "<method name=\"getInterfaceVersion\">\n"
+                    "<arg name=\"value\" type=\"uu\" direction=\"out\" />"
+                "</method>\n"
                 «FOR attribute : fInterface.attributes»
                     "<method name=\"«attribute.dbusGetMethodName»\">\n"
                         "<arg name=\"value\" type=\"«attribute.dbusSignature(deploymentAccessor)»\" direction=\"out\" />"
@@ -212,6 +215,10 @@ class FInterfaceDBusStubAdapterGenerator {
             return introspectionData;
         }
 
+            static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
+                    «fInterface.stubClassName»,
+                    CommonAPI::Version
+                    > getInterfaceVersionStubDispatcher(&«fInterface.stubClassName»::getInterfaceVersion, "uu");
 
         «FOR attribute : fInterface.attributes»
             «FTypeGenerator::generateComments(attribute, false)»
@@ -364,6 +371,7 @@ class FInterfaceDBusStubAdapterGenerator {
 
         const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable& «fInterface.dbusStubAdapterClassName»::getStubDispatcherTable() {
             static const «fInterface.dbusStubAdapterClassName»::StubDispatcherTable stubDispatcherTable = {
+                    { { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::getInterfaceVersionStubDispatcher },
                     «FOR attribute : fInterface.attributes SEPARATOR ','»
                         «FTypeGenerator::generateComments(attribute, false)»
                         { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
