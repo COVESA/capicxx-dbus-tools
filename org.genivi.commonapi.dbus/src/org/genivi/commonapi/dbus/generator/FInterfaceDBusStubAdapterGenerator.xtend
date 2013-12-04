@@ -198,7 +198,6 @@ class FInterfaceDBusStubAdapterGenerator {
         «fInterface.dbusStubAdapterClassNameInternal»::~«fInterface.dbusStubAdapterClassNameInternal»() {
             deactivateManagedInstances();
             «fInterface.dbusStubAdapterHelperClassName»::deinit();
-            «fInterface.dbusStubAdapterHelperClassName»::stub_.reset();
         }
 
         void «fInterface.dbusStubAdapterClassNameInternal»::deactivateManagedInstances() {
@@ -386,10 +385,11 @@ class FInterfaceDBusStubAdapterGenerator {
                 }
 
                 void «fInterface.dbusStubAdapterClassNameInternal»::«broadcast.subscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId, bool& success) {
-                    bool ok = stub_->«broadcast.subscriptionRequestedMethodName»(clientId);
+                    auto stub = stub_.lock();
+                    bool ok = stub->«broadcast.subscriptionRequestedMethodName»(clientId);
                     if (ok) {
                         «broadcast.stubAdapterClassSubscriberListPropertyName»->insert(clientId);
-                        stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::SUBSCRIBED);
+                        stub->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::SUBSCRIBED);
                         success = true;
                     } else {
                         success = false;
@@ -399,7 +399,8 @@ class FInterfaceDBusStubAdapterGenerator {
 
                 void «fInterface.dbusStubAdapterClassNameInternal»::«broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId) {
                     «broadcast.stubAdapterClassSubscriberListPropertyName»->erase(clientId);
-                    stub_->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::UNSUBSCRIBED);
+                    auto stub = stub_.lock();
+                    stub->«broadcast.subscriptionChangedMethodName»(clientId, CommonAPI::SelectiveBroadcastSubscriptionEvent::UNSUBSCRIBED);
                 }
 
                 std::shared_ptr<CommonAPI::ClientIdList> const «fInterface.dbusStubAdapterClassNameInternal»::«broadcast.stubAdapterClassSubscribersMethodName»() {
