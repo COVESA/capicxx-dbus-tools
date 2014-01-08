@@ -138,7 +138,7 @@ class FrancaDBusGeneratorExtensions {
             case FBasicTypeId::DOUBLE: 'd'
             case FBasicTypeId::STRING: 's'
             case FBasicTypeId::BYTE_BUFFER: 'ay'
-            default: throw new IllegalArgumentException("Unsupported basic type: " + fBasicTypeId.name)
+            default: throw new IllegalArgumentException("Unsupported basic type: " + fBasicTypeId.getName)
         }
     }
 
