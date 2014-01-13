@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Commonapi
+Bundle-SymbolicName: org.genivi.commonapi.dbus.validator;singleton:=true
+Bundle-Version: 2.1.4.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-Vendor: BMW AG
+Require-Bundle: org.eclipse.xtext.builder;bundle-version="2.4.0",
+ org.eclipse.xtext.generator;bundle-version="2.4.0",
+ org.eclipse.xtext.ui;bundle-version="2.4.0",
+ org.genivi.commonapi.core;bundle-version="2.1.4"
+Import-Package: org.eclipse.core.resources,
+ org.franca.core.dsl.validation,
+ org.franca.core.franca,
+ org.franca.core.franca.impl
+Export-Package: org.genivi.commonapi.dbus.validator
