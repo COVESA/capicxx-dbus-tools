@@ -94,6 +94,7 @@ class FInterfaceDBusProxyGenerator {
     def private generateDBusProxySource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
         «generateCommonApiLicenseHeader»
         #include "«fInterface.dbusProxyHeaderFile»"
+        #include <CommonAPI/types.h>
 
         «fInterface.model.generateNamespaceBeginDeclaration»
         
@@ -106,7 +107,7 @@ class FInterfaceDBusProxyGenerator {
             return std::make_shared<«fInterface.dbusProxyClassName»>(commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection);
         }
 
-        __attribute__((constructor)) void register«fInterface.dbusProxyClassName»(void) {
+        INITIALIZER(register«fInterface.dbusProxyClassName») {
             CommonAPI::DBus::DBusFactory::registerProxyFactoryMethod(«fInterface.name»::getInterfaceId(),
                &create«fInterface.dbusProxyClassName»);
         }
