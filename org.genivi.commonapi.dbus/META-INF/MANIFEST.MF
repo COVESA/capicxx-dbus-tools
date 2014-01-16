@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GENIVI Common API D-Bus C++ Generator
 Bundle-Vendor: BMW AG
-Bundle-Version: 2.0.8.qualifier
+Bundle-Version: 2.0.9.qualifier
 Bundle-SymbolicName: org.genivi.commonapi.dbus;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.core.runtime;bundle-version="3.8.0",
@@ -11,7 +11,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.8.0",
  org.eclipse.xtext.generator;bundle-version="2.4.0",
  org.eclipse.xtext.util;bundle-version="2.4.0",
  org.franca.core.dsl;bundle-version="0.8.8",
- org.genivi.commonapi.core;bundle-version="1.0.0",
+ org.genivi.commonapi.core;bundle-version="2.0.9",
  org.franca.deploymodel.dsl;bundle-version="0.8.8"
 Import-Package: javax.inject;version="1.0.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
