@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -43,9 +44,9 @@ import org.franca.core.franca.FTypeRef;
 import org.franca.core.franca.FrancaPackage;
 import org.franca.core.franca.Import;
 import org.genivi.commonapi.core.generator.FTypeCycleDetector;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
+import org.genivi.commonapi.core.ui.CommonApiUiPlugin;
+import org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Version;
 
 import com.google.inject.Guice;
@@ -58,12 +59,19 @@ public class ValidatorDBus implements IFrancaExternalValidator {
     private Map<String, HashMap<String, HashSet<String>>> fastAllInfo = new HashMap<String, HashMap<String, HashSet<String>>>();
     private Boolean hasChanged = false;
     private ResourceSet resourceSet;
+    private Set<EObject> resourceList = new HashSet<EObject>();
+
+    public ValidatorDBus() {
+        cycleDetector = Guice.createInjector().getInstance(
+                FTypeCycleDetector.class);
+    }
 
     @Override
     public void validateModel(FModel model,
             ValidationMessageAcceptor messageAcceptor) {
-        cycleDetector = Guice.createInjector().getInstance(
-                FTypeCycleDetector.class);
+        if (!isValidatorEnabled()) {
+            return;
+        }
         resourceSet = new ResourceSetImpl();
         Resource res = model.eResource();
         URI uri = res.getURI();
@@ -72,28 +80,34 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         final IFile file = ResourcesPlugin.getWorkspace().getRoot()
                 .getFile(platformPath);
         IPath filePath = file.getLocation();
-        String cwd = filePath.removeLastSegments(segCount).toString();
+        String cwd = filePath.removeLastSegments(1).toString();
         try {
+            initImportList(model, cwd, file.getLocation().toString());
             importList = buildImportList(importList);
         } catch (NullPointerException e) {
         }
-        // Version francaVersion = new Version(0,8,9);
-        // if(!isFrancaVersionGreaterThan(francaVersion)){
-        if (aimBuilder.buildAllInfos(cwd)) {
-            fastAllInfo = aimBuilder.fastAllInfo;
-        } else {
-            if (!uri.segment(2).toString().equals("bin"))
-                aimBuilder.updateAllInfo((EObject) model, filePath.toString());
-            fastAllInfo = aimBuilder.fastAllInfo;
-        }
-        // }
-        cwd = filePath.removeLastSegments(1).toString();
         List<String> interfaceTypecollectionNames = new ArrayList<String>();
         for (FTypeCollection fTypeCollection : model.getTypeCollections()) {
             interfaceTypecollectionNames.add(fTypeCollection.getName());
             validateImportedTypeCollections(model, messageAcceptor, file, cwd,
                     fTypeCollection);
         }
+
+        cwd = filePath.removeLastSegments(segCount).toString();
+        if (isWholeWorkspaceCheckActive()) {
+            if (aimBuilder.buildAllInfos(cwd)) {
+                fastAllInfo = aimBuilder.fastAllInfo;
+            } else {
+                if (!uri.segment(2).toString().equals("bin"))
+                    aimBuilder.updateAllInfo((EObject) model,
+                            filePath.toString());
+                fastAllInfo = aimBuilder.fastAllInfo;
+            }
+        } else {
+            resourceList.add(model);
+            aimBuilder.buildAllInfo(resourceList);
+        }
+
         HashMap<FInterface, EList<FInterface>> managedInterfaces = new HashMap<FInterface, EList<FInterface>>();
         for (FInterface fInterface : model.getInterfaces()) {
             interfaceTypecollectionNames.add(fInterface.getName());
@@ -104,8 +118,12 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         }
 
         for (FTypeCollection fTypeCollection : model.getTypeCollections()) {
-            validateTypeCollectionName(model, messageAcceptor, filePath,
-                    interfaceTypecollectionNames, fTypeCollection);
+            try {
+                validateTypeCollectionName(model, messageAcceptor, filePath,
+                        interfaceTypecollectionNames, fTypeCollection);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             validateTypeCollectionElements(messageAcceptor, fTypeCollection);
         }
 
@@ -114,10 +132,26 @@ public class ValidatorDBus implements IFrancaExternalValidator {
                     interfaceTypecollectionNames, fInterface);
             validateFInterfaceElements(messageAcceptor, fInterface);
         }
-
+        resourceList.clear();
         interfaceTypecollectionNames.clear();
         importList.clear();
 
+    }
+
+    private void initImportList(FModel model, String cwd, String filePath) {
+        HashSet<String> importedFiles = new HashSet<String>();
+        for (Import fImport : model.getImports()) {
+            Path absoluteImportPath = new Path(fImport.getImportURI());
+            if (!absoluteImportPath.isAbsolute()) {
+                absoluteImportPath = new Path(cwd + "/"
+                        + fImport.getImportURI());
+                importedFiles.add(absoluteImportPath.toString());
+            } else {
+                importedFiles.add(absoluteImportPath.toString().replaceFirst(
+                        absoluteImportPath.getDevice() + "/", ""));
+            }
+        }
+        importList.put(filePath, importedFiles);
     }
 
     private EObject buildResource(String filename, String cwd) {
@@ -169,6 +203,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
                             "file:/"
                                     + importedPath.substring(0,
                                             importedPath.lastIndexOf("/") + 1));
+                    resourceList.add(resource);
                     for (EObject imp : resource.eContents()) {
                         if (imp instanceof Import) {
                             Path importImportedPath = new Path(
@@ -210,25 +245,31 @@ public class ValidatorDBus implements IFrancaExternalValidator {
                     FrancaPackage.Literals.FMODEL_ELEMENT__NAME, -1,
                     messageAcceptor);
         }
-        if (fastAllInfo.get(fTypeCollection.getName()).get(model.getName())
-                .size() > 1) {
-            for (String s : fastAllInfo.get(fTypeCollection.getName()).get(
-                    model.getName())) {
-                if (!s.equals(filePath.toString())) {
-                    if (importList.containsKey(s)) {
-                        acceptError(
-                                "Imported file "
-                                        + s
-                                        + " has interface or typeCollection with the same name and same package!",
-                                fTypeCollection,
-                                FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
-                                -1, messageAcceptor);
-                    } else {
-                        acceptWarning("Interface or typeCollection in file "
-                                + s + " has the same name and same package!",
-                                fTypeCollection,
-                                FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
-                                -1, messageAcceptor);
+
+        // since Franca 0.8.10 is released, this check is unnecessary
+        if (!isFrancaVersionGreaterThan(0, 8, 9)) {
+            if (fastAllInfo.get(fTypeCollection.getName()).get(model.getName())
+                    .size() > 1) {
+                for (String s : fastAllInfo.get(fTypeCollection.getName()).get(
+                        model.getName())) {
+                    if (!s.equals(filePath.toString())) {
+                        if (importList.containsKey(s)) {
+                            acceptError(
+                                    "Imported file "
+                                            + s
+                                            + " has interface or typeCollection with the same name and same package!",
+                                    fTypeCollection,
+                                    FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
+                                    -1, messageAcceptor);
+                        } else {
+                            acceptWarning(
+                                    "Interface or typeCollection in file "
+                                            + s
+                                            + " has the same name and same package!",
+                                    fTypeCollection,
+                                    FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
+                                    -1, messageAcceptor);
+                        }
                     }
                 }
             }
@@ -426,16 +467,44 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         return accepted;
     }
 
-    private boolean isFrancaVersionGreaterThan(Version francaVersion) {
-        Bundle bundle = FrameworkUtil.getBundle(this.getClass());
-        if (bundle != null) {
-            BundleContext context = bundle.getBundleContext();
-            for (Bundle b : context.getBundles()) {
-                if (b.getSymbolicName().equals("org.franca.core"))
-                    return b.getVersion().compareTo(francaVersion) > 0;
-            }
+    private boolean isWholeWorkspaceCheckActive() {
+        return CommonApiUiPlugin
+                .getDefault()
+                .getPreferenceStore()
+                .getBoolean(
+                        ValidatorDBusPreferencesPage.ENABLED_WORKSPACE_CHECK);
+    }
+
+    private boolean isFrancaVersionGreaterThan(int major, int minor, int micro) {
+        Version francaVersion = ((BundleReference) FArgument.class
+                .getClassLoader()).getBundle().getVersion();
+        if (francaVersion.getMajor() > major) {
+            return true;
+        }
+        if (francaVersion.getMajor() < major){
+            return false;
+        }
+        if (francaVersion.getMinor() > minor) {
+            return true;
+        }
+        if (francaVersion.getMinor() < minor){
+            return false;
+        }
+        if (francaVersion.getMicro() > micro) {
+            return true;
+        }
+        if (francaVersion.getMicro() < micro) {
+            return false;
         }
         return false;
+    }
+
+    public boolean isValidatorEnabled() {
+        boolean enabled = CommonApiUiPlugin
+                .getDefault()
+                .getPreferenceStore()
+                .getBoolean(ValidatorDBusPreferencesPage.ENABLED_DBUS_VALIDATOR);
+        return enabled;
     }
 
     private void acceptError(String message, EObject object,

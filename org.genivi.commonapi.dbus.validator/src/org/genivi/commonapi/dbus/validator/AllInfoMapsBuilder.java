@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.franca.core.franca.FInterface;
+import org.franca.core.franca.FModel;
 import org.franca.core.franca.FTypeCollection;
 
 public class AllInfoMapsBuilder {
@@ -41,6 +42,36 @@ public class AllInfoMapsBuilder {
         buildFastAllInfo();
         return true;
 
+    }
+
+    public void buildAllInfo(Set<EObject> resourceSet) {
+        allInfo.clear();
+        buildAllInfos(resourceSet);
+        fastAllInfo.clear();
+        buildFastAllInfo();
+    }
+
+    private void buildAllInfos(Set<EObject> ressourceSet) {
+        for (EObject model : ressourceSet) {
+            ArrayList<String> typeCollectionList = new ArrayList<String>();
+            ArrayList<String> interfaceList = new ArrayList<String>();
+            if (model != null) {
+                for (EObject e : model.eContents()) {
+                    if (e instanceof FTypeCollection
+                            && !(e instanceof FInterface)) {
+                        typeCollectionList.add(((FTypeCollection) e).getName());
+                    }
+                    if (e instanceof FInterface) {
+                        interfaceList.add(((FInterface) e).getName());
+                    }
+                }
+                infoTriple = new Triple<String, ArrayList<String>, ArrayList<String>>(
+                        ((FModelImpl) model).getName(), typeCollectionList,
+                        interfaceList);
+                allInfo.put(((FModel) model).eResource().getURI().toString(),
+                        infoTriple);
+            }
+        }
     }
 
     private void buildFastAllInfo() {

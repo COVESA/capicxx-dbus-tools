@@ -5,7 +5,16 @@
                 point="org.franca.core.dsl.francaValidator">
                   <validator
                         class="org.genivi.commonapi.dbus.validator.ValidatorDBus"
-                        mode="FAST">
+                        mode="FAST"
+                        name="ValidatorDBus">
                   </validator>
                </extension>
+               <extension
+                   point="org.eclipse.ui.preferencePages">
+                <page
+                      class="org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage"
+                      id="org.genivi.commonapi.dbus.validator.preference"
+                      name="Validator DBus">
+                </page>
+             </extension>
 </plugin>
