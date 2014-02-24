@@ -7,26 +7,26 @@
 package org.genivi.commonapi.dbus.generator
 
 import javax.inject.Inject
-import org.franca.core.franca.FAttribute
-import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
-import org.franca.core.franca.FTypeRef
-import org.franca.core.franca.FTypeDef
+import org.eclipse.core.resources.IResource
 import org.franca.core.franca.FArrayType
-import org.franca.core.franca.FMapType
-import org.franca.core.franca.FStructType
-import org.franca.core.franca.FEnumerationType
-import org.franca.core.franca.FUnionType
+import org.franca.core.franca.FAttribute
 import org.franca.core.franca.FBasicTypeId
-import org.franca.core.franca.FMethod
 import org.franca.core.franca.FBroadcast
+import org.franca.core.franca.FEnumerationType
+import org.franca.core.franca.FMapType
+import org.franca.core.franca.FMethod
+import org.franca.core.franca.FModelElement
+import org.franca.core.franca.FStructType
+import org.franca.core.franca.FTypeDef
+import org.franca.core.franca.FTypeRef
+import org.franca.core.franca.FTypedElement
+import org.franca.core.franca.FUnionType
+import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
+import org.osgi.framework.FrameworkUtil
+import org.osgi.framework.Version
 
 import static com.google.common.base.Preconditions.*
-import org.franca.core.franca.FTypedElement
-import org.osgi.framework.FrameworkUtil
-import org.franca.core.franca.FModelElement
-import org.eclipse.core.resources.IResource
-import org.osgi.framework.Version
 
 class FrancaDBusGeneratorExtensions {
     @Inject private extension FrancaGeneratorExtensions

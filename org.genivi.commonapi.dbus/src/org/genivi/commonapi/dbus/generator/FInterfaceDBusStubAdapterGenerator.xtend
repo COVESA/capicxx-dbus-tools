@@ -54,7 +54,7 @@ class FInterfaceDBusStubAdapterGenerator {
 
         typedef CommonAPI::DBus::DBusStubAdapterHelper<«fInterface.stubClassName»> «fInterface.dbusStubAdapterHelperClassName»;
 
-        class «fInterface.dbusStubAdapterClassNameInternal»: public «fInterface.stubAdapterClassName», public «fInterface.dbusStubAdapterHelperClassName»«IF fInterface.base != null», public «fInterface.base.dbusStubAdapterClassNameInternal»«ENDIF» {
+        class «fInterface.dbusStubAdapterClassNameInternal»: public virtual «fInterface.stubAdapterClassName», public «fInterface.dbusStubAdapterHelperClassName»«IF fInterface.base != null», public «fInterface.base.dbusStubAdapterClassNameInternal»«ENDIF» {
          public:
             «fInterface.dbusStubAdapterClassNameInternal»(
                     const std::shared_ptr<CommonAPI::DBus::DBusFactory>& factory,
@@ -115,17 +115,60 @@ class FInterfaceDBusStubAdapterGenerator {
             }
 
             virtual void init(std::shared_ptr<DBusStubAdapter> instance) {
-                return DBusStubAdapter::init(instance);
+                return «fInterface.dbusStubAdapterHelperClassName»::init(instance);
             }
 
             virtual void deinit() {
-                return DBusStubAdapter::deinit();
+                return «fInterface.dbusStubAdapterHelperClassName»::deinit();
             }
 
             virtual bool onInterfaceDBusMessage(const CommonAPI::DBus::DBusMessage& dbusMessage) {
                 return «fInterface.dbusStubAdapterHelperClassName»::onInterfaceDBusMessage(dbusMessage);
             }
             «ENDIF»
+
+        static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
+                «fInterface.stubClassName»,
+                CommonAPI::Version
+                > get«fInterface.elementName»InterfaceVersionStubDispatcher;
+
+        «FOR attribute : fInterface.attributes»
+            «generateAttributeDispatcherDeclarations(attribute, fInterface)»
+        «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR attribute : fInterface.inheritedAttributes»
+                «generateAttributeDispatcherDeclarations(attribute, fInterface)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
+
+        «var counterMap = new HashMap<String, Integer>()»
+        «var methodnumberMap = new HashMap<FMethod, Integer>()»
+        «FOR method : fInterface.methods»
+            «generateMethodDispatcherDeclarations(method, fInterface, counterMap, methodnumberMap)»
+        «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR method : fInterface.inheritedMethods»
+                «generateMethodDispatcherDeclarations(method, fInterface, counterMap, methodnumberMap)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
+
+        «FOR broadcast: fInterface.broadcasts»
+            «generateBroadcastDispatcherDeclarations(broadcast, fInterface)»
+        «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR broadcast: fInterface.inheritedBroadcasts»
+                «generateBroadcastDispatcherDeclarations(broadcast, fInterface)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
 
          protected:
             virtual const char* getMethodsDBusIntrospectionXmlData() const;
@@ -170,6 +213,129 @@ class FInterfaceDBusStubAdapterGenerator {
         #endif // «fInterface.defineName»_DBUS_STUB_ADAPTER_H_
     '''
 
+    def private generateAttributeDispatcherDeclarations(FAttribute fAttribute, FInterface fInterface) '''
+        «FTypeGenerator::generateComments(fAttribute, false)»
+        static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
+                «fInterface.stubClassName»,
+                «fAttribute.getTypeName(fInterface.model)»
+                > «fAttribute.dbusGetStubDispatcherVariable»;
+        «IF !fAttribute.isReadonly»
+            static CommonAPI::DBus::DBusSet«IF fAttribute.observable»Observable«ENDIF»AttributeStubDispatcher<
+                    «fInterface.stubClassName»,
+                    «fAttribute.getTypeName(fInterface.model)»
+                    > «fAttribute.dbusSetStubDispatcherVariable»;
+        «ENDIF»
+    '''
+
+    def private generateMethodDispatcherDeclarations(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap) '''
+            «FTypeGenerator::generateComments(fMethod, false)»
+            «IF !fMethod.isFireAndForget»
+                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                    «fInterface.stubClassName»,
+                    std::tuple<«fMethod.allInTypes»>,
+                    std::tuple<«fMethod.allOutTypes»>
+                    «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
+                        «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
+                        > «fMethod.dbusStubDispatcherVariable»;
+                    «ELSE»
+                        «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
+                        > «fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»;
+                    «ENDIF»
+            «ELSE»
+                static CommonAPI::DBus::DBusMethodStubDispatcher<
+                    «fInterface.stubClassName»,
+                    std::tuple<«fMethod.allInTypes»>
+                    «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
+                        «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0); methodnumberMap.put(fMethod, 0);""}»
+                        > «fMethod.dbusStubDispatcherVariable»;
+                    «ELSE»
+                        «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
+                        > «fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»;
+                    «ENDIF»
+            «ENDIF»
+    '''
+
+    def private generateBroadcastDispatcherDeclarations(FBroadcast fBroadcast, FInterface fInterface) '''
+        «IF !fBroadcast.selective.nullOrEmpty»
+            static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
+                «fInterface.stubClassName»,
+                «fInterface.stubAdapterClassName»,
+                std::tuple<>,
+                std::tuple<bool>
+                > «fBroadcast.dbusStubDispatcherVariableSubscribe»;
+
+            static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
+                «fInterface.stubClassName»,
+                «fInterface.stubAdapterClassName»,
+             std::tuple<>,
+                std::tuple<>
+                > «fBroadcast.dbusStubDispatcherVariableUnsubscribe»;
+        «ENDIF»
+    '''
+
+    def private generateAttributeDispatcherDefinitions(FAttribute fAttribute, FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
+            «FTypeGenerator::generateComments(fAttribute, false)»
+            CommonAPI::DBus::DBusGetAttributeStubDispatcher<
+                    «fInterface.stubClassName»,
+                    «fAttribute.getTypeName(fInterface.model)»
+                    > «fInterface.dbusStubAdapterClassNameInternal»::«fAttribute.dbusGetStubDispatcherVariable»(&«fInterface.stubClassName»::«fAttribute.stubClassGetMethodName», "«fAttribute.dbusSignature(deploymentAccessor)»");
+            «IF !fAttribute.isReadonly»
+                CommonAPI::DBus::DBusSet«IF fAttribute.observable»Observable«ENDIF»AttributeStubDispatcher<
+                        «fInterface.stubClassName»,
+                        «fAttribute.getTypeName(fInterface.model)»
+                        > «fInterface.dbusStubAdapterClassNameInternal»::«fAttribute.dbusSetStubDispatcherVariable»(
+                                &«fInterface.stubClassName»::«fAttribute.stubClassGetMethodName»,
+                                &«fInterface.stubRemoteEventClassName»::«fAttribute.stubRemoteEventClassSetMethodName»,
+                                &«fInterface.stubRemoteEventClassName»::«fAttribute.stubRemoteEventClassChangedMethodName»,
+                                «IF fAttribute.observable»&«fInterface.stubAdapterClassName»::«fAttribute.stubAdapterClassFireChangedMethodName»,«ENDIF»
+                                "«fAttribute.dbusSignature(deploymentAccessor)»");
+            «ENDIF»
+    '''
+
+    def private generateMethodDispatcherDefinitions(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap, DeploymentInterfacePropertyAccessor deploymentAccessor) '''
+        «FTypeGenerator::generateComments(fMethod, false)»
+        «IF !fMethod.isFireAndForget»
+            CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
+                «fInterface.stubClassName»,
+                std::tuple<«fMethod.allInTypes»>,
+                std::tuple<«fMethod.allOutTypes»>
+                «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
+                    «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
+                    > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»");
+                «ELSE»
+                    «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
+                    > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»");
+                «ENDIF»
+        «ELSE»
+            CommonAPI::DBus::DBusMethodStubDispatcher<
+                «fInterface.stubClassName»,
+                std::tuple<«fMethod.allInTypes»>
+                «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
+                    «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0); methodnumberMap.put(fMethod, 0);""}»
+                    > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + fMethod.elementName»);
+                «ELSE»
+                    «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
+                    > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + fMethod.elementName»);
+                «ENDIF»
+        «ENDIF»
+    '''
+
+    def private generateBroadcastDispatcherDefinitions(FBroadcast fBroadcast, FInterface fInterface) '''
+        CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
+            «fInterface.stubClassName»,
+            «fInterface.stubAdapterClassName»,
+            std::tuple<>,
+            std::tuple<bool>
+            > «fInterface.dbusStubAdapterClassNameInternal»::«fBroadcast.dbusStubDispatcherVariableSubscribe»(&«fInterface.stubAdapterClassName + "::" + fBroadcast.subscribeSelectiveMethodName», "b");
+
+        CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
+            «fInterface.stubClassName»,
+            «fInterface.stubAdapterClassName»,
+            std::tuple<>,
+            std::tuple<>
+            > «fInterface.dbusStubAdapterClassNameInternal»::«fBroadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubAdapterClassName + "::" + fBroadcast.unsubscribeSelectiveMethodName», "");
+    '''
+
     def private generateDBusStubAdapterSource(FInterface fInterface, DeploymentInterfacePropertyAccessor deploymentAccessor, IResource modelid) '''
         «generateCommonApiLicenseHeader(fInterface, modelid)»
         #include "«fInterface.dbusStubAdapterHeaderFile»"
@@ -188,7 +354,7 @@ class FInterfaceDBusStubAdapterGenerator {
             return std::make_shared<«fInterface.dbusStubAdapterClassName»>(factory, commonApiAddress, interfaceName, busName, objectPath, dbusProxyConnection, stubBase);
         }
 
-        __attribute__((constructor)) void register«fInterface.dbusStubAdapterClassName»(void) {
+        INITIALIZER(register«fInterface.dbusStubAdapterClassName») {
             CommonAPI::DBus::DBusFactory::registerAdapterFactoryMethod(«fInterface.elementName»::getInterfaceId(),
                                                                        &create«fInterface.dbusStubAdapterClassName»);
         }
@@ -201,10 +367,22 @@ class FInterfaceDBusStubAdapterGenerator {
         }
 
         void «fInterface.dbusStubAdapterClassNameInternal»::deactivateManagedInstances() {
+            «IF !fInterface.managedInterfaces.empty»
+                std::set<std::string>::iterator iter;
+                std::set<std::string>::iterator iterNext;
+            «ENDIF»
+
             «FOR managed : fInterface.managedInterfaces»
-                for(std::set<std::string>::iterator iter = «managed.stubManagedSetName».begin();
-                        iter != «managed.stubManagedSetName».end(); ++iter) {
-                    «managed.stubDeregisterManagedName»(*iter);
+                iter = «managed.stubManagedSetName».begin();
+                while (iter != «managed.stubManagedSetName».end()) {
+                    iterNext = std::next(iter);
+
+                    if («managed.stubDeregisterManagedName»(*iter)) {
+                        iter = iterNext;
+                    }
+                    else {
+                        iter++;
+                    }
                 }
             «ENDFOR»
         }
@@ -264,60 +442,36 @@ class FInterfaceDBusStubAdapterGenerator {
             return introspectionData.c_str();
         }
 
-        static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
+        CommonAPI::DBus::DBusGetAttributeStubDispatcher<
                 «fInterface.stubClassName»,
                 CommonAPI::Version
-                > get«fInterface.elementName»InterfaceVersionStubDispatcher(&«fInterface.stubClassName»::getInterfaceVersion, "uu");
+                > «fInterface.dbusStubAdapterClassNameInternal»::get«fInterface.elementName»InterfaceVersionStubDispatcher(&«fInterface.stubClassName»::getInterfaceVersion, "uu");
 
         «FOR attribute : fInterface.attributes»
-            «FTypeGenerator::generateComments(attribute, false)»
-            static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
-                    «fInterface.stubClassName»,
-                    «attribute.getTypeName(fInterface.model)»
-                    > «attribute.dbusGetStubDispatcherVariable»(&«fInterface.stubClassName»::«attribute.stubClassGetMethodName», "«attribute.dbusSignature(deploymentAccessor)»");
-            «IF !attribute.isReadonly»
-                static CommonAPI::DBus::DBusSet«IF attribute.observable»Observable«ENDIF»AttributeStubDispatcher<
-                        «fInterface.stubClassName»,
-                        «attribute.getTypeName(fInterface.model)»
-                        > «attribute.dbusSetStubDispatcherVariable»(
-                                &«fInterface.stubClassName»::«attribute.stubClassGetMethodName»,
-                                &«fInterface.stubRemoteEventClassName»::«attribute.stubRemoteEventClassSetMethodName»,
-                                &«fInterface.stubRemoteEventClassName»::«attribute.stubRemoteEventClassChangedMethodName»,
-                                «IF attribute.observable»&«fInterface.stubAdapterClassName»::«attribute.stubAdapterClassFireChangedMethodName»,«ENDIF»
-                                "«attribute.dbusSignature(deploymentAccessor)»");
-            «ENDIF»
-
+            «generateAttributeDispatcherDefinitions(attribute, fInterface, deploymentAccessor)»
         «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR attribute : fInterface.inheritedAttributes»
+                «generateAttributeDispatcherDefinitions(attribute, fInterface, deploymentAccessor)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
 
         «var counterMap = new HashMap<String, Integer>()»
         «var methodnumberMap = new HashMap<FMethod, Integer>()»
         «FOR method : fInterface.methods»
-            «FTypeGenerator::generateComments(method, false)»
-            «IF !method.isFireAndForget»
-                static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-                    «fInterface.stubClassName»,
-                    std::tuple<«method.allInTypes»>,
-                    std::tuple<«method.allOutTypes»>
-                    «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, 0);  methodnumberMap.put(method, 0);""}»
-                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
-                    «ELSE»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(method, counterMap.get(method.dbusStubDispatcherVariable));""}»
-                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName», "«method.dbusOutSignature(deploymentAccessor)»");
-                    «ENDIF»
-            «ELSE»
-                static CommonAPI::DBus::DBusMethodStubDispatcher<
-                    «fInterface.stubClassName»,
-                    std::tuple<«method.allInTypes»>
-                    «IF !(counterMap.containsKey(method.dbusStubDispatcherVariable))»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, 0); methodnumberMap.put(method, 0);""}»
-                        > «method.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + method.elementName»);
-                    «ELSE»
-                        «{counterMap.put(method.dbusStubDispatcherVariable, counterMap.get(method.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(method, counterMap.get(method.dbusStubDispatcherVariable));""}»
-                        > «method.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(method.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + method.elementName»);
-                    «ENDIF»
-            «ENDIF»
+            «generateMethodDispatcherDefinitions(method, fInterface, counterMap, methodnumberMap, deploymentAccessor)»
         «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR method : fInterface.inheritedMethods»
+                «generateMethodDispatcherDefinitions(method, fInterface, counterMap, methodnumberMap, deploymentAccessor)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
 
         «FOR attribute : fInterface.attributes»
             «FTypeGenerator::generateComments(attribute, false)»
@@ -337,20 +491,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «FOR broadcast: fInterface.broadcasts»
             «FTypeGenerator::generateComments(broadcast, false)»
             «IF !broadcast.selective.nullOrEmpty»
-                static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
-                    «fInterface.stubClassName»,
-                    «fInterface.stubAdapterClassName»,
-                    std::tuple<>,
-                    std::tuple<bool>
-                    > «broadcast.dbusStubDispatcherVariableSubscribe»(&«fInterface.stubAdapterClassName + "::" + broadcast.subscribeSelectiveMethodName», "b");
-
-                static CommonAPI::DBus::DBusMethodWithReplyAdapterDispatcher<
-                    «fInterface.stubClassName»,
-                    «fInterface.stubAdapterClassName»,
-                    std::tuple<>,
-                    std::tuple<>
-                    > «broadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubAdapterClassName + "::" + broadcast.unsubscribeSelectiveMethodName», "");
-
+                «generateBroadcastDispatcherDefinitions(broadcast, fInterface)»
 
                 void «fInterface.dbusStubAdapterClassNameInternal»::«broadcast.stubAdapterClassFireSelectiveMethodName»(«generateFireSelectiveSignatur(broadcast, fInterface)») {
                     std::shared_ptr<CommonAPI::DBus::DBusClientId> dbusClientId = std::dynamic_pointer_cast<CommonAPI::DBus::DBusClientId, CommonAPI::ClientId>(clientId);
@@ -419,6 +560,14 @@ class FInterfaceDBusStubAdapterGenerator {
                 }
             «ENDIF»
         «ENDFOR»
+
+        «IF fInterface.base != null»
+            #ifdef WIN32
+            «FOR broadcast: fInterface.inheritedBroadcasts.filter[!selective.nullOrEmpty]»
+                «generateBroadcastDispatcherDefinitions(broadcast, fInterface)»
+            «ENDFOR»
+            #endif
+        «ENDIF»
 
         const «fInterface.dbusStubAdapterHelperClassName»::StubDispatcherTable& «fInterface.dbusStubAdapterClassNameInternal»::getStubDispatcherTable() {
             return stubDispatcherTable_;
@@ -516,28 +665,60 @@ class FInterfaceDBusStubAdapterGenerator {
                     dbusConnection,
                     stub),
                 «ENDIF»
+                «setNextSectionInDispatcherNeedsComma(false)»
                 stubDispatcherTable_({
                     «FOR attribute : fInterface.attributes SEPARATOR ','»
                         «FTypeGenerator::generateComments(attribute, false)»
-                        { { "«attribute.dbusGetMethodName»", "" }, &«fInterface.absoluteNamespace»::«attribute.dbusGetStubDispatcherVariable» }
+                        «dbusDispatcherTableEntry(fInterface, attribute.dbusGetMethodName, "", attribute.dbusGetStubDispatcherVariable)»
                         «IF !attribute.isReadonly»
-                            , { { "«attribute.dbusSetMethodName»", "«attribute.dbusSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«attribute.dbusSetStubDispatcherVariable» }
+                            , «dbusDispatcherTableEntry(fInterface, attribute.dbusSetMethodName, attribute.dbusSignature(deploymentAccessor), attribute.dbusSetStubDispatcherVariable)»
                         «ENDIF»
+                        «setNextSectionInDispatcherNeedsComma(true)»
                     «ENDFOR»
-                    «IF !fInterface.attributes.empty && !fInterface.methods.empty»,«ENDIF»
+                    «IF nextSectionInDispatcherNeedsComma && !fInterface.methods.empty»,«ENDIF»
                     «FOR method : fInterface.methods SEPARATOR ','»
                         «FTypeGenerator::generateComments(method, false)»
                         «IF methodnumberMap.get(method)==0»
-                        { { "«method.elementName»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable» }
+                        «dbusDispatcherTableEntry(fInterface, method.elementName, method.dbusInSignature(deploymentAccessor), method.dbusStubDispatcherVariable)»
                         «ELSE»
-                        { { "«method.elementName»", "«method.dbusInSignature(deploymentAccessor)»" }, &«fInterface.absoluteNamespace»::«method.dbusStubDispatcherVariable»«methodnumberMap.get(method)» }
+                        «dbusDispatcherTableEntry(fInterface, method.elementName, method.dbusInSignature(deploymentAccessor), method.dbusStubDispatcherVariable+methodnumberMap.get(method))»
                         «ENDIF»
+                        «setNextSectionInDispatcherNeedsComma(true)»
                     «ENDFOR»
-                    «IF fInterface.hasSelectiveBroadcasts»,«ENDIF»
+                    «IF nextSectionInDispatcherNeedsComma && fInterface.hasSelectiveBroadcasts»,«ENDIF»
                     «FOR broadcast : fInterface.broadcasts.filter[!selective.nullOrEmpty] SEPARATOR ','»
-                        { { "«broadcast.subscribeSelectiveMethodName»", "" }, &«fInterface.absoluteNamespace»::«broadcast.dbusStubDispatcherVariableSubscribe» },
-                        { { "«broadcast.unsubscribeSelectiveMethodName»", "" }, &«fInterface.absoluteNamespace»::«broadcast.dbusStubDispatcherVariableUnsubscribe» }
+                        «dbusDispatcherTableEntry(fInterface, broadcast.subscribeSelectiveMethodName, "", broadcast.dbusStubDispatcherVariableSubscribe)»,
+                        «dbusDispatcherTableEntry(fInterface, broadcast.unsubscribeSelectiveMethodName, "", broadcast.dbusStubDispatcherVariableUnsubscribe)»
+                        «setNextSectionInDispatcherNeedsComma(true)»
                     «ENDFOR»
+                    «IF fInterface.base != null»
+                    #ifdef WIN32
+                    «IF nextSectionInDispatcherNeedsComma && !fInterface.inheritedAttributes.empty»,«ENDIF»
+                    «FOR attribute : fInterface.inheritedAttributes SEPARATOR ','»
+                        «FTypeGenerator::generateComments(attribute, false)»
+                        «dbusDispatcherTableEntry(fInterface, attribute.dbusGetMethodName, "", attribute.dbusGetStubDispatcherVariable)»
+                        «IF !attribute.isReadonly»
+                            , «dbusDispatcherTableEntry(fInterface, attribute.dbusSetMethodName, attribute.dbusSignature(deploymentAccessor), attribute.dbusSetStubDispatcherVariable)»
+                        «ENDIF»
+                        «setNextSectionInDispatcherNeedsComma(true)»
+                    «ENDFOR»
+                    «IF nextSectionInDispatcherNeedsComma && !fInterface.inheritedMethods.empty»,«ENDIF»
+                    «FOR method : fInterface.inheritedMethods SEPARATOR ','»
+                        «FTypeGenerator::generateComments(method, false)»
+                        «IF methodnumberMap.get(method)==0»
+                        «dbusDispatcherTableEntry(fInterface, method.elementName, method.dbusInSignature(deploymentAccessor), method.dbusStubDispatcherVariable)»
+                        «ELSE»
+                        «dbusDispatcherTableEntry(fInterface, method.elementName, method.dbusInSignature(deploymentAccessor), method.dbusStubDispatcherVariable+methodnumberMap.get(method))»
+                        «ENDIF»
+                        «setNextSectionInDispatcherNeedsComma(true)»
+                    «ENDFOR»
+                    «IF nextSectionInDispatcherNeedsComma && !fInterface.inheritedBroadcasts.filter[!selective.nullOrEmpty].empty»,«ENDIF»
+                    «FOR broadcast : fInterface.inheritedBroadcasts.filter[!selective.nullOrEmpty] SEPARATOR ','»
+                        «dbusDispatcherTableEntry(fInterface, broadcast.subscribeSelectiveMethodName, "", broadcast.dbusStubDispatcherVariableSubscribe)»,
+                        «dbusDispatcherTableEntry(fInterface, broadcast.unsubscribeSelectiveMethodName, "", broadcast.dbusStubDispatcherVariableUnsubscribe)»
+                    «ENDFOR»
+                    #endif
+                    «ENDIF»
                     }) {
             «FOR broadcast : fInterface.broadcasts»
                 «IF !broadcast.selective.nullOrEmpty»
@@ -546,21 +727,29 @@ class FInterfaceDBusStubAdapterGenerator {
             «ENDFOR»
 
             «IF fInterface.base != null»
+                #ifdef WIN32
+                stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::get«fInterface.elementName»InterfaceVersionStubDispatcher });
+                #else
                 auto parentDispatcherTable = «fInterface.base.dbusStubAdapterClassNameInternal»::getStubDispatcherTable();
                 stubDispatcherTable_.insert(parentDispatcherTable.begin(), parentDispatcherTable.end());
 
                 auto interfaceVersionGetter = stubDispatcherTable_.find({ "getInterfaceVersion", "" });
                 if(interfaceVersionGetter != stubDispatcherTable_.end()) {
-                    interfaceVersionGetter->second = &«fInterface.absoluteNamespace»::get«fInterface.elementName»InterfaceVersionStubDispatcher;
+                    interfaceVersionGetter->second = &«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::get«fInterface.elementName»InterfaceVersionStubDispatcher;
                 } else {
-                    stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::get«fInterface.elementName»InterfaceVersionStubDispatcher });
+                    stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::get«fInterface.elementName»InterfaceVersionStubDispatcher });
                 }
+                #endif
             «ELSE»
-               stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::get«fInterface.elementName»InterfaceVersionStubDispatcher });
+               stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::get«fInterface.elementName»InterfaceVersionStubDispatcher });
             «ENDIF»
         }
 
         «fInterface.model.generateNamespaceEndDeclaration»
+    '''
+
+    def dbusDispatcherTableEntry(FInterface fInterface, String methodName, String dbusSignature, String memberFunctionName) '''
+        { { "«methodName»", "«dbusSignature»" }, &«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::«memberFunctionName» }
     '''
 
     def private getAbsoluteNamespace(FModelElement fModelElement) {
@@ -624,7 +813,14 @@ class FInterfaceDBusStubAdapterGenerator {
     }
 
     def private dbusStubDispatcherVariable(FBroadcast fBroadcast) {
-        fBroadcast.elementName.toFirstLower + if(!fBroadcast.selective.isNullOrEmpty){'Selective'} + 'StubDispatcher'
+        var returnVal = fBroadcast.elementName.toFirstLower
+
+        if(!fBroadcast.selective.isNullOrEmpty)
+            returnVal = returnVal + 'Selective'
+
+        returnVal = returnVal + 'StubDispatcher'
+
+        return returnVal
     }
 
     def private dbusStubDispatcherVariableSubscribe(FBroadcast fBroadcast) {
@@ -633,5 +829,11 @@ class FInterfaceDBusStubAdapterGenerator {
 
     def private dbusStubDispatcherVariableUnsubscribe(FBroadcast fBroadcast) {
         "unsubscribe" + fBroadcast.dbusStubDispatcherVariable.toFirstUpper
+    }
+
+    var nextSectionInDispatcherNeedsComma = false;
+
+    def void setNextSectionInDispatcherNeedsComma(boolean newValue) {
+        nextSectionInDispatcherNeedsComma = newValue
     }
 }
