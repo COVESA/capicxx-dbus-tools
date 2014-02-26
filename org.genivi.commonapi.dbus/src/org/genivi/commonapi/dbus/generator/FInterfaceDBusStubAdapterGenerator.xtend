@@ -600,9 +600,7 @@ class FInterfaceDBusStubAdapterGenerator {
                                 «managed.stubManagedSetName».insert(instance);
                                 return true;
                             } else {
-                                const bool isManagedDeregistrationSuccessful =
-                                    CommonAPI::DBus::DBusServicePublisher::getInstance()->unregisterManagedService(
-                                                    commonApiAddress);
+                                CommonAPI::DBus::DBusServicePublisher::getInstance()->unregisterManagedService(commonApiAddress);
                             }
                         }
                     }
