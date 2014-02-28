@@ -75,6 +75,8 @@ org.genivi.commonapi.dbus.feature
 in to Eclipse. Then simply build the workspace. Then right-click on the .feature project and select "Run as Eclipse Application" to launch 
 the built projects.
 
+For detailed information on how to build automatically with Maven, see the README in the CommonAPI-Tools repository.
+
 == Working on the code & contribution
 
 .First get the code from the git:

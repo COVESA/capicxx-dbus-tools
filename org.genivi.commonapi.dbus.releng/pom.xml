@@ -1,0 +1,18 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>commonapi</groupId>
+    <artifactId>org.genivi.commonapi.dbus.releng</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>../org.genivi.commonapi.dbus</module>
+        <module>../org.genivi.commonapi.dbus.feature</module>
+        <module>../org.genivi.commonapi.dbus.ui</module>
+    </modules>
+    <parent>
+        <groupId>commonapi</groupId>
+        <artifactId>org.genivi.commonapi.parent.releng</artifactId>
+        <version>2.1.5-SNAPSHOT</version>
+        <relativePath>../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.parent.releng</relativePath>
+    </parent>
+</project>
