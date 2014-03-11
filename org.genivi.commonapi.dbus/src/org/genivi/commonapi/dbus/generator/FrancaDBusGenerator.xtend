@@ -33,8 +33,6 @@ import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor.PropertiesType
 import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessorWrapper
 import org.osgi.framework.FrameworkUtil
-import org.eclipse.xtext.generator.AbstractFileSystemAccess
-import org.eclipse.xtext.generator.JavaIoFileSystemAccess
 
 import static com.google.common.base.Preconditions.*
 
