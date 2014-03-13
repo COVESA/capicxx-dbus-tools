@@ -160,16 +160,8 @@ class FrancaDBusGenerator implements IGenerator
             finalValue = FPreferences::instance.getPreference(res, PreferenceConstants::P_GENERATESTUB, finalValue)
             if(finalValue.equals(booleanTrue))
             {
-                if(deploymentAccessor.getPropertiesType(currentInterface) == null ||
-                    deploymentAccessor.getPropertiesType(currentInterface) == PropertiesType::CommonAPI)
-                {
-                    francaGenerator.setFileAccessOutputPathForPreference(fileSystemAccess, PreferenceConstants::P_OUTPUT_STUBS, res)
-                    it.generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
-                }
-                else
-                {
-                    // Report no Stub here!
-                }
+                francaGenerator.setFileAccessOutputPathForPreference(fileSystemAccess, PreferenceConstants::P_OUTPUT_STUBS, res)
+                it.generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
             }
             it.managedInterfaces.forEach [
                 val currentManagedInterface = it
@@ -185,16 +177,10 @@ class FrancaDBusGenerator implements IGenerator
                 }
                 francaGenerator.setFileAccessOutputPathForPreference(fileSystemAccess, PreferenceConstants::P_OUTPUT_PROXIES, res)
                 it.generateDBusProxy(fileSystemAccess, managedDeploymentAccessor, res)
-                if(managedDeploymentAccessor.getPropertiesType(currentManagedInterface) == null ||
-                    managedDeploymentAccessor.getPropertiesType(currentManagedInterface) == PropertiesType::CommonAPI)
-                {
-                    francaGenerator.setFileAccessOutputPathForPreference(fileSystemAccess, PreferenceConstants::P_OUTPUT_STUBS, res)
-                    it.generateDBusStubAdapter(fileSystemAccess, managedDeploymentAccessor, res)
-                }
-                else
-                {
-                    // Report no Stub here!
-                }
+
+                francaGenerator.setFileAccessOutputPathForPreference(fileSystemAccess, PreferenceConstants::P_OUTPUT_STUBS, res)
+                it.generateDBusStubAdapter(fileSystemAccess, managedDeploymentAccessor, res)
+
             ]
         ]
     }
