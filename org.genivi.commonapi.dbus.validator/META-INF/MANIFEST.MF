@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Commonapi
 Bundle-SymbolicName: org.genivi.commonapi.dbus.validator;singleton:=true
 Bundle-Version: 2.1.5.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: BMW AG
 Require-Bundle: org.eclipse.xtext.builder;bundle-version="2.4.0",
  org.eclipse.xtext.generator;bundle-version="2.4.0",
