@@ -12,7 +12,7 @@
     <parent>
         <groupId>commonapi</groupId>
         <artifactId>org.genivi.commonapi.parent.releng</artifactId>
-        <version>2.1.5-SNAPSHOT</version>
+        <version>2.1.6-SNAPSHOT</version>
         <relativePath>../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.parent.releng</relativePath>
     </parent>
 </project>
