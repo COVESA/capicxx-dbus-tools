@@ -8,6 +8,8 @@
         <module>../org.genivi.commonapi.dbus</module>
         <module>../org.genivi.commonapi.dbus.feature</module>
         <module>../org.genivi.commonapi.dbus.ui</module>
+        <module>../org.genivi.commonapi.dbus.validator</module>
+        <module>../org.genivi.commonapi.dbus.validator.feature</module>
     </modules>
     <parent>
         <groupId>commonapi</groupId>
