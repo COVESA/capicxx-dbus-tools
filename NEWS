@@ -1,13 +1,1 @@
-
-This is CommonAPI-D-Bus-Tools 2.1.6
-
-Changes since 2.1.5
-
-- adding maven support for dbus validator
-- JavaSE version changed from 1.7 to 1.6
-- Code generation for stub support of org.freedesktop.DBus.Properties
-- added preference page -allows to en- or disable validator -en-/disables the whole workspace check
-- added dbus validator
-- new feature to generate proxies and stubs into seperate target directories
-- small changes to generate code that can be compiled warning free
-- generator now creates windows compatible code
+This is CommonAPI D-Bus 3.1.1

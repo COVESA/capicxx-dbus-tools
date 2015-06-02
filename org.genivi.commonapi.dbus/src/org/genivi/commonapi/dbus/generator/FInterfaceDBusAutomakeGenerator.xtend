@@ -7,7 +7,7 @@
 
 package org.genivi.commonapi.dbus.generator
 
-import com.google.inject.Inject
+/*import com.google.inject.Inject
 import java.util.HashSet
 import java.util.List
 import org.eclipse.xtext.generator.IFileSystemAccess
@@ -18,7 +18,7 @@ import org.franca.core.franca.FStructType
 import org.franca.core.franca.FType
 import org.franca.core.franca.FTypeDef
 import org.franca.core.franca.FTypeRef
-import org.franca.core.franca.FUnionType
+import org.franca.core.franca.FUnionType*/
 
 class FInterfaceDBusAutomakeGenerator {
  

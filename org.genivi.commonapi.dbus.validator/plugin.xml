@@ -4,7 +4,7 @@
              <extension
                 point="org.franca.core.dsl.francaValidator">
                   <validator
-                        class="org.genivi.commonapi.dbus.validator.ValidatorDBus"
+                        class="org.genivi.commonapi.dbus.validator.ValidatorDBusUi"
                         mode="FAST"
                         name="ValidatorDBus">
                   </validator>

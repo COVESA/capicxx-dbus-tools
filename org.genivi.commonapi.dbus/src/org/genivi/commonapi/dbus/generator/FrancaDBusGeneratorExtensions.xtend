@@ -13,29 +13,38 @@ import org.franca.core.franca.FAttribute
 import org.franca.core.franca.FBasicTypeId
 import org.franca.core.franca.FBroadcast
 import org.franca.core.franca.FEnumerationType
+import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMapType
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.franca.core.franca.FStructType
+import org.franca.core.franca.FType
 import org.franca.core.franca.FTypeDef
 import org.franca.core.franca.FTypeRef
 import org.franca.core.franca.FTypedElement
 import org.franca.core.franca.FUnionType
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
-import org.genivi.commonapi.dbus.deployment.DeploymentInterfacePropertyAccessor
+import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.osgi.framework.FrameworkUtil
-import org.osgi.framework.Version
 
 import static com.google.common.base.Preconditions.*
 
 class FrancaDBusGeneratorExtensions {
     @Inject private extension FrancaGeneratorExtensions
 
-    def dbusInSignature(FMethod fMethod, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def String dbusDeploymentHeaderFile(FInterface fInterface) {
+        return fInterface.elementName + "DBusDeployment.hpp"
+    }
+
+    def String dbusDeploymentHeaderPath(FInterface fInterface) {
+        return fInterface.versionPathPrefix + fInterface.model.directoryPath + '/' + fInterface.dbusDeploymentHeaderFile
+    }
+
+    def dbusInSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
         fMethod.inArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
     }
 
-    def dbusOutSignature(FMethod fMethod, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def dbusOutSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
         var signature = fMethod.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
 
         if (fMethod.hasError)
@@ -44,7 +53,7 @@ class FrancaDBusGeneratorExtensions {
         return signature
     }
 
-    def dbusErrorSignature(FMethod fMethod, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def dbusErrorSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
         checkArgument(fMethod.hasError, 'FMethod has no error: ' + fMethod)
 
         if (fMethod.errorEnum != null)
@@ -65,55 +74,62 @@ class FrancaDBusGeneratorExtensions {
         'on' + fAttribute.className + 'Changed'
     }
 
-    def String dbusSignature(FAttribute fAttribute, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def String dbusSignature(FAttribute fAttribute, PropertyAccessor deploymentAccessor) {
         fAttribute.getTypeDbusSignature(deploymentAccessor)
     }
 
-    def String dbusSignature(FBroadcast fBroadcast, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        fBroadcast.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join
+    def String dbusSignature(FBroadcast fBroadcast, PropertyAccessor deploymentAccessor) {
+    	fBroadcast.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join
     }
     
-    def getTypeDbusSignature(FTypedElement element, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        if ("[]".equals(element.array)) {
+    def getTypeDbusSignature(FTypedElement element, PropertyAccessor deploymentAccessor) {
+        if (element.array) {
             return "a" + element.type.dbusSignature(deploymentAccessor)
         } else {
             return element.type.dbusSignature(deploymentAccessor)
         }
     }
 
-    def String dbusSignature(FTypeRef fTypeRef, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def String dbusSignature(FTypeRef fTypeRef, PropertyAccessor deploymentAccessor) {
+    	if (fTypeRef == null)
+    		return "";
+    		
         if (fTypeRef.derived != null)
             return fTypeRef.derived.dbusFTypeSignature(deploymentAccessor)
         return fTypeRef.predefined.dbusSignature
     }
 
-    def private dispatch dbusFTypeSignature(FTypeDef fTypeDef, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private dispatch dbusFTypeSignature(FTypeDef fTypeDef, PropertyAccessor deploymentAccessor) {
         return fTypeDef.actualType.dbusSignature(deploymentAccessor)
     }
 
-    def private dispatch dbusFTypeSignature(FArrayType fArrayType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private dispatch dbusFTypeSignature(FArrayType fArrayType, PropertyAccessor deploymentAccessor) {
         return 'a' + fArrayType.elementType.dbusSignature(deploymentAccessor)
     }
 
-    def private dispatch dbusFTypeSignature(FMapType fMap, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private dispatch dbusFTypeSignature(FMapType fMap, PropertyAccessor deploymentAccessor) {
         return 'a{' + fMap.keyType.dbusSignature(deploymentAccessor) + fMap.valueType.dbusSignature(deploymentAccessor) + '}'
     }
 
-    def private dispatch dbusFTypeSignature(FStructType fStructType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private dispatch dbusFTypeSignature(FStructType fStructType, PropertyAccessor deploymentAccessor) {
         if (fStructType.isPolymorphic)
             return '(uv)'
         return '(' + fStructType.getElementsDBusSignature(deploymentAccessor) + ')'
     }
 
-    def private dispatch dbusFTypeSignature(FEnumerationType fEnumerationType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
-        return fEnumerationType.getBackingType(deploymentAccessor).dbusSignature
+    def private dispatch dbusFTypeSignature(FEnumerationType fEnumerationType, PropertyAccessor deploymentAccessor) {
+        val FBasicTypeId backingType = fEnumerationType.getBackingType(deploymentAccessor)
+        if (backingType == FBasicTypeId.UNDEFINED)
+            return FBasicTypeId.INT32.dbusSignature
+        
+        return backingType.dbusSignature
     }
 
-    def private dispatch dbusFTypeSignature(FUnionType fUnionType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private dispatch dbusFTypeSignature(FUnionType fUnionType, PropertyAccessor deploymentAccessor) {
         return '(yv)'
     }
 
-    def private getElementsDBusSignature(FStructType fStructType, DeploymentInterfacePropertyAccessor deploymentAccessor) {
+    def private String getElementsDBusSignature(FStructType fStructType, PropertyAccessor deploymentAccessor) {
         var signature = fStructType.elements.map[getTypeDbusSignature(deploymentAccessor)].join
 
         if (fStructType.base != null) {
@@ -161,4 +177,23 @@ class FrancaDBusGeneratorExtensions {
         «getCommentedString(getHeader(model.model, modelid))»
         */
     '''
+    
+    def boolean isVariant(FAttribute _attribute) {
+    	return _attribute.type.isVariantType()
+    }
+    
+    def private dispatch boolean isVariantType(FTypeRef _typeRef) {
+		if (_typeRef.derived != null)
+			return _typeRef.derived.isVariantType()
+			
+		return false
+    }
+
+    def private dispatch boolean isVariantType(FTypeDef _typeDef) {
+    	return isVariantType(_typeDef.actualType)
+    }
+
+	def private dispatch boolean isVariantType(FType _type) {
+		return (_type instanceof FUnionType)
+	}
 }

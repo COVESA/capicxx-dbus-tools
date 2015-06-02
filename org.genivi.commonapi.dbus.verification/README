@@ -1,12 +1,11 @@
 GENIVI_org.genivi.commonapi.dbus.verification
-======================
-:Author: Juergen Gehring - juergen.gehring@bmw.de, Manfred Bathelt - manfred.bathelt@bmw.de
-:doctitle: GENIVI_org.genivi.commonapi.core.verification
+---------------------------------------------
+:doctitle: GENIVI_org.genivi.commonapi.dbus.verification
 
 Copyright
----------
++++++++++
 Copyright (C) 2013, GENIVI Alliance, Inc.
-Copyright (C) 2013, BMW AG
+Copyright (C) 2015, Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
 
 This file is part of GENIVI Project IPC Common API.
  
@@ -20,26 +19,51 @@ this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  
 For further information see https://collab.genivi.org/wiki/display/genivi/SysInfraEGCommonIDLCommonAPIGuide
 
-== License
+License
++++++++
 This project is licensed under MPL 2.0
 
 Contribution is done under GENIVI CLA or MPL2.0. 
 
-== Version
+Version
++++++++
 The current version can be taken from the git.
 
-== Description
+Description
+~~~~~~~~~~~
 
-This project is used to create the gluecode for the DBus binding used for running the verification tests from
+This project is used to create the gluecode for the D-Bus binding used for running the verification tests from
 org.genivi.commonapi.core.verification within CommonAPI-Tools package.
 
-== Build Instructions
+Build Instructions
+~~~~~~~~~~~~~~~~~~
 
-Please generate the DBus C++ Code for all .fidl files in src directory. The generated files should be in src-gen afterwards.
-Then run:
+To build the gluecode the following projects are needed:
 
-# autoreconv -i
-# configure
-# make all
+* CommonAPI
+* CommonAPI-Tools
+* CommonAPI-D-Bus (including patched libdbus)
+* CommonAPI-D-Bus-Tools
 
-This will build the gluecode in .libs, which you can then use for running the CommonAPI verification tests.
+Example call for cmake, with assumption that the patched libdbus was installed into `ascgit017.CommonAPI-D-Bus/patched-dbus/`:
+
+----
+rm -rf src-gen
+rm -rf build
+mkdir build
+cd build/
+
+export PKG_CONFIG_PATH=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/patched-dbus/lib/pkgconfig/)
+export LD_LIBRARY_PATH=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/patched-dbus/lib)
+export LIBRARY_PATH=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/patched-dbus/lib)
+
+cmake \
+-DCOMMONAPI_TOOL_GENERATOR=$(readlink -f ../../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.core.cli.product/target/products/org.genivi.commonapi.core.cli.product/linux/gtk/x86_64/commonapi-generator-linux-x86_64) \
+-DCOMMONAPI_DBUS_TOOL_GENERATOR=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.cli.product/target/products/org.genivi.commonapi.dbus.cli.product/linux/gtk/x86_64/commonapi-dbus-generator-linux-x86_64) \
+-DCommonAPI_DIR=$(readlink -f ../../../ascgit017.CommonAPI/build) \
+-DCommonAPI-DBus_DIR=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/build) \
+-DCOMMONAPI_TEST_FIDL_PATH=$(readlink -f ../../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.core.verification/fidl) \
+..
+
+make
+----

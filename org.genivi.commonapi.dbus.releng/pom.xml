@@ -5,16 +5,22 @@
     <artifactId>org.genivi.commonapi.dbus.releng</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>../org.genivi.commonapi.dbus.target</module>
+
         <module>../org.genivi.commonapi.dbus</module>
+        <module>../org.genivi.commonapi.dbus.cli</module>
+        <module>../org.genivi.commonapi.dbus.cli.feature</module>
+        <module>../org.genivi.commonapi.dbus.cli.product</module>
         <module>../org.genivi.commonapi.dbus.feature</module>
         <module>../org.genivi.commonapi.dbus.ui</module>
         <module>../org.genivi.commonapi.dbus.validator</module>
         <module>../org.genivi.commonapi.dbus.validator.feature</module>
+        <module>../org.genivi.commonapi.dbus.updatesite</module>
     </modules>
     <parent>
         <groupId>commonapi</groupId>
-        <artifactId>org.genivi.commonapi.parent.releng</artifactId>
-        <version>2.1.6-SNAPSHOT</version>
-        <relativePath>../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.parent.releng</relativePath>
+        <artifactId>org.genivi.commonapi.releng</artifactId>
+        <version>3.1.1-SNAPSHOT</version>
+        <relativePath>../org.genivi.commonapi.releng</relativePath>
     </parent>
 </project>

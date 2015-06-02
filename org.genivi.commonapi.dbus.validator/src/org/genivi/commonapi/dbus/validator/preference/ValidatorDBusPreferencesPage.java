@@ -10,10 +10,9 @@ package org.genivi.commonapi.dbus.validator.preference;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.genivi.commonapi.core.ui.CommonApiUiPlugin;
+import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 
 public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
         implements IWorkbenchPreferencePage {
@@ -38,7 +37,7 @@ public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
 
     @Override
     public void init(IWorkbench workbench) {
-        IPreferenceStore prefStore = CommonApiUiPlugin.getDefault()
+        IPreferenceStore prefStore = CommonApiDBusUiPlugin.getDefault()
                 .getPreferenceStore();
         setPreferenceStore(prefStore);
         setDescription("Disable or enable the dbus validator!");

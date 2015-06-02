@@ -4,12 +4,12 @@
    <extension point="org.eclipse.ui.handlers">
       <handler
             class="org.genivi.commonapi.dbus.ui.DBusCommandExecutableExtensionFactory:org.genivi.commonapi.dbus.ui.handler.DBusGenerationCommand"
-            commandId="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand">
+            commandId="org.genivi.commonapi.dbus.ui.handler.DBusGenerationCommand">
       </handler>
    </extension>
    <extension point="org.eclipse.ui.commands">
       <command
-            id="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand"
+            id="org.genivi.commonapi.dbus.ui.handler.DBusGenerationCommand"
             name="Generate D-Bus C++ Code">
       </command>
    </extension>
@@ -18,7 +18,7 @@
             allPopups="false"
             locationURI="popup:org.genivi.commonapi.core.ui.popup.menu">
          <command
-               commandId="org.genivi.commonapi.dbus.core.ui.handler.DBusGenerationCommand"
+               commandId="org.genivi.commonapi.dbus.ui.handler.DBusGenerationCommand"
                label="Generate D-Bus C++ Code"
                style="push">
             <visibleWhen checkEnabled="false">
@@ -26,5 +26,40 @@
             </visibleWhen>
          </command>
       </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
+            id="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
+            name="CommonAPI-DBus">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.genivi.commonapi.dbus.ui.preferences.PreferenceInitializerDBus">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
+            id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
+            name="CommonAPI-DBus"
+            objectClass="org.eclipse.core.resources.IProject">
+      </page>
+      <page
+            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
+            id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
+            name="CommonAPI-DBus"
+            objectClass="org.eclipse.core.resources.IFolder">
+      </page>
+      <page
+            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
+            id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
+            name="CommonAPI-DBus"
+            objectClass="org.eclipse.core.resources.IFile">
+      </page>
    </extension>
 </plugin>

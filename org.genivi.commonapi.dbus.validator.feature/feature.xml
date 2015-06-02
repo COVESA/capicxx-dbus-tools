@@ -2,7 +2,7 @@
 <feature
       id="org.genivi.commonapi.dbus.validator.feature"
       label="%featureName"
-      version="2.1.6.qualifier"
+      version="3.1.1.qualifier"
       provider-name="%providerName">
 
    <copyright>
@@ -12,10 +12,6 @@
    <license url="%licenseURL">
       %license
    </license>
-
-   <requires>
-      <import plugin="org.genivi.commonapi.dbus.ui" version="2.1.4" match="greaterOrEqual"/>
-   </requires>
 
    <plugin
          id="org.genivi.commonapi.dbus.validator"
