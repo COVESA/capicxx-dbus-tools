@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2015 Bayerische Motoren Werke AG (BMW).
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * Version 1.0
+ *
+ * This is the Franca deployment specification to be used for CommonAPI C++
+ * DBus. It contains all available configuration parameters for the
+ * DBus protocol and refers to the component model deployment concept.
+ */
+
+import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI_deployment_spec.fdepl"
+
+specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.core.deployment {
+    
+   for instances {
+        /*
+         *  The D-Bus address consists of ServiceName, ObjectPath and InterfaceName. 
+         */
+        DBusServiceName :                  String                        (optional);
+        DBusObjectPath :                   String                        (optional);
+        DBusInterfaceName :                String                        (optional);
+        
+        /*
+         * DBusBusType may be set to "session" or "system" for communication on the user's session bus
+         * or on the system wide bus.
+         */
+        DBusBusType			:	{system, session}	(default: session);
+        
+        /*
+		 * Preregister D-Bus services
+		 * "dbus_predefined" should be used if the associated service of a proxy is a legacy service 
+		 * that does not provide the "org.freedesktop.DBus.ObjectManager" interface.
+		 * If "dbus_predefined" is set to "false" (which is default), a proxy will try to verify the
+		 * existence of the specific interface at the specific connection name and object path,
+		 * using the "org.freedesktop.DBus.ObjectManager" interface, before it is marked as available.
+		 * 
+		 * If "dbus_predefined" is set to "true", a proxy is marked as available as soon as the
+		 * connection name of the associated service is visible. No further checks will be performed.
+         */
+        DBusPredefined		:	Boolean				(default:false);
+    }
+
+    for interfaces {
+        /*
+         * define default mapping of Franca attributes to D-Bus signals/freedesktop properties for whole interface.
+         */
+        DBusDefaultAttributeType:      {CommonAPI, freedesktop}      (default: CommonAPI);
+    }
+    
+    for attributes {
+        /*
+         * define mapping of specific Franca attribute to D-Bus signal/freedesktop property.
+         */
+        DBusAttributeType:             {CommonAPI, freedesktop}      (default: CommonAPI);
+    }
+}

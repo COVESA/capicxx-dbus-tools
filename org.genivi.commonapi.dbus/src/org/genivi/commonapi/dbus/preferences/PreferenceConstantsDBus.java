@@ -13,7 +13,7 @@ public interface PreferenceConstantsDBus
     public static final String P_GENERATEPROXY_DBUS		= "generateproxy";
     public static final String P_GENERATESTUB_DBUS     	= "generatestub";
 	public static final String P_LOGOUTPUT_DBUS        	= "logoutput";
-	
+	public static final String P_USEPROJECTSETTINGS_DBUS= "useProjectSettings";	
 	// preference values
     public static final String DEFAULT_OUTPUT     		= "./src-gen/";
 	public static final String LOGLEVEL_QUIET     		= "quiet";

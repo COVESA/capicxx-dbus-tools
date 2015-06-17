@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>commonapi</groupId>
     <artifactId>org.genivi.commonapi.releng</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
         <tycho-version>0.22.0</tycho-version>
@@ -46,40 +46,10 @@
                         <artifact>
                             <groupId>commonapi</groupId>
                             <artifactId>${target.id}</artifactId>
-                            <version>3.1.1-SNAPSHOT</version>
+                            <version>3.1.2-SNAPSHOT</version>
                         </artifact>
                     </target>
                     <filters>
-                        <!--<filter>
-                          <type>eclipse-plugin</type>
-                          <id>com.ibm.icu</id>
-                          <removeAll/>
-                        </filter>
-                        <filter>
-                            <type>eclipse-plugin</type>
-                            <id>org.apache.ant</id>
-                            <removeAll/>
-                        </filter>
-                        <filter>
-                            <type>eclipse-plugin</type>
-                            <id>org.eclipse.ant.core</id>
-                            <removeAll/>
-                        </filter>
-                        <filter>
-                            <type>eclipse-plugin</type>
-                            <id>org.eclipse.core.resources</id>
-                            <removeAll/>
-                        </filter>
-                        <filter>
-                            <type>eclipse-plugin</type>
-                            <id>org.eclipse.text</id>
-                            <removeAll/>
-                        </filter>
-                        <filter>
-                            <type>eclipse-plugin</type>
-                            <id>org.eclipse.xtext.smap</id>
-                            <removeAll/>
-                        </filter>-->
                     </filters>
                     <environments>
                         <environment>

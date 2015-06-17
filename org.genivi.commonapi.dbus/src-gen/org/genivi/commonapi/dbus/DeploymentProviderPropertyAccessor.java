@@ -4,6 +4,7 @@
 *******************************************************************************/
 package org.genivi.commonapi.dbus;
 
+import org.franca.deploymodel.dsl.fDeploy.FDInterfaceInstance;
 import org.franca.deploymodel.core.FDeployedProvider;
 
 /**
@@ -18,6 +19,38 @@ public class DeploymentProviderPropertyAccessor
 	public DeploymentProviderPropertyAccessor (FDeployedProvider target) {
 		super(target);
 		this.target = target;
+	}
+	
+	public String getDBusServiceName (FDInterfaceInstance obj) {
+		return target.getString(obj, "DBusServiceName");
+	}
+	
+	public String getDBusObjectPath (FDInterfaceInstance obj) {
+		return target.getString(obj, "DBusObjectPath");
+	}
+	
+	public String getDBusInterfaceName (FDInterfaceInstance obj) {
+		return target.getString(obj, "DBusInterfaceName");
+	}
+	
+	public enum DBusBusType {
+		system, session
+	}
+	public DBusBusType getDBusBusType (FDInterfaceInstance obj) {
+		String e = target.getEnum(obj, "DBusBusType");
+		if (e==null) return null;
+		return convertDBusBusType(e);
+	}
+	private DBusBusType convertDBusBusType (String val) {
+		if (val.equals("system"))
+			return DBusBusType.system; else 
+		if (val.equals("session"))
+			return DBusBusType.session;
+		return null;
+	}
+	
+	public Boolean getDBusPredefined (FDInterfaceInstance obj) {
+		return target.getBoolean(obj, "DBusPredefined");
 	}
 	
 	

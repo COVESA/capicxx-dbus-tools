@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="CommonAPI D-Bus Code Generator" uid="org.genivi.commonapi.dbus.cli.product" id="org.genivi.commonapi.dbus.cli.product" application="org.genivi.commonapi.console.application" version="3.1.1" useFeatures="true" includeLaunchers="true">
+<product name="CommonAPI D-Bus Code Generator" uid="org.genivi.commonapi.dbus.cli.product" id="org.genivi.commonapi.dbus.cli.product" application="org.genivi.commonapi.console.application" version="3.1.2" useFeatures="true" includeLaunchers="true">
 
    <configIni use="default">
    </configIni>

@@ -21,19 +21,19 @@ public class DeploymentTypeCollectionPropertyAccessor
 		this.target = target;
 	}
 	
-	public enum PropertiesType {
+	public enum DBusDefaultAttributeType {
 		CommonAPI, freedesktop
 	}
-	public PropertiesType getPropertiesType (FInterface obj) {
-		String e = target.getEnum(obj, "PropertiesType");
+	public DBusDefaultAttributeType getDBusDefaultAttributeType (FInterface obj) {
+		String e = target.getEnum(obj, "DBusDefaultAttributeType");
 		if (e==null) return null;
-		return convertPropertiesType(e);
+		return convertDBusDefaultAttributeType(e);
 	}
-	private PropertiesType convertPropertiesType (String val) {
+	private DBusDefaultAttributeType convertDBusDefaultAttributeType (String val) {
 		if (val.equals("CommonAPI"))
-			return PropertiesType.CommonAPI; else 
+			return DBusDefaultAttributeType.CommonAPI; else 
 		if (val.equals("freedesktop"))
-			return PropertiesType.freedesktop;
+			return DBusDefaultAttributeType.freedesktop;
 		return null;
 	}
 	

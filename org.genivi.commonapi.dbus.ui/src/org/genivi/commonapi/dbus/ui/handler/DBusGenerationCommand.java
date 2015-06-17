@@ -8,11 +8,14 @@
 package org.genivi.commonapi.dbus.ui.handler;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.xtext.builder.EclipseResourceFileSystemAccess2;
+import org.genivi.commonapi.core.preferences.PreferenceConstants;
 import org.genivi.commonapi.core.ui.handler.GenerationCommand;
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
@@ -58,14 +61,23 @@ public class DBusGenerationCommand  extends GenerationCommand {
 		String generateProxy = null;
 		String generatStub = null;		
 
+		IProject project = file.getProject();
+		IResource resource = file;
+		
 		try {
-			outputFolderProxies = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS));
-			outputFolderStubs = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS));
-			licenseHeader = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_LICENSE_DBUS));
-			generateProxy = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATEPROXY_DBUS));
-			generatStub = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATESTUB_DBUS));
+			// Should project or file specific properties be used ?
+			String useProject1 = project.getPersistentProperty(new QualifiedName(PreferenceConstants.PROJECT_PAGEID, PreferenceConstants.P_USEPROJECTSETTINGS));
+			String useProject2 = file.getPersistentProperty(new QualifiedName(PreferenceConstants.PROJECT_PAGEID, PreferenceConstants.P_USEPROJECTSETTINGS));
+			if("true".equals(useProject1) || "true".equals(useProject2)) {
+				resource = project;
+			} 
+			outputFolderProxies = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS));
+			outputFolderStubs = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS));
+			licenseHeader = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_LICENSE_DBUS));
+			generateProxy = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATEPROXY_DBUS));
+			generatStub = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATESTUB_DBUS));
 		} catch (CoreException e1) {
-			System.err.println("Failed to get property for " + file.getName());
+			System.err.println("Failed to get property for " + resource.getName());
 		}
 		// Set defaults in the very first case, where nothing was specified from the user.
 		if(outputFolderProxies == null) {

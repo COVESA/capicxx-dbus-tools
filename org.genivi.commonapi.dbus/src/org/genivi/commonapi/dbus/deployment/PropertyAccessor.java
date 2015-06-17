@@ -10,6 +10,7 @@ import org.franca.deploymodel.core.FDeployedInterface;
 import org.franca.deploymodel.core.FDeployedProvider;
 import org.franca.deploymodel.core.FDeployedTypeCollection;
 import org.genivi.commonapi.dbus.DeploymentInterfacePropertyAccessor;
+import org.genivi.commonapi.dbus.DeploymentInterfacePropertyAccessor.DBusDefaultAttributeType;
 import org.genivi.commonapi.dbus.DeploymentProviderPropertyAccessor;
 import org.genivi.commonapi.dbus.DeploymentTypeCollectionPropertyAccessor;
 
@@ -53,12 +54,12 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 
 	public PropertiesType getPropertiesType (FInterface obj) {
 		if (type_ == DeploymentType.INTERFACE) {
-			return from(dbusInterface_.getPropertiesType(obj));
+			return from(dbusInterface_.getDBusDefaultAttributeType(obj));
 		}
 		return PropertiesType.CommonAPI; // LB: maybe we should throw an exception here...
 	}
 	
-	private PropertiesType from(DeploymentInterfacePropertyAccessor.PropertiesType _source) {
+	private PropertiesType from(DBusDefaultAttributeType _source) {
 		if (_source != null) {
 			switch (_source) {
 			case freedesktop:

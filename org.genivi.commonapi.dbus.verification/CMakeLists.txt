@@ -73,7 +73,24 @@ message("COMMONAPI_DBUS_INCLUDE_DIRS: ${COMMONAPI_DBUS_INCLUDE_DIRS}")
 
 ###############################################################################
 # find DBus by using the 'pkg-config' tool
-pkg_check_modules(DBus	dbus-1)
+# CommonAPI
+include(FindPkgConfig)
+###############################################################################
+# find DBus by using the 'pkg-config' tool
+if (MSVC)
+	#Not beautiful, but it works
+	if (DBus_DIR)
+		if (DBus_BUILD_DIR)
+			set(DBus_INCLUDE_DIRS "${DBus_DIR};${DBus_BUILD_DIR};")
+		else ()
+			message (FATAL_ERROR "DBus_BUILD_DIR not set! Cannot continue.")
+		endif ()
+	else()
+		message (FATAL_ERROR "DBus_DIR not set! Cannot continue.")
+	endif ()
+else()
+	pkg_check_modules(DBus REQUIRED dbus-1>=1.4)
+endif()
 
 ##############################################################################
 # generate code from fidl
@@ -88,7 +105,13 @@ execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest src-gen -sk Default ${
 ##############################################################################
 # dbus glue build section
 
+if (MSVC)
+# Visual C++ is not always sure whether he is really C++
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /EHsc -DCOMMONAPI_INTERNAL_COMPILATION")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DCOMMONAPI_INTERNAL_COMPILATION")
+else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -DCOMMONAPI_INTERNAL_COMPILATION")
+endif()
 
 message("Compiler options: ${CMAKE_CXX_FLAGS}") 
 
