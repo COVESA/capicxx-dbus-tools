@@ -4,7 +4,9 @@
 *******************************************************************************/
 package org.genivi.commonapi.dbus;
 
+import org.eclipse.emf.ecore.EObject;
 import org.franca.core.franca.FInterface;
+import org.franca.core.franca.FField;
 import org.franca.deploymodel.core.FDeployedTypeCollection;
 
 /**
@@ -34,6 +36,58 @@ public class DeploymentTypeCollectionPropertyAccessor
 			return DBusDefaultAttributeType.CommonAPI; else 
 		if (val.equals("freedesktop"))
 			return DBusDefaultAttributeType.freedesktop;
+		return null;
+	}
+	
+	public Boolean getIsObjectPath (EObject obj) {
+		return target.getBoolean(obj, "IsObjectPath");
+	}
+	
+	public enum DBusVariantType {
+		DBus, CommonAPI
+	}
+	public DBusVariantType getDBusVariantType (EObject obj) {
+		String e = target.getEnum(obj, "DBusVariantType");
+		if (e==null) return null;
+		return convertDBusVariantType(e);
+	}
+	private DBusVariantType convertDBusVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusStructVariantType {
+		DBus, CommonAPI
+	}
+	public DBusStructVariantType getDBusStructVariantType (FField obj) {
+		String e = target.getEnum(obj, "DBusStructVariantType");
+		if (e==null) return null;
+		return convertDBusStructVariantType(e);
+	}
+	private DBusStructVariantType convertDBusStructVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusStructVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusStructVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusUnionVariantType {
+		DBus, CommonAPI
+	}
+	public DBusUnionVariantType getDBusUnionVariantType (EObject obj) {
+		String e = target.getEnum(obj, "DBusUnionVariantType");
+		if (e==null) return null;
+		return convertDBusUnionVariantType(e);
+	}
+	private DBusUnionVariantType convertDBusUnionVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusUnionVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusUnionVariantType.CommonAPI;
 		return null;
 	}
 	

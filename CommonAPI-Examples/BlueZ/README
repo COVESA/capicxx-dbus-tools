@@ -1,0 +1,21 @@
+Example: BlueZ
+~~~~~~~~~~~~~~
+
+This example demonstrates how to use deployment (+.fdepl+) to access D-Bus legacy
+services, here BlueZ 4, from within a CommonAPI client application.
+
+It also demonstrates usage of +DBusAddressTranslator+ to dynamically create
+proxies for services offered under a custom naming scheme. In case of BlueZ
+the adapters are availble under custom object paths, e.g. "/org/bluez/787/hci0".
+
+Running
+^^^^^^^
+
+To ensure that the configuration file (ini) is found and parsed issue following
+commands to start the BlueZ example client (assuming running it from the examples
+directory):
+
+[IMPORTANT]
+ export COMMONAPI_DBUS_DEFAULT_CONFIG=./commonapi4dbus.ini +
+ ./build/BlueZClient
+

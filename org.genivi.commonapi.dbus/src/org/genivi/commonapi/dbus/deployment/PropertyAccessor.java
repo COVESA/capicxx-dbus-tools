@@ -5,6 +5,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.deployment;
 
+import org.eclipse.emf.ecore.EObject;
+import org.franca.core.franca.FArgument;
+import org.franca.core.franca.FAttribute;
+import org.franca.core.franca.FField;
 import org.franca.core.franca.FInterface;
 import org.franca.deploymodel.core.FDeployedInterface;
 import org.franca.deploymodel.core.FDeployedProvider;
@@ -24,6 +28,9 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 		CommonAPI, freedesktop
 	}
 	
+	public enum DBusVariantType {
+		DBus, CommonAPI
+	}	
 	public PropertyAccessor() {
 		super();
 		dbusInterface_ = null;
@@ -54,7 +61,11 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 
 	public PropertiesType getPropertiesType (FInterface obj) {
 		if (type_ == DeploymentType.INTERFACE) {
-			return from(dbusInterface_.getDBusDefaultAttributeType(obj));
+			try {
+				return from(dbusInterface_.getDBusDefaultAttributeType(obj));
+			} catch (NullPointerException npe) {
+				//System.err.println("Failed to get DBusDefaultAttributeType from " + obj.getName());
+			}
 		}
 		return PropertiesType.CommonAPI; // LB: maybe we should throw an exception here...
 	}
@@ -69,5 +80,163 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 			}
 		} 
 		return PropertiesType.CommonAPI;
+	}
+	
+	
+	public Boolean getIsObjectPath (EObject obj) {
+		Boolean isObjectPath = false;
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				isObjectPath = dbusInterface_.getIsObjectPath(obj);
+			if (type_ == DeploymentType.TYPE_COLLECTION)
+				isObjectPath = dbusTypeCollection_.getIsObjectPath(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+                if (isObjectPath == null) isObjectPath = false;
+		return isObjectPath;
+	}
+	public DBusVariantType getDBusVariantType (EObject obj) {
+		DBusVariantType variantType = DBusVariantType.CommonAPI;
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				variantType = from(dbusInterface_.getDBusVariantType(obj));
+			else if (type_ == DeploymentType.TYPE_COLLECTION)
+				variantType = from(dbusTypeCollection_.getDBusVariantType(obj));
+		}
+		catch (java.lang.NullPointerException e) {}
+		return variantType;
+	}
+		
+	private DBusVariantType from(DeploymentInterfacePropertyAccessor.DBusVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentTypeCollectionPropertyAccessor.DBusVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentInterfacePropertyAccessor.DBusAttrVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentInterfacePropertyAccessor.DBusArgVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentInterfacePropertyAccessor.DBusStructVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentTypeCollectionPropertyAccessor.DBusStructVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentInterfacePropertyAccessor.DBusUnionVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	private DBusVariantType from(DeploymentTypeCollectionPropertyAccessor.DBusUnionVariantType type)
+	{
+		if (type != null) {
+			switch(type) {
+			case CommonAPI:
+				return DBusVariantType.CommonAPI;
+			case DBus:
+				return DBusVariantType.DBus;
+			}
+		}
+		return DBusVariantType.CommonAPI;
+	}
+	public DBusVariantType getDBusAttrVariantType (FAttribute obj) {
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				return from(dbusInterface_.getDBusAttrVariantType(obj));
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;	
+	}
+	public DBusVariantType getDBusArgVariantType (FArgument obj) {
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				return from(dbusInterface_.getDBusArgVariantType(obj));
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;	
+	}	
+	public DBusVariantType getDBusStructVariantType (FField obj) {
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				return from(dbusInterface_.getDBusStructVariantType(obj));
+			if (type_ == DeploymentType.TYPE_COLLECTION)
+				return from(dbusTypeCollection_.getDBusStructVariantType(obj));
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	public DBusVariantType getDBusUnionVariantType (EObject obj) {
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				return from(dbusInterface_.getDBusUnionVariantType(obj));
+			if (type_ == DeploymentType.TYPE_COLLECTION)
+				return from(dbusTypeCollection_.getDBusUnionVariantType(obj));
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
 	}
 }

@@ -10,7 +10,6 @@ package org.genivi.commonapi.dbus.ui.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.genivi.commonapi.core.preferences.PreferenceConstants;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 
@@ -32,6 +31,7 @@ public class PreferenceInitializerDBus extends AbstractPreferenceInitializer
         store.setDefault(PreferenceConstantsDBus.P_LICENSE_DBUS, PreferenceConstantsDBus.DEFAULT_LICENSE);
         store.setDefault(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
         store.setDefault(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
+        store.setDefault(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
         store.setDefault(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS, true);
         store.setDefault(PreferenceConstantsDBus.P_GENERATESTUB_DBUS, true);
         store.setDefault(PreferenceConstantsDBus.P_USEPROJECTSETTINGS_DBUS, false);

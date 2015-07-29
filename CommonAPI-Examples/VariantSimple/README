@@ -1,0 +1,10 @@
+Example: VariantSimple
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to control deployment of unions (represented as variant types on D-Bus) in method argurments.
+
+There are two different union deployment types available:
+
+* pure: Native D-Bus variants intended for interaction with "legacy" D-Bus services such as blueZ, by specifying +DBusArgVariantType = pure+ within deployment file (.fdepl)
+* extended: CommonAPI-specific defined variant for CommonAPI <=> CommonAPI communication used by default, also enfored by specifying +DBusArgVariantType = extended+ within deployment file (.fdepl)
+

@@ -32,6 +32,8 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     private FieldEditor license     = null;
     private FieldEditor proxyOutput = null;
     private FieldEditor stubOutput  = null;
+    private FieldEditor commonOutput  = null;
+    
 
     public CommonAPIDBusPreferencePage()
     {
@@ -51,6 +53,9 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
         license.setLabelText(""); // need to set this parameter (seems to be a bug)
         addField(license);
         // output directory definitions
+        commonOutput = new StringFieldEditor(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, "Output directory for the common part", 30, 
+        		getFieldEditorParent());
+        addField(commonOutput);
         proxyOutput = new StringFieldEditor(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, "Output directory for proxies inside project",
                 30, getFieldEditorParent());
         addField(proxyOutput);
@@ -63,6 +68,8 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     @Override
     protected void performDefaults()
     {
+        DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS,
+                PreferenceConstantsDBus.DEFAULT_OUTPUT);
         DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS,
                 PreferenceConstantsDBus.DEFAULT_OUTPUT);
         DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,

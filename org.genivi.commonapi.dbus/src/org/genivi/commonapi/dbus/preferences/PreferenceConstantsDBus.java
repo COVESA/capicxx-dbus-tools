@@ -9,6 +9,7 @@ public interface PreferenceConstantsDBus
     public static final String P_LICENSE_DBUS        	= "licenseHeader";
     public static final String P_OUTPUT_PROXIES_DBUS 	= "outputDirProxiesDBus";
     public static final String P_OUTPUT_STUBS_DBUS   	= "outputDirStubsDBus";
+	public static final String P_OUTPUT_COMMON_DBUS     = "outputDirCommon"; 
 	public static final String P_OUTPUT_DEFAULT_DBUS	= "outputDirDefault";
     public static final String P_GENERATEPROXY_DBUS		= "generateproxy";
     public static final String P_GENERATESTUB_DBUS     	= "generatestub";

@@ -4,7 +4,10 @@
 *******************************************************************************/
 package org.genivi.commonapi.dbus;
 
+import org.eclipse.emf.ecore.EObject;
 import org.franca.core.franca.FInterface;
+import org.franca.core.franca.FField;
+import org.franca.core.franca.FArgument;
 import org.franca.core.franca.FAttribute;
 import org.franca.deploymodel.core.FDeployedInterface;
 
@@ -51,6 +54,90 @@ public class DeploymentInterfacePropertyAccessor
 			return DBusAttributeType.CommonAPI; else 
 		if (val.equals("freedesktop"))
 			return DBusAttributeType.freedesktop;
+		return null;
+	}
+	
+	public Boolean getIsObjectPath (EObject obj) {
+		return target.getBoolean(obj, "IsObjectPath");
+	}
+	
+	public enum DBusVariantType {
+		DBus, CommonAPI
+	}
+	public DBusVariantType getDBusVariantType (EObject obj) {
+		String e = target.getEnum(obj, "DBusVariantType");
+		if (e==null) return null;
+		return convertDBusVariantType(e);
+	}
+	private DBusVariantType convertDBusVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusAttrVariantType {
+		DBus, CommonAPI
+	}
+	public DBusAttrVariantType getDBusAttrVariantType (FAttribute obj) {
+		String e = target.getEnum(obj, "DBusAttrVariantType");
+		if (e==null) return null;
+		return convertDBusAttrVariantType(e);
+	}
+	private DBusAttrVariantType convertDBusAttrVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusAttrVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusAttrVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusArgVariantType {
+		DBus, CommonAPI
+	}
+	public DBusArgVariantType getDBusArgVariantType (FArgument obj) {
+		String e = target.getEnum(obj, "DBusArgVariantType");
+		if (e==null) return null;
+		return convertDBusArgVariantType(e);
+	}
+	private DBusArgVariantType convertDBusArgVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusArgVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusArgVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusStructVariantType {
+		DBus, CommonAPI
+	}
+	public DBusStructVariantType getDBusStructVariantType (FField obj) {
+		String e = target.getEnum(obj, "DBusStructVariantType");
+		if (e==null) return null;
+		return convertDBusStructVariantType(e);
+	}
+	private DBusStructVariantType convertDBusStructVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusStructVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusStructVariantType.CommonAPI;
+		return null;
+	}
+	
+	public enum DBusUnionVariantType {
+		DBus, CommonAPI
+	}
+	public DBusUnionVariantType getDBusUnionVariantType (EObject obj) {
+		String e = target.getEnum(obj, "DBusUnionVariantType");
+		if (e==null) return null;
+		return convertDBusUnionVariantType(e);
+	}
+	private DBusUnionVariantType convertDBusUnionVariantType (String val) {
+		if (val.equals("DBus"))
+			return DBusUnionVariantType.DBus; else 
+		if (val.equals("CommonAPI"))
+			return DBusUnionVariantType.CommonAPI;
 		return null;
 	}
 	

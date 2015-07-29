@@ -1,0 +1,84 @@
+/* Copyright (C) 2015 BMW Group
+ * Author: Manfred Bathelt (manfred.bathelt@bmw.de)
+ * Author: Juergen Gehring (juergen.gehring@bmw.de)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package commonapi.examples
+
+interface VariantSimple {
+	version { major 0 minor 1 }
+
+	attribute String status
+	//attribute SampleUnion varStatus
+
+	method callMe {
+		in {
+			String strArg
+			SampleUnion varArg
+		}
+		out {
+			String strOutArg
+			SampleUnion varOutArg
+		}
+	}
+
+	method singleInArgMethod {
+		in {
+			SampleUnion varInArg
+		}
+	}
+
+	method singleOutArgMethod {
+		out {
+			SampleUnion varOutArg
+		}
+	}
+	
+	/* definition analogous to org.bluez */
+	method getProperties {
+		out {
+			tPropertiesDict properties
+		}
+	}
+
+	/*
+	method dontCare fireAndForget {
+		in {
+			SampleUnion varArg
+		}
+	}
+	*/
+
+	broadcast gotToTell {
+		out {
+			Int32 count
+			SampleUnion anything
+		}
+	}
+
+	/* definition analogous to org.bluez.hci */
+	broadcast DeviceFound {
+		out {
+			String address
+			tPropertiesDict values
+		}
+	}
+
+	broadcast SignedUp selective {
+		out {
+			String sth
+			SampleUnion more
+		}
+	}
+
+	map tPropertiesDict {
+		String to SampleUnion
+	}
+
+	union SampleUnion {
+		String str
+		Int32 i32
+	}	
+}

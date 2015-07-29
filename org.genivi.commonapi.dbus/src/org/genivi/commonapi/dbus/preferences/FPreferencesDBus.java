@@ -15,6 +15,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.OutputConfiguration;
 import org.franca.core.franca.FModel;
 import org.genivi.commonapi.core.preferences.PreferenceConstants;
+import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 
 public class FPreferencesDBus {
 
@@ -43,6 +44,9 @@ public class FPreferencesDBus {
 
 	    private void clidefPreferences(){
 
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
+	        }    	
 	        if (!preferences.containsKey(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS)) {
 	            preferences.put(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
 	        }
@@ -94,15 +98,17 @@ public class FPreferencesDBus {
 	    public HashMap<String, OutputConfiguration> getOutputpathConfiguration() {
 
 	        String defaultDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_DEFAULT_DBUS, PreferenceConstants.DEFAULT_OUTPUT);
+	        String commonDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, defaultDir);
 	        String outputProxyDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, defaultDir);
 	        String outputStubDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, defaultDir);
 	    	
 	        HashMap<String, OutputConfiguration>  outputs = new HashMap<String, OutputConfiguration> ();
-	        OutputConfiguration defaultOutput = new OutputConfiguration(IFileSystemAccess.DEFAULT_OUTPUT);
-	        defaultOutput.setDescription("Default Output Folder");
-	        defaultOutput.setOutputDirectory(defaultDir);
-	        defaultOutput.setCreateOutputDirectory(true);
-	        outputs.put(IFileSystemAccess.DEFAULT_OUTPUT, defaultOutput);
+	        
+	        OutputConfiguration commonOutput = new OutputConfiguration(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS);
+	        commonOutput.setDescription("Common Output Folder");
+	        commonOutput.setOutputDirectory(commonDir);
+	        commonOutput.setCreateOutputDirectory(true);
+	        outputs.put(IFileSystemAccess.DEFAULT_OUTPUT, commonOutput);
 	        
 	        OutputConfiguration proxyOutput = new OutputConfiguration(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS);
 	        proxyOutput.setDescription("Proxy Output Folder");

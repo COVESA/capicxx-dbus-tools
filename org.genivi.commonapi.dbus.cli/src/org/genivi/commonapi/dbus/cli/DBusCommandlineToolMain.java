@@ -58,7 +58,9 @@ public class DBusCommandlineToolMain
 	protected ValidatorDBus		 	validator;
 	private int validationErrorCount;
 	protected String SCOPE = "DBus validation: ";
-
+	private boolean isValidation = true;
+	public static final int ERROR_STATE = 1;
+	
 	private ValidationMessageAcceptor cliMessageAcceptor = new AbstractValidationMessageAcceptor() {
 
 		@Override
@@ -140,18 +142,22 @@ public class DBusCommandlineToolMain
 			URI uri = URI.createFileURI(file);
 			Resource resource = rsset.createResource(uri);
 			validationErrorCount = 0;
-			validate(resource);
+			if(isValidation) {
+				validate(resource);
+			}
 			if(validationErrorCount == 0) {
 				ConsoleLogger.printLog("Generating code for " + file);
 				try {
 					francaGenerator.doGenerate(resource, fsa);
 				}
 				catch (Exception e) {
-					ConsoleLogger.printErrorLog("Failed to generate code !");
+					System.err.println("Failed to generate dbus code !");
+					System.exit(ERROR_STATE);
 				}	
 			}
 			else {
-				ConsoleLogger.printErrorLog(file + " contains errors !");
+				ConsoleLogger.printErrorLog(file + " contains validation errors !");
+				System.exit(ERROR_STATE);
 			}
 		}
 	}		
@@ -206,9 +212,15 @@ public class DBusCommandlineToolMain
 		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_DEFAULT_DBUS, optionValue);
 		// In the case where no other output directories are set, 
 		// this default directory will be used for them
+		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, optionValue);
 		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, optionValue);
 		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, optionValue);
 	}
+	
+	public void setCommonDirectory(String optionValue) {
+		ConsoleLogger.printLog("Common output directory: " + optionValue);
+		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, optionValue);
+	}	
 
 	public void setProxyDirectory(String optionValue) {
 		ConsoleLogger.printLog("Proxy output directory: " + optionValue);
@@ -233,6 +245,12 @@ public class DBusCommandlineToolMain
 		}
 	}
 
+	public void enableValidation(String optionValue) {
+		if(optionValue.equals("no") || optionValue.equals("off")) {
+			ConsoleLogger.printLog("Validation is off");
+			isValidation = false;
+		}
+ 	}	
 	/**
 	 * Set the text from a file which will be inserted as a comment in each generated file (for example your license)
 	 * @param fileWithText

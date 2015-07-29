@@ -1,0 +1,26 @@
+Example: UDisks2
+~~~~~~~~~~~~~~~~
+
+This example demonstrates how to access D-Bus legacy services, here UDisks2 (tested with 
+version 2.1.3), from within a CommonAPI client application.
+
+As UDisk2 implements +org.freedesktop.DBus.ObjectManager+ what is covered more deeply by CommonAPI
+example +E05Manager+, this example focuses on utilizing CommonAPI configuration file to: 
+
+* access the D-Bus system bus
+
+* determine service availability in absence of a custom interfaces in main object path, for UDisks2
+  this is +/org/freedesktop/UDisks2+ by mapping a proxy with no methods etc. (+RootProxy+) to D-Bus'
+  "default" org.freedesktop.Peer interface
+
+Running
+^^^^^^^
+
+To ensure that the configuration file (ini) is found and parsed issue following
+commands to start the BlueZ example client (assuming running it from the examples
+directory):
+
+[IMPORTANT]
+ export COMMONAPI_DBUS_DEFAULT_CONFIG=./commonapi4dbus.ini +
+ ./build/UDisks2Client
+

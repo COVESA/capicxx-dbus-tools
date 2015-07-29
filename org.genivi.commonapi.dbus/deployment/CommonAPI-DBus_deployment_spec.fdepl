@@ -57,4 +57,30 @@ specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.
          */
         DBusAttributeType:             {CommonAPI, freedesktop}      (default: CommonAPI);
     }
+
+	for strings {
+		IsObjectPath: Boolean (default: false);
+	}
+	for unions {
+		DBusVariantType: {DBus, CommonAPI} (default: CommonAPI);
+	}
+
+    // From here workaround for missing Franca deployment features.
+
+    for attributes {
+        DBusAttrVariantType:   {DBus, CommonAPI} (default: CommonAPI);
+    }
+
+    for arguments {
+        DBusArgVariantType:     {DBus, CommonAPI} (default: CommonAPI);
+    }
+
+    for struct_fields {
+        DBusStructVariantType:  {DBus, CommonAPI} (default: CommonAPI);
+    }
+
+    for union_fields {
+        DBusUnionVariantType:   {DBus, CommonAPI} (default: CommonAPI);
+    }
+
 }

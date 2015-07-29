@@ -1,0 +1,184 @@
+/* Copyright (C) 2015 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+package org.bluez
+
+interface Manager {
+	version { major 4 minor 1 }
+
+	method GetProperties {
+		out {
+			tGetProperties_propertiesDict properties
+		}
+	}
+	method DefaultAdapter {
+		out {
+			String adapter
+		}
+	}
+	method FindAdapter {
+		in {
+			String pattern
+		}
+		out {
+			String adapter
+		}
+	}
+	method ListAdapters {
+		out {
+			String [ ] adapters
+		}
+	}
+	broadcast PropertyChanged {
+		out {
+			String name
+			Variant value
+		}
+	}
+	broadcast AdapterAdded {
+		out {
+			String adapter
+		}
+	}
+	broadcast AdapterRemoved {
+		out {
+			String adapter
+		}
+	}
+	broadcast DefaultAdapterChanged {
+		out {
+			String adapter
+		}
+	}
+	map tGetProperties_propertiesDict {
+		String to Variant
+	}
+	
+	union Variant {
+		String str
+		Int16 i16
+		Int32 i32
+		UInt32 u32
+		UInt16 u16
+		Boolean b 
+	}
+}
+
+interface Adapter {
+	version { major 4 minor 1 }
+	
+	method GetProperties {
+		out {
+			tGetProperties_propertiesDict properties
+		}
+	}
+	method SetProperty {
+		in {
+			String name
+			Variant value
+		}
+	}
+	method RequestSession {
+	}
+	method ReleaseSession {
+	}
+	method StartDiscovery {
+	}
+	method StopDiscovery {
+	}
+	method ListDevices {
+		out {
+			String [ ] devices
+		}
+	}
+	method CreateDevice {
+		in {
+			String address
+		}
+		out {
+			String device
+		}
+	}
+	method CreatePairedDevice {
+		in {
+			String address
+			String agent
+			String capability
+		}
+		out {
+			String device
+		}
+	}
+	method CancelDeviceCreation {
+		in {
+			String address
+		}
+	}
+	method RemoveDevice {
+		in {
+			String device
+		}
+	}
+	method FindDevice {
+		in {
+			String address
+		}
+		out {
+			String device
+		}
+	}
+	method RegisterAgent {
+		in {
+			String agent
+			String capability
+		}
+	}
+	method UnregisterAgent {
+		in {
+			String agent
+		}
+	}
+	broadcast PropertyChanged {
+		out {
+			String name
+			Variant value
+		}
+	}
+	broadcast DeviceCreated {
+		out {
+			String device
+		}
+	}
+	broadcast DeviceRemoved {
+		out {
+			String device
+		}
+	}
+	broadcast DeviceFound {
+		out {
+			String address
+			tDeviceFound_valuesDict values
+		}
+	}
+	broadcast DeviceDisappeared {
+		out {
+			String address
+		}
+	}
+	map tGetProperties_propertiesDict {
+		String to Variant
+	}
+	map tDeviceFound_valuesDict {
+		String to Variant
+	}
+
+	union Variant {
+		String str
+		Int16 i16
+		Int32 i32
+		UInt32 u32
+		UInt16 u16
+		Boolean b 
+	}
+}

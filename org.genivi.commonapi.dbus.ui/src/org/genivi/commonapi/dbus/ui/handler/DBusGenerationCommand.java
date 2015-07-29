@@ -55,6 +55,7 @@ public class DBusGenerationCommand  extends GenerationCommand {
 	public void initDbusPreferences(IFile file, IPreferenceStore store) {
 		FPreferencesDBus instance = FPreferencesDBus.getInstance();
 
+		String outputFolderCommon = null;
 		String outputFolderProxies = null;
 		String outputFolderStubs = null;
 		String licenseHeader = null;
@@ -71,6 +72,7 @@ public class DBusGenerationCommand  extends GenerationCommand {
 			if("true".equals(useProject1) || "true".equals(useProject2)) {
 				resource = project;
 			} 
+			outputFolderCommon = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS));
 			outputFolderProxies = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS));
 			outputFolderStubs = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS));
 			licenseHeader = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_LICENSE_DBUS));
@@ -80,6 +82,9 @@ public class DBusGenerationCommand  extends GenerationCommand {
 			System.err.println("Failed to get property for " + resource.getName());
 		}
 		// Set defaults in the very first case, where nothing was specified from the user.
+		if(outputFolderCommon == null) {
+			outputFolderCommon = store.getString(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS);			
+		}
 		if(outputFolderProxies == null) {
 			outputFolderProxies = store.getString(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS);			
 		}
@@ -96,6 +101,7 @@ public class DBusGenerationCommand  extends GenerationCommand {
 			generatStub = store.getString(PreferenceConstantsDBus.P_GENERATESTUB_DBUS);
 		}
 		// finally, store the properties for the code generator
+		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, outputFolderCommon);
 		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, outputFolderProxies);
 		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, outputFolderStubs);
 		instance.setPreference(PreferenceConstantsDBus.P_LICENSE_DBUS, licenseHeader);

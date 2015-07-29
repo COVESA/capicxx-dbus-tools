@@ -49,6 +49,15 @@
             </option>
             <option
                   argCount="1"
+                  description="The directory for the common code"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.core.cli.option.dir.common"
+                  longName="dest-common"
+                  required="false"
+                  shortName="dc">
+            </option>
+            <option
+                  argCount="1"
                   description="The directory for proxy code"
                   hasOptionalArg="false"
                   id="org.genivi.commonapi.core.cli.option.dir.proxy"
@@ -73,6 +82,15 @@
                   longName="license"
                   required="false"
                   shortName="l">
+            </option>
+            <option
+                  argCount="1"
+                  description="Switch on/off validation of the fidl file"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.core.cli.option.validation"
+                  longName="validation"
+                  required="false"
+                  shortName="val">
             </option>
             <option
                   argCount="1"

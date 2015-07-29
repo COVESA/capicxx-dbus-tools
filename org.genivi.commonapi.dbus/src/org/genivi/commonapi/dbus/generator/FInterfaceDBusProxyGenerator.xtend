@@ -47,6 +47,7 @@ class FInterfaceDBusProxyGenerator {
         «IF fInterface.base != null»
             #include <«fInterface.base.dbusProxyHeaderPath»>
         «ENDIF»
+        #include "«fInterface.dbusDeploymentHeaderPath»"
 
         #if !defined (COMMONAPI_INTERNAL_COMPILATION)
         #define COMMONAPI_INTERNAL_COMPILATION
@@ -128,7 +129,7 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
-                «broadcast.dbusClassName» «broadcast.dbusClassVariableName»;
+                «broadcast.dbusClassName(deploymentAccessor, fInterface)» «broadcast.dbusClassVariableName»;
             «ENDFOR»
 
             «FOR managed : fInterface.managedInterfaces»
@@ -173,7 +174,7 @@ class FInterfaceDBusProxyGenerator {
 				«attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
 				«ENDFOR»
 				«FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-					«broadcast.dbusClassVariableName»(*this, "«broadcast.elementName»", "«broadcast.dbusSignature(deploymentAccessor)»", std::tuple<«broadcast.types»>())
+					«broadcast.dbusClassVariableName»(*this, "«broadcast.elementName»", "«broadcast.dbusSignature(deploymentAccessor)»", «broadcast.getDeployments(fInterface, deploymentAccessor)»)
 				«ENDFOR»
 				«FOR managed : fInterface.managedInterfaces BEFORE ',' SEPARATOR ','»
 					«managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName»")
@@ -195,38 +196,42 @@ class FInterfaceDBusProxyGenerator {
 
         «FOR method : fInterface.methods»
             «val timeout = method.getTimeout(deploymentAccessor)»
+            «val inParams = method.generateInParams(deploymentAccessor)»
+            «val outParams = method.generateOutParams(deploymentAccessor, false)»            
             «FTypeGenerator::generateComments(method, false)»
             «method.generateDefinitionWithin(fInterface.dbusProxyClassName, false)» {
+                «method.generateProxyHelperDeployments(fInterface, false, deploymentAccessor)»            	
                 «IF method.isFireAndForget»
-                    «method.generateDBusProxyHelperClass»::callMethod(
+                    «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethod(
                 «ELSE»
                     «IF timeout != 0»
                     static CommonAPI::CallInfo info(«timeout»);
                     «ENDIF»
-                    «method.generateDBusProxyHelperClass»::callMethodWithReply(
+                    «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethodWithReply(
                 «ENDIF»
                 *this,
                 "«method.elementName»",
                 "«method.dbusInSignature(deploymentAccessor)»",
                 «IF !method.isFireAndForget»(_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),«ENDIF»
-                «method.inArgs.map['_' + elementName].join('', ', ', ',', [toString])»
-                _status«IF method.hasError»,
-                _error«ENDIF»
-                «method.outArgs.map['_' + elementName].join(', ', ', ', '', [toString])»);
+                «IF inParams != ""»«inParams»,«ENDIF»
+                _internalCallStatus«IF method.hasError»,
+                deploy_error«ENDIF»«IF outParams != ""»,
+                «outParams»«ENDIF»);
+                «method.generateOutParamsValue(deploymentAccessor)»
             }
             «IF !method.isFireAndForget»
                 «method.generateAsyncDefinitionWithin(fInterface.dbusProxyClassName, false)» {
+                    «method.generateProxyHelperDeployments(fInterface, true, deploymentAccessor)»                	
                     «IF timeout != 0»
                     static CommonAPI::CallInfo info(«timeout»);
                     «ENDIF»
-                    return «method.generateDBusProxyHelperClass»::callMethodAsync(
+                    return «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethodAsync(
                     *this,
                     "«method.elementName»",
                     "«method.dbusInSignature(deploymentAccessor)»",
                     (_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),
-                    «method.inArgs.map['_' + elementName].join('', ', ', ',', [toString])»
-                    std::move(_callback),
-                    std::tuple<«method.errorAndOutTypeList»>());
+                    «IF inParams != ""»«inParams»,«ENDIF»
+                    «method.generateCallback(fInterface, deploymentAccessor)»);
                 }
             «ENDIF»
         «ENDFOR»
@@ -288,11 +293,24 @@ class FInterfaceDBusProxyGenerator {
     def private dbusProxyClassName(FInterface fInterface) {
         fInterface.elementName + 'DBusProxy'
     }
-
-    def private generateDBusProxyHelperClass(FMethod fMethod) '''
-    CommonAPI::DBus::DBusProxyHelper<CommonAPI::DBus::DBusSerializableArguments<«fMethod.inArgs.map[
-        getTypeName(fMethod, true)].join(', ')»>,
-                                     CommonAPI::DBus::DBusSerializableArguments<«fMethod.errorAndOutTypeList»> >'''
+    def private generateDBusProxyHelperClass(FMethod fMethod,
+                                             FInterface _interface,
+                                             PropertyAccessor _accessor) '''
+	CommonAPI::DBus::DBusProxyHelper<
+	    CommonAPI::DBus::DBusSerializableArguments<
+	    «FOR a : fMethod.inArgs»
+	        CommonAPI::Deployable<«a.getTypeName(fMethod, true)», «a.getDeploymentType(_interface, true)» >«IF a != fMethod.inArgs.last»,«ENDIF»
+	    «ENDFOR»
+	    >,
+	    CommonAPI::DBus::DBusSerializableArguments<
+	    «IF fMethod.hasError»
+	    CommonAPI::Deployable<«fMethod.errorType», «fMethod.getErrorDeploymentType(false)»>«IF !fMethod.outArgs.empty»,«ENDIF»
+        «ENDIF»
+        «FOR a : fMethod.outArgs»
+            CommonAPI::Deployable<«a.getTypeName(fMethod, true)»,«a.getDeploymentType(_interface, true)»>«IF a != fMethod.outArgs.last»,«ENDIF»
+	    «ENDFOR»
+	    >
+	>'''
 
     def private dbusClassName(FAttribute fAttribute, PropertyAccessor deploymentAccessor,
         FInterface fInterface) {
@@ -308,10 +326,10 @@ class FInterfaceDBusProxyGenerator {
         if (fAttribute.isReadonly)
             type = type + 'Readonly'
 
-        type = type + 'Attribute<' + fAttribute.className
-        if (fAttribute.isVariant) 
-            type = type + ", CommonAPI::DBus::VariantDeployment<>"
-        type = type + '>'
+        type = type + "Attribute<" + fAttribute.className
+        val deployment = fAttribute.getDeploymentType(fInterface, true)
+        if (!deployment.equals("CommonAPI::EmptyDeployment")) type += ", " + deployment
+        type += ">"
 
         if (fAttribute.isObservable)
             if (deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop) {
@@ -332,21 +350,27 @@ class FInterfaceDBusProxyGenerator {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop) {
-            ret = ret + ', getAddress().getInterface(), "' + fAttribute.elementName + '")'
+            ret = ret + ', getAddress().getInterface(), "' + fAttribute.elementName + '"'
         } else {
 
             if (fAttribute.isObservable)
                 ret = ret + ', "' + fAttribute.dbusSignalName + '"'
 
             if (!fAttribute.isReadonly)
-                ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '")'
+                ret = ret + ', "' + fAttribute.dbusSetMethodName + '", "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '"'
             else
-                ret = ret + ', "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '")'
+                ret = ret + ', "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName + '"'
         }
+        val String deployment = fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor)
+        if (deployment != "")
+            ret += ", " + deployment
+
+        ret += ")"        
         return ret
     }
 
-    def private dbusClassName(FBroadcast fBroadcast) {
+    def private dbusClassName(FBroadcast fBroadcast, PropertyAccessor deploymentAccessor,
+        FInterface fInterface) {
         var ret = 'CommonAPI::DBus::'
 
         if (fBroadcast.isSelective)
@@ -356,12 +380,96 @@ class FInterfaceDBusProxyGenerator {
 
         ret = ret + '<' + fBroadcast.className 
         
-        var itsTypes = fBroadcast.types
-        if (itsTypes != "")
-            ret = ret + ", " + itsTypes
+        for (a : fBroadcast.outArgs) {
+            ret += ", "
+            ret += a.getDeployable(fInterface, deploymentAccessor)
+        }
         
         ret = ret + '>'
 
         return ret
     }
+    def private generateProxyHelperDeployments(FMethod _method,
+                                               FInterface _interface,
+                                               boolean _isAsync,
+                                               PropertyAccessor _accessor) '''
+    «IF _method.hasError»
+        CommonAPI::Deployable<«_method.errorType», «_method.getErrorDeploymentType(false)»> deploy_error(«_method.getErrorDeploymentRef(_interface, _accessor)»);
+    «ENDIF»
+    «FOR a : _method.inArgs»
+        CommonAPI::Deployable<«a.getTypeName(_method, true)», «a.getDeploymentType(_interface, true)»> deploy_«a.name»(_«a.name», «a.getDeploymentRef(a.array, _method, _interface, _accessor)»);
+    «ENDFOR»
+    «FOR a : _method.outArgs»
+        CommonAPI::Deployable<«a.getTypeName(_method, true)», «a.getDeploymentType(_interface, true)»> deploy_«a.name»(«a.getDeploymentRef(a.array, _method, _interface, _accessor)»);
+    «ENDFOR»
+    '''
+    def private generateInParams(FMethod _method, 
+                                 PropertyAccessor _accessor) {
+        var String inParams = ""
+        for (a : _method.inArgs) {
+            if (inParams != "") inParams += ", "
+            inParams += "deploy_" + a.name
+        }
+        return inParams
+    }    
+    def private generateOutParams(FMethod _method,
+                                  PropertyAccessor _accessor,
+                                  boolean _instantiate) {
+        var String outParams = ""
+        for (a : _method.outArgs) {
+            if (outParams != "") outParams += ", "
+            outParams += "deploy_" + a.name
+        }
+        return outParams      
+    }  
+    def private generateOutParamsValue(FMethod _method,
+                                       PropertyAccessor _accessor) {
+        var String outParamsValue = ""
+        if (_method.hasError) {
+        	outParamsValue += "_error = deploy_error.getValue();\n"
+        }
+        for (a : _method.outArgs) {
+            outParamsValue += "_" + a.name + " = deploy_" + a.name + ".getValue();\n"
+        }
+        return outParamsValue      
+    }     
+        def private generateCallback(FMethod _method,
+                                 FInterface _interface,
+                                 PropertyAccessor _accessor) {
+
+        var String error = ""                                     
+        if (_method.hasError) {
+            error = "deploy_error"
+        }                    
+
+        var String callback = "[_callback] (" + generateCallbackParameter(_method, _interface, _accessor) + ") {\n"
+        callback += "\t_callback(_status"
+        if (_method.hasError) callback += ", _deploy_error.getValue()"
+        for (a : _method.outArgs) {
+            callback += ", _" + a.name
+            callback += ".getValue()"
+        }
+        callback += ");\n"
+        callback += "},\n"
+        
+        var String out = generateOutParams(_method, _accessor, true)
+        if (error != "" && out != "") error += ", "  
+        callback += "std::make_tuple(" + error + out + ")" 
+        return callback
+    }
+
+    def private generateCallbackParameter(FMethod _method,
+                                          FInterface _interface,
+                                          PropertyAccessor _accessor) {
+        var String declaration = "CommonAPI::CallStatus _status"
+        if (_method.hasError)
+            declaration += ", CommonAPI::Deployable<" + _method.errorType + ", " + _method.getErrorDeploymentType(false) + "> _deploy_error"
+        for (a : _method.outArgs) {
+            declaration += ", "
+            declaration += "CommonAPI::Deployable<" + a.getTypeName(_method, true)
+                           + ", " + a.getDeploymentType(_interface, true) + "> _" + a.name
+        }   
+        return declaration                                           
+    }
+     
 }

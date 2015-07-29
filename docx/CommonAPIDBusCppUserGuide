@@ -30,6 +30,10 @@ CommonAPI was developed for GENIVI and will run on most Linux platforms. Additio
 
 The CommonAPI D-Bus binding requires the D-Bus (_libdbus_ at compile time for linking and the running D-Bus daemon at runtime). The D-Bus version should be at least 1.6.x.
 
+=== Dependencies
+.CommonAPI-D-Bus Dependencies
+image::{imagedir}/CommonAPI-DBus-Dependencies.png[CommonAPI D-Bus Dependencies image]
+
 === Restrictions
 
 - The signature of D-Bus data must not be longer than 255 characters.
@@ -72,7 +76,7 @@ Now use CMake to build the CommonAPI D-Bus runtime library. We assume that your 
 $ cd common-api-dbus-runtime
 $ mkdir build
 $ cd build
-$ cmake -D USE_INSTALLED_COMMONAPI=ON -D CMAKE_INSTALL_PREFIX=/usr/local ..
+$ cmake -DUSE_INSTALLED_COMMONAPI=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
 $ make
 $ make install
 ----
@@ -86,6 +90,11 @@ If you prefer to install CommonAPI D-Bus from a tar file you can get the actual 
 	http://docs.projects.genivi.org/yamaica-update-site/CommonAPI/runtime/
 
 There are several options for calling CMake and make targets.
+
+If you do not want to use nor the installed dbus library and neither the installed CommonAPI library:
+----
+$ cmake -DUSE_INSTALLED_DBUS=OFF -DUSE_INSTALLED_COMMONAPI=OF ..
+----
 
 Generate makefile for building a static CommonAPI library (default is a shared library). The library will be in _/build/src/CommonAPI/DBus_.
 ----

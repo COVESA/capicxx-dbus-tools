@@ -55,6 +55,11 @@ public class CommandLineHandlerDBus extends AbstractCommandLineHandler implement
 					cliTool.setDefaultDirectory(parsedArguments.getOptionValue("d"));
 				}
 
+				// destination: -dc --dest-common overwrite target directory for common part
+				if(parsedArguments.hasOption("dc")) {
+					cliTool.setCommonDirectory(parsedArguments.getOptionValue("dc"));
+				}
+				
 				// destination: -dp --dest-proxy overwrite target directory for proxy code
 				if(parsedArguments.hasOption("dp")) {
 					cliTool.setProxyDirectory(parsedArguments.getOptionValue("dp"));
@@ -69,6 +74,11 @@ public class CommandLineHandlerDBus extends AbstractCommandLineHandler implement
 				// -l --license license text in generated files
 				if(parsedArguments.hasOption("l")) {
 					cliTool.setLicenseText(parsedArguments.getOptionValue("l"));
+				}
+				
+				// Switch on/off validation
+				if(parsedArguments.hasOption("val")) {
+					cliTool.enableValidation(parsedArguments.getOptionValue("val"));
 				}
 				
                 // finally invoke the generator.

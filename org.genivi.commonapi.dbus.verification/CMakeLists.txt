@@ -3,8 +3,8 @@ cmake_minimum_required (VERSION 2.8.1)
 PROJECT(libdbusglue)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
-SET( ${PROJECT_NAME}_MINOR_VERSION 0 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 1 ) 
+SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
+SET( ${PROJECT_NAME}_PATCH_LEVEL 3 ) 
 
 message("Project name: ${PROJECT_NAME}")
 
@@ -19,6 +19,9 @@ message("BUILD_SHARED_LIBS is set to value: ${BUILD_SHARED_LIBS}")
 
 OPTION(USE_INSTALLED_COMMONAPI "Set to OFF to use the local (build tree) version of CommonAPI" ON)
 message("USE_INSTALLED_COMMONAPI is set to value: ${USE_INSTALLED_COMMONAPI}")
+
+OPTION(USE_INSTALLED_DBUS "Set to OFF to use the local (build tree) version of DBUS" ON)
+message(STATUS "USE_INSTALLED_DBUS is set to value: ${USE_INSTALLED_DBUS}")
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
@@ -122,6 +125,12 @@ include_directories(
     ${DBus_INCLUDE_DIRS}
     ${COMMONAPI_DBUS_INCLUDE_DIRS}
 )
+
+if ("${USE_INSTALLED_DBUS}" STREQUAL "OFF")
+	link_directories(
+		${DBus_INCLUDE_DIRS}/dbus/.libs
+	)
+endif()
 
 # source files
 file(GLOB GLUE_SRCS "src-gen/v1_0/commonapi/runtime/*.cpp"
