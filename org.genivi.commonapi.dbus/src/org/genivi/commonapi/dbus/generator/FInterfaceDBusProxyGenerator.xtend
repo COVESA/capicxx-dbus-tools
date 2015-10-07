@@ -23,17 +23,20 @@ import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 
 import static com.google.common.base.Preconditions.*
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import java.util.List
+import org.franca.deploymodel.dsl.fDeploy.FDProvider
+import org.franca.deploymodel.core.FDeployedProvider
 
 class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
     def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess,
-        PropertyAccessor deploymentAccessor, IResource modelid) {
+        PropertyAccessor deploymentAccessor, List<FDProvider> providers, IResource modelid) {
         fileSystemAccess.generateFile(fInterface.dbusProxyHeaderPath, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS,
             fInterface.generateDBusProxyHeader(deploymentAccessor, modelid))
         fileSystemAccess.generateFile(fInterface.dbusProxySourcePath, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS,
-            fInterface.generateDBusProxySource(deploymentAccessor, modelid))
+            fInterface.generateDBusProxySource(deploymentAccessor, providers, modelid))
     }
 
     def private generateDBusProxyHeader(FInterface fInterface, PropertyAccessor deploymentAccessor,
@@ -56,6 +59,7 @@ class FInterfaceDBusProxyGenerator {
         #include <CommonAPI/DBus/DBusAddress.hpp>
         #include <CommonAPI/DBus/DBusFactory.hpp>
         #include <CommonAPI/DBus/DBusProxy.hpp>
+        #include <CommonAPI/DBus/DBusAddressTranslator.hpp>
         «IF fInterface.hasAttributes»
             #include <CommonAPI/DBus/DBusAttribute.hpp>
             «IF deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop»
@@ -144,7 +148,7 @@ class FInterfaceDBusProxyGenerator {
         
     '''
 
-    def private generateDBusProxySource(FInterface fInterface, PropertyAccessor deploymentAccessor,
+    def private generateDBusProxySource(FInterface fInterface, PropertyAccessor deploymentAccessor, List<FDProvider> providers,
         IResource modelid) '''
 		«generateCommonApiLicenseHeader(fInterface, modelid)»
 		«FTypeGenerator::generateComments(fInterface, false)»
@@ -160,6 +164,16 @@ class FInterfaceDBusProxyGenerator {
 		}
 
 		INITIALIZER(register«fInterface.dbusProxyClassName») {
+             «FOR p : providers»
+                 «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
+                 «FOR i : p.instances.filter[target == fInterface]»
+                     CommonAPI::DBus::DBusAddressTranslator::get()->insert(
+                         "local:«fInterface.fullyQualifiedName»:«providerAccessor.getInstanceId(i)»",
+                         "«providerAccessor.getDBusServiceName(i)»",
+                         "«providerAccessor.getDBusObjectPath(i)»",
+                         "«providerAccessor.getDBusInterfaceName(i)»");
+                 «ENDFOR»
+             «ENDFOR»        	
 			CommonAPI::DBus::Factory::get()->registerProxyCreateMethod(
 				«fInterface.elementName»::getInterface(),
 				&create«fInterface.dbusProxyClassName»);
@@ -443,7 +457,7 @@ class FInterfaceDBusProxyGenerator {
         }                    
 
         var String callback = "[_callback] (" + generateCallbackParameter(_method, _interface, _accessor) + ") {\n"
-        callback += "\t_callback(_status"
+        callback += "\t_callback(_internalCallStatus"
         if (_method.hasError) callback += ", _deploy_error.getValue()"
         for (a : _method.outArgs) {
             callback += ", _" + a.name
@@ -461,7 +475,7 @@ class FInterfaceDBusProxyGenerator {
     def private generateCallbackParameter(FMethod _method,
                                           FInterface _interface,
                                           PropertyAccessor _accessor) {
-        var String declaration = "CommonAPI::CallStatus _status"
+        var String declaration = "CommonAPI::CallStatus _internalCallStatus"
         if (_method.hasError)
             declaration += ", CommonAPI::Deployable<" + _method.errorType + ", " + _method.getErrorDeploymentType(false) + "> _deploy_error"
         for (a : _method.outArgs) {

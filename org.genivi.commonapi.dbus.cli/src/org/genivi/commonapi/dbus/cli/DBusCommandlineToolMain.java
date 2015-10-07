@@ -60,6 +60,7 @@ public class DBusCommandlineToolMain
 	protected String SCOPE = "DBus validation: ";
 	private boolean isValidation = true;
 	public static final int ERROR_STATE = 1;
+	public static final int NO_ERROR_STATE = 0;
 	
 	private ValidationMessageAcceptor cliMessageAcceptor = new AbstractValidationMessageAcceptor() {
 
@@ -137,10 +138,18 @@ public class DBusCommandlineToolMain
 		}
 		ConsoleLogger.printLog("Using Franca Version " + francaversion);
 
+		int error_state = NO_ERROR_STATE;
 		for(String file : filesToGenerate) {
 
 			URI uri = URI.createFileURI(file);
-			Resource resource = rsset.createResource(uri);
+			Resource resource = null;
+			try {
+				resource = rsset.createResource(uri);
+			} catch (IllegalStateException ise) {
+				// In case we have a search path with several fidl and fdepl  files that have includes to each other:
+				// This resource may have been already registered. Don't worry, continue.
+				continue;
+			}
 			validationErrorCount = 0;
 			if(isValidation) {
 				validate(resource);
@@ -151,16 +160,17 @@ public class DBusCommandlineToolMain
 					francaGenerator.doGenerate(resource, fsa);
 				}
 				catch (Exception e) {
-					System.err.println("Failed to generate dbus code !");
-					System.exit(ERROR_STATE);
+					System.err.println("Failed to generate dbus code: " + e.getMessage());
+					error_state = ERROR_STATE;
 				}	
 			}
 			else {
 				ConsoleLogger.printErrorLog(file + " contains validation errors !");
-				System.exit(ERROR_STATE);
+				error_state = ERROR_STATE;
 			}
 		}
-	}		
+		System.exit(error_state);
+	}
 
 	private void validate(Resource resource) {
 		EObject model = null;

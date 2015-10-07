@@ -13,6 +13,7 @@ import org.franca.core.franca.FInterface;
 import org.franca.deploymodel.core.FDeployedInterface;
 import org.franca.deploymodel.core.FDeployedProvider;
 import org.franca.deploymodel.core.FDeployedTypeCollection;
+import org.franca.deploymodel.dsl.fDeploy.FDInterfaceInstance;
 import org.genivi.commonapi.dbus.DeploymentInterfacePropertyAccessor;
 import org.genivi.commonapi.dbus.DeploymentInterfacePropertyAccessor.DBusDefaultAttributeType;
 import org.genivi.commonapi.dbus.DeploymentProviderPropertyAccessor;
@@ -239,4 +240,50 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 		catch (java.lang.NullPointerException e) {}
 		return null;
 	}
+	
+	public String getDBusInterfaceName (FDInterfaceInstance obj) {
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				return dbusProvider_.getDBusInterfaceName(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	
+	public String getDBusObjectPath (FDInterfaceInstance obj) {
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				return dbusProvider_.getDBusObjectPath(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	
+	public String getDBusServiceName (FDInterfaceInstance obj) {
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				return dbusProvider_.getDBusServiceName(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	
+	public String getDbusDomain (FDInterfaceInstance obj) {
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				return dbusProvider_.getDomain(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	
+	public String getDBusInstanceId (FDInterfaceInstance obj) {
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				return dbusProvider_.getInstanceId(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+		return null;
+	}
+	
 }

@@ -10,17 +10,19 @@ import java.util.LinkedList
 import java.util.List
 import javax.inject.Inject
 import org.eclipse.core.resources.IResource
-import org.eclipse.core.resources.ResourcesPlugin
+import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.franca.core.dsl.FrancaPersistenceManager
+import org.franca.core.franca.FInterface
 import org.franca.core.franca.FModel
-import org.franca.deploymodel.core.FDModelExtender
+import org.franca.core.franca.FTypeCollection
 import org.franca.deploymodel.core.FDeployedInterface
 import org.franca.deploymodel.core.FDeployedTypeCollection
 import org.franca.deploymodel.dsl.fDeploy.FDInterface
 import org.franca.deploymodel.dsl.fDeploy.FDModel
+import org.franca.deploymodel.dsl.fDeploy.FDProvider
 import org.franca.deploymodel.dsl.fDeploy.FDTypes
 import org.genivi.commonapi.core.generator.FDeployManager
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
@@ -29,7 +31,6 @@ import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
 
 import static com.google.common.base.Preconditions.*
-
 
 class FrancaDBusGenerator implements IGenerator
 {
@@ -42,91 +43,145 @@ class FrancaDBusGenerator implements IGenerator
     
     @Inject private FrancaPersistenceManager francaPersistenceManager
     @Inject private FDeployManager fDeployManager
+
 	
-    override doGenerate(Resource input, IFileSystemAccess fileSystemAccess)
-    {
+    override doGenerate(Resource input, IFileSystemAccess fileSystemAccess) {
         var FModel fModel
-        var List<FDInterface> deployedDBusInterfaces
-        var List<FDInterface> deployedCoreInterfaces
-		var List<FDTypes> deployedTypeCollections
-	    var IResource res = null
+        var List<FDInterface> deployedDBusInterfaces = new LinkedList<FDInterface>()
+        var List<FDInterface> deployedCoreInterfaces = new LinkedList<FDInterface>()
+        var List<FDTypes> deployedTypeCollections = new LinkedList<FDTypes>()
+        var List<FDProvider> deployedProviders = new LinkedList<FDProvider>()
+        var IResource res = null
         val String DBUS_SPECIFICATION_TYPE = "dbus.deployment"
         val String CORE_SPECIFICATION_TYPE = "core.deployment"
                 
-        if(input.URI.fileExtension.equals(francaPersistenceManager.fileExtension))
-        {
-            fModel = francaPersistenceManager.loadModel(input.URI, input.URI)
-            deployedDBusInterfaces = new LinkedList<FDInterface>()
-			deployedTypeCollections = new LinkedList<FDTypes>()
-			
-			createAndInsertAccessors(fModel, deployedDBusInterfaces, deployedTypeCollections)
-        }
-        // load the model from deployment file
-        else if(input.URI.fileExtension.equals(FDeployManager.fileExtension))
-        {
-        	var model = fDeployManager.loadModel(input.URI, input.URI);
-            if(model instanceof FDModel) {
-                val fModelExtender = new FDModelExtender(model);
-            	var fdinterfaces = fModelExtender.getFDInterfaces()
-            	// we need at least one FDInterface to access the model !
-            	if(fdinterfaces.size > 0) {
-            		fModel = fdinterfaces.get(0).target.model     
-            	} else {
-            		// empty deployment !
-            		// try to load the imported fidl from the fdepl
-            		fModel = fDeployManager.getModelFromFdepl(model, input.URI)
-            	}
-            	checkArgument(fModel != null, "\nFailed to load the model from fdepl file,\ncannot generate code.")
-            	// read deployment information                   
-               	deployedTypeCollections = fModelExtender.getFDTypesList()
-            	deployedDBusInterfaces = getFDInterfaces(model, DBUS_SPECIFICATION_TYPE)
-            	deployedCoreInterfaces = getFDInterfaces(model, CORE_SPECIFICATION_TYPE)
+        // generate code from the fidl or fdepl file 
+        if (input.URI.fileExtension.equals(francaPersistenceManager.fileExtension) ||
+            input.URI.fileExtension.equals(FDeployManager.fileExtension)) {
 
-				// If we have core deployments...	
-				if(!deployedCoreInterfaces.isEmpty) {
-					// ...and no dbus deployment 
-					if(deployedDBusInterfaces.isEmpty) {
-						// ...transfer the core into a dbus like deployment
-						deployedCoreInterfaces.get(0).getSpec().setName("org.genivi.commonapi.dbus.deployment")
-						deployedDBusInterfaces.add(deployedCoreInterfaces.get(0))
-					}
-				else { // if we have one dbus deployment...
-           			for(source : deployedCoreInterfaces) {
-            			// ...merge the core depolyments into the dbus deployment
-            			mergeDeployments(source, deployedDBusInterfaces.get(0))
-            			} 
-           			}
-            	}
-            	createAndInsertAccessors(fModel, deployedDBusInterfaces, deployedTypeCollections)
+            // load root model and imports
+            var model = fDeployManager.loadModel(input.URI, input.URI);
+            if (model instanceof FDModel) {
 
-            } else if(model instanceof FModel) {
-            	fModel = model
-            	deployedDBusInterfaces = new LinkedList<FDInterface>()
+                // fdModels is the map of all deployment models from imported fdepl files
+                var fdModels = fDeployManager.deploymentModels
+
+                // get deployment parameter from this fdepl file (input.URI) 
+                deployedDBusInterfaces = getFDInterfaces(model, DBUS_SPECIFICATION_TYPE)
+                deployedCoreInterfaces = getFDInterfaces(model, CORE_SPECIFICATION_TYPE)
+                deployedTypeCollections = getFDTypesList(model, DBUS_SPECIFICATION_TYPE)
+                deployedProviders = getFDProviders(model, DBUS_SPECIFICATION_TYPE)
+                var boolean hasInterfaces = (deployedDBusInterfaces.size > 0);
+                var boolean hasTypeCollections = (deployedTypeCollections.size() > 0);
+                val boolean hasProviders = (deployedProviders.size() > 0);
+                checkArgument(hasInterfaces || hasTypeCollections || hasProviders,
+                    "\nNo Interfaces/TypeCollections or Providers were deployed for " + DBUS_SPECIFICATION_TYPE +
+                        ", nothing to generate.")
+
+                // get deployment parameter from imported fdepls
+                for (fdModelEntry : fdModels.entrySet) {
+
+                    //System.out.println("Generation code for import: " + fdModelEntry.key)
+                    var fdmodel = fdModelEntry.value
+                    deployedDBusInterfaces.addAll(getFDInterfaces(fdmodel, DBUS_SPECIFICATION_TYPE))
+                    deployedCoreInterfaces.addAll(getFDInterfaces(fdmodel, CORE_SPECIFICATION_TYPE))
+                    deployedTypeCollections.addAll(getFDTypesList(fdmodel, DBUS_SPECIFICATION_TYPE))
+                }
+                if (hasInterfaces)
+                    fModel = deployedDBusInterfaces.get(0).target.model
+                else if (hasTypeCollections)
+                    fModel = deployedTypeCollections.get(0).target.model
+
+                if (fModel != null) {
+
+                    // We have to merge core deployments into the dbus deployment
+                    for (source : deployedCoreInterfaces) {
+                        mergeDeployments(source, deployedDBusInterfaces.get(0))
+                    }
+
+                    // actually generate code
+                    createAndInsertAccessors(fModel, deployedDBusInterfaces, deployedTypeCollections)
+                    doGenerateDBusComponents(fModel, deployedDBusInterfaces, deployedProviders,
+                        deployedTypeCollections, fileSystemAccess, res)
+                }
+
+                // Generate code for each instance interface for each provider
+                if (hasProviders) {
+                    for (provider : deployedProviders) {
+
+                        //System.out.println("Processing provider " + provider.name)
+                        for (import_ : model.imports) {
+                            val importUri = import_.getImportURI
+                            if (!importUri.contains("deployment_spec") && importUri.endsWith(".fdepl")) {
+
+                                val fdeplUri = URI.createURI(importUri)
+
+                                //System.out.println("loading and generating model from " + fdeplUri.lastSegment)
+                                // try to find the deployment model for this fdepl in the map 
+                                model = fdModels.get(fdeplUri.lastSegment)
+                                checkArgument(model != null,
+                                    "Could not find deployment model for " + fdeplUri.lastSegment)
+
+                                //model = fDeployManager.loadModel(fdeplUri, input.URI)
+                                if (model instanceof FDModel) {
+                                    deployedDBusInterfaces.addAll(getFDInterfaces(model, DBUS_SPECIFICATION_TYPE))
+                                    deployedCoreInterfaces.addAll(getFDInterfaces(model, CORE_SPECIFICATION_TYPE))
+                                    deployedTypeCollections.addAll(getFDTypesList(model, DBUS_SPECIFICATION_TYPE))
+                                    hasInterfaces = (deployedDBusInterfaces.size > 0)
+                                    hasTypeCollections = (deployedTypeCollections.size() > 0)
+
+                                    // We have to merge core deployments into the dbus deployment
+                                    for (source : deployedCoreInterfaces) {
+                                        mergeDeployments(source, deployedDBusInterfaces.get(0))
+                                    }
+                                    if (hasInterfaces)
+                                        fModel = deployedDBusInterfaces.get(0).target.model
+                                    else if (hasTypeCollections)
+                                        fModel = deployedTypeCollections.get(0).target.model
+
+                                    if (fModel != null) {
+
+                                        // actually generate code
+                                        createAndInsertAccessors(fModel, deployedDBusInterfaces, deployedTypeCollections)
+                                        doGenerateDBusComponents(fModel, deployedDBusInterfaces, deployedProviders,
+                                            deployedTypeCollections, fileSystemAccess, res)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                fDeployManager.clearDeploymentModels
+                deployedDBusInterfaces.clear()
+                deployedCoreInterfaces.clear()
+                deployedTypeCollections.clear()
+                deployedProviders.clear()
+            }
+            // generate code from a given fidl file
+            else if (model instanceof FModel) {
+                // fModels is the map of all models from imported fidl files
+                var fModels = fDeployManager.fidlModels
+                fModels.put(input.URI.lastSegment, model);
+
+                for (fModelEntry : fModels.entrySet) {
+
+                    //System.out.println("Generation code for: " + fModelEntry.key)
+                    fModel = fModelEntry.value
+
+                    if (fModel != null) {
+                        // actually generate code
+                        createAndInsertAccessors(fModel, deployedDBusInterfaces, deployedTypeCollections)
+                        doGenerateDBusComponents(fModel, deployedDBusInterfaces, deployedProviders,
+                            deployedTypeCollections, fileSystemAccess, res)
+                    }
+                }                            
+                fDeployManager.clearFidlModels
+            } else {
+                checkArgument(false, "Unknown input: " + input)
             }
         }
-        else
-        {
-            checkArgument(false, "Unknown input: " + input)
-        }
-        try
-        {
-            var pathfile = input.URI.toPlatformString(false)
-            if(pathfile == null)
-            {
-                pathfile = FPreferencesDBus::instance.getModelPath(fModel)
-            }
-            if(pathfile.startsWith("platform:/"))
-            {
-                pathfile = pathfile.substring(pathfile.indexOf("platform") + 10)
-                pathfile = pathfile.substring(pathfile.indexOf(System.getProperty("file.separator")))
-            }
-            res = ResourcesPlugin.workspace.root.findMember(pathfile)
-        }
-        catch(IllegalStateException e)
-        {
-        } //will be thrown only when the cli calls the francagenerator
-        doGenerateDBusComponents(fModel, deployedDBusInterfaces, fileSystemAccess, res)
     }
+
     def private createAndInsertAccessors(FModel _model, List<FDInterface> _interfaces, List<FDTypes> _typeCollections) {
     	val defaultDeploymentAccessor = new PropertyAccessor()
 		_model.typeCollections.forEach [
@@ -154,59 +209,59 @@ class FrancaDBusGenerator implements IGenerator
         ]
     }
 
-    def private doGenerateDBusComponents(FModel fModel, List<FDInterface> deployedInterfaces, IFileSystemAccess fileSystemAccess,
-        IResource res)
-    {
+    def private doGenerateDBusComponents(FModel fModel, List<FDInterface> deployedInterfaces,
+        List<FDProvider> deployedProviders, List<FDTypes> deployedTypeCollections, IFileSystemAccess fileSystemAccess,
+        IResource res) {
         val defaultDeploymentAccessor = new PropertyAccessor()
-        
-        fModel.typeCollections.forEach [
+
+        var typeCollectionsToGenerate = fModel.typeCollections.toSet
+        var interfacesToGenerate = fModel.interfaces.toSet
+
+        // referenced type collections and interfaces
+        val allReferencedFTypes = fModel.allReferencedFTypes
+        val allTypeCollections = allReferencedFTypes.filter[eContainer instanceof FTypeCollection].map[
+            eContainer as FTypeCollection]
+        val allInterfaces = allReferencedFTypes.filter[eContainer instanceof FInterface].map[
+            eContainer as FInterface]
+        interfacesToGenerate = fModel.allReferencedFInterfaces.toSet
+        typeCollectionsToGenerate.addAll(allTypeCollections)
+        interfacesToGenerate.addAll(allInterfaces)
+
+        typeCollectionsToGenerate.forEach [
         	it.generateTypeCollectionDeployment(fileSystemAccess, getAccessor(it), res)
         ] 
      
         
-        fModel.interfaces.forEach [
+        interfacesToGenerate.forEach [
             val currentInterface = it
             var PropertyAccessor deploymentAccessor
-            if(deployedInterfaces.exists[it.target == currentInterface])
-            {
+            if (deployedInterfaces.exists[it.target == currentInterface]) {
                 deploymentAccessor = new PropertyAccessor(
                     new FDeployedInterface(deployedInterfaces.filter[it.target == currentInterface].last))
-            }
-            else
-            {
+            } else {
                 deploymentAccessor = defaultDeploymentAccessor
             }
-            val booleanTrue = Boolean.toString(true)
-            var String finalValue = booleanTrue
-            finalValue = FPreferencesDBus::instance.getPreference(PreferenceConstantsDBus::P_GENERATEPROXY_DBUS, finalValue)
-            if(finalValue.equals(booleanTrue))
-            {
-                it.generateDBusProxy(fileSystemAccess, deploymentAccessor, res)
+            if (FPreferencesDBus::instance.getPreference(PreferenceConstantsDBus::P_GENERATEPROXY_DBUS, "true").
+                equals("true")) {
+                it.generateDBusProxy(fileSystemAccess, deploymentAccessor, deployedProviders, res)
             }
-            finalValue = booleanTrue
-            finalValue = FPreferencesDBus::instance.getPreference(PreferenceConstantsDBus::P_GENERATESTUB_DBUS, finalValue)
-            if(finalValue.equals(booleanTrue))
-            {
-                it.generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, res)
+            if (FPreferencesDBus::instance.getPreference(PreferenceConstantsDBus::P_GENERATESTUB_DBUS, "true").
+                equals("true")) {
+                it.generateDBusStubAdapter(fileSystemAccess, deploymentAccessor, deployedProviders, res)
             }
-			it.generateDeployment(fileSystemAccess, deploymentAccessor, res)      
+            it.generateDeployment(fileSystemAccess, deploymentAccessor, res)
             it.managedInterfaces.forEach [
                 val currentManagedInterface = it
                 var PropertyAccessor managedDeploymentAccessor
-                if(deployedInterfaces.exists[it.target == currentManagedInterface])
-                {
+                if (deployedInterfaces.exists[it.target == currentManagedInterface]) {
                     managedDeploymentAccessor = new PropertyAccessor(
                         new FDeployedInterface(deployedInterfaces.filter[it.target == currentManagedInterface].last))
-                }
-                else
-                {
+                } else {
                     managedDeploymentAccessor = defaultDeploymentAccessor
                 }
-                it.generateDBusProxy(fileSystemAccess, managedDeploymentAccessor, res)
-                
-                it.generateDBusStubAdapter(fileSystemAccess, managedDeploymentAccessor, res)
+                it.generateDBusProxy(fileSystemAccess, managedDeploymentAccessor, deployedProviders, res)
+                it.generateDBusStubAdapter(fileSystemAccess, managedDeploymentAccessor, deployedProviders, res)
             ]
         ]
     }
-
 }

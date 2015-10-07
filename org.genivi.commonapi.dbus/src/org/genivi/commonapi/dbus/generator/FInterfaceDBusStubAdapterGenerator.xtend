@@ -20,6 +20,9 @@ import org.genivi.commonapi.core.generator.FTypeGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import java.util.List
+import org.franca.deploymodel.dsl.fDeploy.FDProvider
+import org.franca.deploymodel.core.FDeployedProvider
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -27,9 +30,9 @@ class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaDBusDeploymentAccessorHelper
     
 
-    def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, PropertyAccessor deploymentAccessor, IResource modelid) {
+    def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, PropertyAccessor deploymentAccessor,  List<FDProvider> providers, IResource modelid) {
         fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, fInterface.generateDBusStubAdapterHeader(deploymentAccessor, modelid))
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, fInterface.generateDBusStubAdapterSource(deploymentAccessor, modelid))
+        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, fInterface.generateDBusStubAdapterSource(deploymentAccessor, providers, modelid))
     }
 
     def private generateDBusStubAdapterHeader(FInterface fInterface, PropertyAccessor deploymentAccessor, IResource modelid) '''
@@ -50,9 +53,7 @@ class FInterfaceDBusStubAdapterGenerator {
         #define COMMONAPI_INTERNAL_COMPILATION
         #endif
 
-        «IF !fInterface.managedInterfaces.empty»
         #include <CommonAPI/DBus/DBusAddressTranslator.hpp>
-        «ENDIF»
         #include <CommonAPI/DBus/DBusFactory.hpp>
         «IF !fInterface.managedInterfaces.empty»
         #include <CommonAPI/DBus/DBusObjectManager.hpp>
@@ -375,7 +376,7 @@ class FInterfaceDBusStubAdapterGenerator {
             > «fInterface.dbusStubAdapterClassNameInternal»::«fBroadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubAdapterClassName + "::" + fBroadcast.unsubscribeSelectiveMethodName», "");
     '''
 
-    def private generateDBusStubAdapterSource(FInterface fInterface, PropertyAccessor deploymentAccessor, IResource modelid) '''
+    def private generateDBusStubAdapterSource(FInterface fInterface, PropertyAccessor deploymentAccessor,  List<FDProvider> providers, IResource modelid) '''
         «generateCommonApiLicenseHeader(fInterface, modelid)»
         #include <«fInterface.headerPath»>
         #include <«fInterface.dbusStubAdapterHeaderPath»>
@@ -391,6 +392,16 @@ class FInterfaceDBusStubAdapterGenerator {
         }
 
         INITIALIZER(register«fInterface.dbusStubAdapterClassName») {
+             «FOR p : providers»
+                 «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
+                 «FOR i : p.instances.filter[target == fInterface]»
+                     CommonAPI::DBus::DBusAddressTranslator::get()->insert(
+                         "local:«fInterface.fullyQualifiedName»:«providerAccessor.getInstanceId(i)»",
+                         "«providerAccessor.getDBusServiceName(i)»",
+                         "«providerAccessor.getDBusObjectPath(i)»",
+                         "«providerAccessor.getDBusInterfaceName(i)»");
+                 «ENDFOR»
+             «ENDFOR»           
             CommonAPI::DBus::Factory::get()->registerStubAdapterCreateMethod(
             	«fInterface.elementName»::getInterface(), &create«fInterface.dbusStubAdapterClassName»);
         }
