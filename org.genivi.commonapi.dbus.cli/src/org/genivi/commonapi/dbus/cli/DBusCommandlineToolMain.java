@@ -58,7 +58,7 @@ public class DBusCommandlineToolMain
 	protected ValidatorDBus		 	validator;
 	private int validationErrorCount;
 	protected String SCOPE = "DBus validation: ";
-	private boolean isValidation = true;
+	private boolean isValidation = false;
 	public static final int ERROR_STATE = 1;
 	public static final int NO_ERROR_STATE = 0;
 	

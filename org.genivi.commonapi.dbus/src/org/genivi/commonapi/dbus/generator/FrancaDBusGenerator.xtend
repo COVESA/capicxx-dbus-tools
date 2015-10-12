@@ -71,12 +71,6 @@ class FrancaDBusGenerator implements IGenerator
                 deployedCoreInterfaces = getFDInterfaces(model, CORE_SPECIFICATION_TYPE)
                 deployedTypeCollections = getFDTypesList(model, DBUS_SPECIFICATION_TYPE)
                 deployedProviders = getFDProviders(model, DBUS_SPECIFICATION_TYPE)
-                var boolean hasInterfaces = (deployedDBusInterfaces.size > 0);
-                var boolean hasTypeCollections = (deployedTypeCollections.size() > 0);
-                val boolean hasProviders = (deployedProviders.size() > 0);
-                checkArgument(hasInterfaces || hasTypeCollections || hasProviders,
-                    "\nNo Interfaces/TypeCollections or Providers were deployed for " + DBUS_SPECIFICATION_TYPE +
-                        ", nothing to generate.")
 
                 // get deployment parameter from imported fdepls
                 for (fdModelEntry : fdModels.entrySet) {
@@ -87,6 +81,10 @@ class FrancaDBusGenerator implements IGenerator
                     deployedCoreInterfaces.addAll(getFDInterfaces(fdmodel, CORE_SPECIFICATION_TYPE))
                     deployedTypeCollections.addAll(getFDTypesList(fdmodel, DBUS_SPECIFICATION_TYPE))
                 }
+                var boolean hasInterfaces = (deployedDBusInterfaces.size > 0);
+                var boolean hasTypeCollections = (deployedTypeCollections.size() > 0);
+                val boolean hasProviders = (deployedProviders.size() > 0);
+
                 if (hasInterfaces)
                     fModel = deployedDBusInterfaces.get(0).target.model
                 else if (hasTypeCollections)
