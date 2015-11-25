@@ -7,7 +7,7 @@
 
 #include "ObjectPathSimpleStubImpl.hpp"
 
-using namespace v1_0::commonapi::examples;
+using namespace v1::commonapi::examples;
 
 ObjectPathSimpleStubImpl::ObjectPathSimpleStubImpl() {
     cnt = 0;
@@ -26,9 +26,9 @@ void ObjectPathSimpleStubImpl::incCounter() {
 
 
 void ObjectPathSimpleStubImpl::test(const std::shared_ptr<CommonAPI::ClientId> _client,
-	    		std::string _x1,
-	    		std::string _x2,
-	    		testReply_t _reply) {
+                std::string _x1,
+                std::string _x2,
+                testReply_t _reply) {
 
     std::cout << "method called, setting new values." << std::endl;
 

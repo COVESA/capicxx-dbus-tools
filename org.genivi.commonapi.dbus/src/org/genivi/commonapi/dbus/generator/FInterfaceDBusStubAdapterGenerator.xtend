@@ -20,6 +20,7 @@ import org.genivi.commonapi.core.generator.FTypeGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import java.util.List
 import org.franca.deploymodel.dsl.fDeploy.FDProvider
 import org.franca.deploymodel.core.FDeployedProvider
@@ -31,12 +32,22 @@ class FInterfaceDBusStubAdapterGenerator {
     
 
     def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, PropertyAccessor deploymentAccessor,  List<FDProvider> providers, IResource modelid) {
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, fInterface.generateDBusStubAdapterHeader(deploymentAccessor, modelid))
-        fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, fInterface.generateDBusStubAdapterSource(deploymentAccessor, providers, modelid))
+        
+        if(FPreferencesDBus::getInstance.getPreference(PreferenceConstantsDBus::P_GENERATE_CODE_DBUS, "true").equals("true")) {
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, 
+                    fInterface.generateDBusStubAdapterHeader(deploymentAccessor, modelid))
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, 
+                    fInterface.generateDBusStubAdapterSource(deploymentAccessor, providers, modelid))
+        } 
+        else { 
+            // feature: suppress code generation
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus::NO_CODE)
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus::NO_CODE)
+        }        
     }
 
     def private generateDBusStubAdapterHeader(FInterface fInterface, PropertyAccessor deploymentAccessor, IResource modelid) '''
-        «generateCommonApiLicenseHeader(fInterface, modelid)»
+        «generateCommonApiDBusLicenseHeader()»
         «FTypeGenerator::generateComments(fInterface, false)»
         #ifndef «fInterface.defineName»_DBUS_STUB_ADAPTER_HPP_
         #define «fInterface.defineName»_DBUS_STUB_ADAPTER_HPP_
@@ -85,7 +96,11 @@ class FInterfaceDBusStubAdapterGenerator {
 
             ~«fInterface.dbusStubAdapterClassNameInternal»();
 
-            virtual const bool hasFreedesktopProperties();
+            virtual bool hasFreedesktopProperties();
+
+            inline static const char* getInterface() {
+                return «fInterface.elementName»::getInterface();
+            }
 
             «FOR attribute : fInterface.attributes»
                 «IF attribute.isObservable»
@@ -377,7 +392,7 @@ class FInterfaceDBusStubAdapterGenerator {
     '''
 
     def private generateDBusStubAdapterSource(FInterface fInterface, PropertyAccessor deploymentAccessor,  List<FDProvider> providers, IResource modelid) '''
-        «generateCommonApiLicenseHeader(fInterface, modelid)»
+        «generateCommonApiDBusLicenseHeader()»
         #include <«fInterface.headerPath»>
         #include <«fInterface.dbusStubAdapterHeaderPath»>
         
@@ -791,7 +806,7 @@ class FInterfaceDBusStubAdapterGenerator {
             «ENDIF»
         }
 
-        const bool «fInterface.dbusStubAdapterClassNameInternal»::hasFreedesktopProperties() {
+        bool «fInterface.dbusStubAdapterClassNameInternal»::hasFreedesktopProperties() {
             return «IF deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop»true«ELSE»false«ENDIF»;
         }
 
@@ -891,30 +906,22 @@ class FInterfaceDBusStubAdapterGenerator {
     def private generateFireChangedMethodBody(FAttribute attribute, FInterface fInterface, PropertyAccessor deploymentAccessor) '''
         «val String deploymentType = attribute.getDeploymentType(fInterface, true)»
         «val String deployment = attribute.getDeploymentRef(attribute.array, null, fInterface, deploymentAccessor)»
-        «IF attribute.isVariant && deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-            CommonAPI::Deployable<«attribute.getTypeName(attribute, true)», «deploymentType»> deployedValue(value, «IF deployment != ""»«deployment»«ELSE»nullptr«ENDIF»);
-        «ENDIF»        
         «IF deploymentAccessor.getPropertiesType(attribute.containingInterface) == PropertyAccessor.PropertiesType.freedesktop»
-            CommonAPI::DBus::DBusStubFreedesktopPropertiesSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
-
-            «IF attribute.isVariant && deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-                CommonAPI::Deployable<
-                    «attribute.getTypeName(fInterface, true)»,
-                    «deploymentType»
-                >
-            «ELSE»
-                «attribute.getTypeName(fInterface, true)»
-            «ENDIF»
-            >>
-                ::sendPropertiesChangedSignal(
+            CommonAPI::DBus::DBusStubFreedesktopPropertiesSignalHelper<
+                «attribute.getTypeName(fInterface, true)»,
+                «deploymentType»
+            > ::sendPropertiesChangedSignal(
                     *this,
                     "«attribute.elementName»",
-                    «IF attribute.isVariant && deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»deployedValue«ELSE»value«ENDIF»
-
+                    value,
+                    «deployment»
             );
         «ELSE»
+            «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
+            CommonAPI::Deployable<«attribute.getTypeName(attribute, true)», «deploymentType»> deployedValue(value, «IF deployment != ""»«deployment»«ELSE»nullptr«ENDIF»);
+            «ENDIF»          
             CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
-            «IF attribute.isVariant && deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
+            «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
                 CommonAPI::Deployable<
                     «attribute.getTypeName(fInterface, true)»,
                     «deploymentType»
@@ -927,7 +934,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     *this,
                     "«attribute.dbusSignalName»",
                     "«attribute.dbusSignature(deploymentAccessor)»",
-                    «IF attribute.isVariant && deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»deployedValue«ELSE»value«ENDIF»
+                    «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»deployedValue«ELSE»value«ENDIF»
 
             );
         «ENDIF»

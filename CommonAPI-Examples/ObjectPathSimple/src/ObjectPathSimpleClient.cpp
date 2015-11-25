@@ -9,15 +9,17 @@
 #include <unistd.h>
 
 #include <CommonAPI/CommonAPI.hpp>
-#include <v1_0/commonapi/examples/ObjectPathSimpleProxy.hpp>
+#include <v1/commonapi/examples/ObjectPathSimpleProxy.hpp>
 
-using namespace v1_0::commonapi::examples;
+using namespace v1::commonapi::examples;
 
 int main() {
+    CommonAPI::Runtime::setProperty("LibraryBase", "ObjectPathSimple");
+
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
 
     std::string domain = "local";
-	std::string instance = "commonapi.examples.ObjectPathSimple";
+    std::string instance = "commonapi.examples.ObjectPathSimple";
 
     std::shared_ptr<ObjectPathSimpleProxyDefault> myProxy = runtime->buildProxy < ObjectPathSimpleProxy > (domain, instance);
 

@@ -7,23 +7,23 @@ import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_dep
 import "org.bluez.fidl"
 
 define org.genivi.commonapi.dbus.deployment for interface org.bluez.Manager {
-	DBusDefaultAttributeType = freedesktop
-	
-	method ListAdapters {
-	    out {
-	        adapters {
-	            IsObjectPath = true
-	        }
-	    }
-	}
+    DBusDefaultAttributeType = freedesktop
+    
+    method ListAdapters {
+        out {
+            adapters {
+                IsObjectPath = true
+            }
+        }
+    }
 
-	union Variant {
-	   DBusVariantType = DBus
-	}
+    union Variant {
+       DBusVariantType = DBus
+    }
 }
 
 define org.genivi.commonapi.dbus.deployment for interface org.bluez.Adapter {
-	union Variant {
-		DBusVariantType = DBus
-	}
+    union Variant {
+        DBusVariantType = DBus
+    }
 }

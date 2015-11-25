@@ -12,12 +12,12 @@ import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 
 public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
         implements IWorkbenchPreferencePage {
 
-    public final static String ENABLED_DBUS_VALIDATOR = "ENABLED_DBUS_VALIDATOR";
     public final static String ENABLED_WORKSPACE_CHECK = "ENABLED_WORKSPACE_CHECK";
 
     @Override
@@ -27,7 +27,7 @@ public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
 
     @Override
     public void createFieldEditors() {
-        addField(new BooleanFieldEditor(ENABLED_DBUS_VALIDATOR,
+        addField(new BooleanFieldEditor(PreferenceConstantsDBus.P_ENABLE_DBUS_VALIDATOR,
                 "validator enabled", getFieldEditorParent()));
         addField(new BooleanFieldEditor(
                 ENABLED_WORKSPACE_CHECK,
@@ -37,13 +37,9 @@ public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
 
     @Override
     public void init(IWorkbench workbench) {
-        IPreferenceStore prefStore = CommonApiDBusUiPlugin.getDefault()
-                .getPreferenceStore();
+        IPreferenceStore prefStore = CommonApiDBusUiPlugin.getValidatorPreferences();
         setPreferenceStore(prefStore);
         setDescription("Disable or enable the dbus validator!");
-        prefStore.setDefault(
-                ValidatorDBusPreferencesPage.ENABLED_DBUS_VALIDATOR, true);
-
     }
 
 }

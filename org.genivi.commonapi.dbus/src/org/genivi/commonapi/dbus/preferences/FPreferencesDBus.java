@@ -59,15 +59,27 @@ public class FPreferencesDBus {
 	        if (!preferences.containsKey(PreferenceConstantsDBus.P_LICENSE_DBUS)) {
 	            preferences.put(PreferenceConstantsDBus.P_LICENSE_DBUS, PreferenceConstantsDBus.DEFAULT_LICENSE);
 	        }
-	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATESTUB_DBUS)) {
-	            preferences.put(PreferenceConstantsDBus.P_GENERATESTUB_DBUS, "true");
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS, "true");
 	        }
-	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS)) {
-	            preferences.put(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS, "true");
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS, "true");
+	        }
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS, "true");
 	        }
 	        if (!preferences.containsKey(PreferenceConstantsDBus.P_LOGOUTPUT_DBUS)) {
 	            preferences.put(PreferenceConstantsDBus.P_LOGOUTPUT_DBUS, "true");
 	        }	        
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_CODE_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_CODE_DBUS, "true");    
+	        }
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS, "true");    
+	        }
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS, "true");    
+	        }
 	    }
 
 	    public String getPreference(String preferencename, String defaultValue) {

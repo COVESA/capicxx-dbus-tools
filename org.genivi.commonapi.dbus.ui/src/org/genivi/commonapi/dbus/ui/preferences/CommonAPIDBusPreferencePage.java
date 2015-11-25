@@ -8,7 +8,6 @@
 
 package org.genivi.commonapi.dbus.ui.preferences;
 
-import org.eclipse.cdt.ui.newui.MultiLineTextFieldEditor;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -16,6 +15,7 @@ import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.genivi.commonapi.core.ui.preferences.FieldEditorOverlayPage;
+import org.genivi.commonapi.core.ui.preferences.MultiLineStringFieldEditor;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 
@@ -23,8 +23,8 @@ import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
  * This class represents a preference page that is contributed to the
  * Preferences dialog. By subclassing <samp>FieldEditorOverlayPage</samp>..
  * <p>
- * This page is used to modify preferences. They are stored in the preference store that 
- * belongs to the main plug-in class. 
+ * This page is used to modify preferences. They are stored in the preference store that
+ * belongs to the main plug-in class.
  */
 
 public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implements IWorkbenchPreferencePage
@@ -33,7 +33,7 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     private FieldEditor proxyOutput = null;
     private FieldEditor stubOutput  = null;
     private FieldEditor commonOutput  = null;
-    
+
 
     public CommonAPIDBusPreferencePage()
     {
@@ -46,14 +46,15 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
      * GUI blocks needed to manipulate various types of preferences. Each field
      * editor knows how to save and restore itself.
      */
+    @Override
     public void createFieldEditors()
     {
-        license = new MultiLineTextFieldEditor(PreferenceConstantsDBus.P_LICENSE_DBUS, "The header to insert for all generated files", 60,
+        license = new MultiLineStringFieldEditor(PreferenceConstantsDBus.P_LICENSE_DBUS, "The header to insert for all generated files", 60,
                 getFieldEditorParent());
         license.setLabelText(""); // need to set this parameter (seems to be a bug)
         addField(license);
         // output directory definitions
-        commonOutput = new StringFieldEditor(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, "Output directory for the common part", 30, 
+        commonOutput = new StringFieldEditor(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, "Output directory for the common part", 30,
         		getFieldEditorParent());
         addField(commonOutput);
         proxyOutput = new StringFieldEditor(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, "Output directory for proxies inside project",
@@ -74,10 +75,11 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
                 PreferenceConstantsDBus.DEFAULT_OUTPUT);
         DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
                 PreferenceConstantsDBus.DEFAULT_OUTPUT);
-        
+
         super.performDefaults();
     }
 
+    @Override
     public void init(IWorkbench workbench)
     {
         if (!isPropertyPage())

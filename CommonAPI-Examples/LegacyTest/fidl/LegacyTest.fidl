@@ -1,0 +1,67 @@
+/* Copyright (C) 2015 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package commonapi.examples
+
+interface LegacyTest {
+
+    version { major 1 minor 0 }
+
+    attribute String nopath
+    attribute String objectpath
+    attribute String defvalue
+
+    method test {
+        in {
+            String plain
+            String path
+        }
+        out {
+            String path2
+            String plain2
+        }
+    }
+
+    broadcast testb {
+        out {
+            String plain3
+            String path3
+        }
+    }
+    
+    method teststruct {
+        in {
+            pathstruct pathsin
+        }
+        out {
+            pathstruct pathsout
+        }
+    }
+    
+    method testunion {
+        in {
+            Int32 intin
+            pathunion pathuin
+        }
+        out {
+            Int32 intout
+            pathunion pathuout
+        }
+    }
+    
+    struct pathstruct {
+        String path_e
+        String plain_e
+    }
+    
+    union pathunion {
+        Int32 x
+        String path
+    }
+     
+    array Paths of String
+
+}
+

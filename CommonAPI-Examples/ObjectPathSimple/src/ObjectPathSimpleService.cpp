@@ -12,10 +12,12 @@
 #include "ObjectPathSimpleStubImpl.hpp"
 
 int main() {
+    CommonAPI::Runtime::setProperty("LibraryBase", "ObjectPathSimple");
+
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
 
     std::string domain = "local";
-	std::string instance = "commonapi.examples.ObjectPathSimple";
+    std::string instance = "commonapi.examples.ObjectPathSimple";
 
     std::shared_ptr<ObjectPathSimpleStubImpl> myService = std::make_shared<ObjectPathSimpleStubImpl>();
     runtime->registerService(domain, instance, myService);

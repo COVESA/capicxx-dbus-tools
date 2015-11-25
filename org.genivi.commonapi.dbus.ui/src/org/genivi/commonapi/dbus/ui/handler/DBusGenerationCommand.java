@@ -59,8 +59,11 @@ public class DBusGenerationCommand  extends GenerationCommand {
 		String outputFolderProxies = null;
 		String outputFolderStubs = null;
 		String licenseHeader = null;
+		String generateCommon = null;
 		String generateProxy = null;
 		String generatStub = null;		
+		String generatInclude = null;
+		String generatSyncCalls = null;
 
 		IProject project = file.getProject();
 		IResource resource = file;
@@ -76,8 +79,11 @@ public class DBusGenerationCommand  extends GenerationCommand {
 			outputFolderProxies = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS));
 			outputFolderStubs = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS));
 			licenseHeader = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_LICENSE_DBUS));
-			generateProxy = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATEPROXY_DBUS));
-			generatStub = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATESTUB_DBUS));
+			generateCommon = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS));
+			generateProxy = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS));
+			generatStub = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATE_STUB_DBUS));
+			generatInclude = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS));
+			generatSyncCalls = resource.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS));
 		} catch (CoreException e1) {
 			System.err.println("Failed to get property for " + resource.getName());
 		}
@@ -94,19 +100,31 @@ public class DBusGenerationCommand  extends GenerationCommand {
 		if(licenseHeader == null) {
 			licenseHeader = store.getString(PreferenceConstantsDBus.P_LICENSE_DBUS);			
 		}
+		if(generateCommon == null) {
+			generateCommon = store.getString(PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS);	
+		}
 		if(generateProxy == null) {
-			generateProxy = store.getString(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS);	
+			generateProxy = store.getString(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS);	
 		}
 		if(generatStub == null) {
-			generatStub = store.getString(PreferenceConstantsDBus.P_GENERATESTUB_DBUS);
+			generatStub = store.getString(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS);
 		}
+		if(generatInclude == null) {
+			generatInclude = store.getString(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS);
+		}		
+		if(generatSyncCalls == null) {
+			generatSyncCalls = store.getString(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS);
+		}		
 		// finally, store the properties for the code generator
 		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, outputFolderCommon);
 		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, outputFolderProxies);
 		instance.setPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, outputFolderStubs);
 		instance.setPreference(PreferenceConstantsDBus.P_LICENSE_DBUS, licenseHeader);
-		instance.setPreference(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS, generateProxy);
-		instance.setPreference(PreferenceConstantsDBus.P_GENERATESTUB_DBUS, generatStub);
+		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS, generateCommon);
+		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS, generateProxy);
+		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS, generatStub);
+		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS, generatInclude);
+		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS, generatSyncCalls);
 	}   
 
 }

@@ -1,530 +1,530 @@
 package org.freedesktop.UDisks2
 
 interface Root manages Drive, Block, Filesystem, Partition {
-	version { major 2 minor 1 }  
+    version { major 2 minor 1 }  
 }   
 
 interface Manager {
 
-	version { major 2 minor 1 }
+    version { major 2 minor 1 }
 
-	attribute String Version
+    attribute String Version
 
-	method LoopSetup {
-		in {
-			UInt32 fd
-			tLoopSetup_optionsDict options
-		}
-		out {
-			String resulting_device
-		}
-	}
-	method MDRaidCreate {
-		in {
-			String [ ] blocks
-			String level
-			String name
-			UInt64 chunk
-			tMDRaidCreate_optionsDict options
-		}
-		out {
-			String resulting_array
-		}
-	}
+    method LoopSetup {
+        in {
+            UInt32 fd
+            tLoopSetup_optionsDict options
+        }
+        out {
+            String resulting_device
+        }
+    }
+    method MDRaidCreate {
+        in {
+            String [ ] blocks
+            String level
+            String name
+            UInt64 chunk
+            tMDRaidCreate_optionsDict options
+        }
+        out {
+            String resulting_array
+        }
+    }
 
-	map tLoopSetup_optionsDict {
-		String to Variant
-	}
+    map tLoopSetup_optionsDict {
+        String to Variant
+    }
 
-	map tMDRaidCreate_optionsDict {
-		String to Variant
-	}
+    map tMDRaidCreate_optionsDict {
+        String to Variant
+    }
 
-	union Variant {
-		String str
-		Int16 i16
-		Int32 i32
-		UInt32 u32
-		UInt16 u16
-		Boolean b 
-	}
+    union Variant {
+        String str
+        Int16 i16
+        Int32 i32
+        UInt32 u32
+        UInt16 u16
+        Boolean b 
+    }
 
 }
 
 interface Partition {
 
-	version { major 2 minor 1 }
+    version { major 2 minor 1 }
 
-	method SetType {
-		in {
-			String type
-			tSetType_optionsDict options
-		}
-	}
-	method SetName {
-		in {
-			String name
-			tSetName_optionsDict options
-		}
-	}
-	method SetFlags {
-		in {
-			UInt64 flags
-			tSetFlags_optionsDict options
-		}
-	}
-	method Delete {
-		in {
-			tDelete_optionsDict options
-		}
-	}
+    method SetType {
+        in {
+            String type
+            tSetType_optionsDict options
+        }
+    }
+    method SetName {
+        in {
+            String name
+            tSetName_optionsDict options
+        }
+    }
+    method SetFlags {
+        in {
+            UInt64 flags
+            tSetFlags_optionsDict options
+        }
+    }
+    method Delete {
+        in {
+            tDelete_optionsDict options
+        }
+    }
 
-	attribute UInt32 Number
+    attribute UInt32 Number
 
-	attribute String Type
+    attribute String Type
 
-	attribute UInt64 Flags
+    attribute UInt64 Flags
 
-	attribute UInt64 Offset
+    attribute UInt64 Offset
 
-	attribute UInt64 Size
+    attribute UInt64 Size
 
-	attribute String Name
+    attribute String Name
 
-	attribute String UUID
+    attribute String UUID
 
-	attribute String Table
+    attribute String Table
 
-	attribute Boolean IsContainer
+    attribute Boolean IsContainer
 
-	attribute Boolean IsContained
+    attribute Boolean IsContained
 
-	map tSetType_optionsDict {
-		String to Variant
-	}
+    map tSetType_optionsDict {
+        String to Variant
+    }
 
-	map tSetName_optionsDict {
-		String to Variant
-	}
+    map tSetName_optionsDict {
+        String to Variant
+    }
 
-	map tSetFlags_optionsDict {
-		String to Variant
-	}
+    map tSetFlags_optionsDict {
+        String to Variant
+    }
 
-	map tDelete_optionsDict {
-		String to Variant
-	}
-	
-	union Variant {
-		String str
-		Int16 i16
-		Int32 i32
-		UInt32 u32
-		UInt16 u16
-		Boolean b 
-	}
+    map tDelete_optionsDict {
+        String to Variant
+    }
+    
+    union Variant {
+        String str
+        Int16 i16
+        Int32 i32
+        UInt32 u32
+        UInt16 u16
+        Boolean b 
+    }
 }
 
 interface Filesystem {
 
-	version { major 2 minor 1 }
+    version { major 2 minor 1 }
 
-	<**
-		@description : array generated for DBus argument MountPoints
-	**>
+    <**
+        @description : array generated for DBus argument MountPoints
+    **>
 
-	method SetLabel {
-		in {
-			String label
-			tSetLabel_optionsDict options
-		}
-	}
-	method Mount {
-		in {
-			tMount_optionsDict options
-		}
-		out {
-			String mount_path
-		}
-	}
-	method Unmount {
-		in {
-			tUnmount_optionsDict options
-		}
-	}
-	
-	attribute tMountPointsArray [ ] MountPoints
+    method SetLabel {
+        in {
+            String label
+            tSetLabel_optionsDict options
+        }
+    }
+    method Mount {
+        in {
+            tMount_optionsDict options
+        }
+        out {
+            String mount_path
+        }
+    }
+    method Unmount {
+        in {
+            tUnmount_optionsDict options
+        }
+    }
+    
+    attribute tMountPointsArray [ ] MountPoints
 
-	array tMountPointsArray of UInt8
+    array tMountPointsArray of UInt8
 
-	map tSetLabel_optionsDict {
-		String to Variant
-	}
+    map tSetLabel_optionsDict {
+        String to Variant
+    }
 
-	map tMount_optionsDict {
-		String to Variant
-	}
+    map tMount_optionsDict {
+        String to Variant
+    }
 
-	map tUnmount_optionsDict {
-		String to Variant
-	}
+    map tUnmount_optionsDict {
+        String to Variant
+    }
 
-	union Variant {
-		String str
-		Int16 i16
-		Int32 i32
-		UInt32 u32
-		UInt16 u16
-		Boolean b 
-	}
+    union Variant {
+        String str
+        Int16 i16
+        Int32 i32
+        UInt32 u32
+        UInt16 u16
+        Boolean b 
+    }
 
 }
 
 interface Block {
 
-	version { major 2 minor 1 }
+    version { major 2 minor 1 }
 
-	method AddConfigurationItem {
-		in {
-			tAddConfigurationItem_itemStruct item
-			tAddConfigurationItem_optionsDict options
-		}
-	}
-	method RemoveConfigurationItem {
-		in {
-			tRemoveConfigurationItem_itemStruct item
-			tRemoveConfigurationItem_optionsDict options
-		}
-	}
-	method UpdateConfigurationItem {
-		in {
-			tUpdateConfigurationItem_old_itemStruct old_item
-			tUpdateConfigurationItem_new_itemStruct new_item
-			tUpdateConfigurationItem_optionsDict options
-		}
-	}
-	method GetSecretConfiguration {
-		in {
-			tGetSecretConfiguration_optionsDict options
-		}
-		out {
-			tGetSecretConfiguration_configurationStruct [ ] configuration
-		}
-	}
-	method Format {
-		in {
-			String type
-			tFormat_optionsDict options
-		}
-	}
-	method OpenForBackup {
-		in {
-			tOpenForBackup_optionsDict options
-		}
-		out {
-			UInt32 fd
-		}
-	}
-	method OpenForRestore {
-		in {
-			tOpenForRestore_optionsDict options
-		}
-		out {
-			UInt32 fd
-		}
-	}
-	method OpenForBenchmark {
-		in {
-			tOpenForBenchmark_optionsDict options
-		}
-		out {
-			UInt32 fd
-		}
-	}
-	method Rescan {
-		in {
-			tRescan_optionsDict options
-		}
-	}
-	
-	attribute UInt8 [ ] Device
+    method AddConfigurationItem {
+        in {
+            tAddConfigurationItem_itemStruct item
+            tAddConfigurationItem_optionsDict options
+        }
+    }
+    method RemoveConfigurationItem {
+        in {
+            tRemoveConfigurationItem_itemStruct item
+            tRemoveConfigurationItem_optionsDict options
+        }
+    }
+    method UpdateConfigurationItem {
+        in {
+            tUpdateConfigurationItem_old_itemStruct old_item
+            tUpdateConfigurationItem_new_itemStruct new_item
+            tUpdateConfigurationItem_optionsDict options
+        }
+    }
+    method GetSecretConfiguration {
+        in {
+            tGetSecretConfiguration_optionsDict options
+        }
+        out {
+            tGetSecretConfiguration_configurationStruct [ ] configuration
+        }
+    }
+    method Format {
+        in {
+            String type
+            tFormat_optionsDict options
+        }
+    }
+    method OpenForBackup {
+        in {
+            tOpenForBackup_optionsDict options
+        }
+        out {
+            UInt32 fd
+        }
+    }
+    method OpenForRestore {
+        in {
+            tOpenForRestore_optionsDict options
+        }
+        out {
+            UInt32 fd
+        }
+    }
+    method OpenForBenchmark {
+        in {
+            tOpenForBenchmark_optionsDict options
+        }
+        out {
+            UInt32 fd
+        }
+    }
+    method Rescan {
+        in {
+            tRescan_optionsDict options
+        }
+    }
+    
+    attribute UInt8 [ ] Device
 
-	attribute UInt8 [ ] PreferredDevice
+    attribute UInt8 [ ] PreferredDevice
 
-	attribute tSymlinksArray [ ] Symlinks
+    attribute tSymlinksArray [ ] Symlinks
 
-	attribute UInt64 DeviceNumber
+    attribute UInt64 DeviceNumber
 
-	attribute String Id
+    attribute String Id
 
-	attribute UInt64 Size
+    attribute UInt64 Size
 
-	attribute Boolean ReadOnly
+    attribute Boolean ReadOnly
 
-	attribute String Drive
+    attribute String Drive
 
-	attribute String MDRaid
+    attribute String MDRaid
 
-	attribute String MDRaidMember
+    attribute String MDRaidMember
 
-	attribute String IdUsage
+    attribute String IdUsage
 
-	attribute String IdType
+    attribute String IdType
 
-	attribute String IdVersion
+    attribute String IdVersion
 
-	attribute String IdLabel
+    attribute String IdLabel
 
-	attribute String IdUUID
+    attribute String IdUUID
 
-	attribute tConfigurationStruct [ ] Configuration
+    attribute tConfigurationStruct [ ] Configuration
 
-	attribute String CryptoBackingDevice
+    attribute String CryptoBackingDevice
 
-	attribute Boolean HintPartitionable
+    attribute Boolean HintPartitionable
 
-	attribute Boolean HintSystem
+    attribute Boolean HintSystem
 
-	attribute Boolean HintIgnore
+    attribute Boolean HintIgnore
 
-	attribute Boolean HintAuto
+    attribute Boolean HintAuto
 
-	attribute String HintName
+    attribute String HintName
 
-	attribute String HintIconName
+    attribute String HintIconName
 
-	attribute String HintSymbolicIconName
+    attribute String HintSymbolicIconName
 
-	<**
-		@description : array generated for DBus argument Symlinks
-	**>
-	array tSymlinksArray of UInt8
+    <**
+        @description : array generated for DBus argument Symlinks
+    **>
+    array tSymlinksArray of UInt8
 
-	map tConfigurationElem2Dict {
-		String to Variant
-	}
+    map tConfigurationElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument Configuration
-	**>
-	struct tConfigurationStruct {
-		String elem1
-		tConfigurationElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument Configuration
+    **>
+    struct tConfigurationStruct {
+        String elem1
+        tConfigurationElem2Dict elem2
+    }
 
-	map tAddConfigurationItem_itemElem2Dict {
-		String to Variant
-	}
+    map tAddConfigurationItem_itemElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument AddConfigurationItem_item
-	**>
-	struct tAddConfigurationItem_itemStruct {
-		String elem1
-		tAddConfigurationItem_itemElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument AddConfigurationItem_item
+    **>
+    struct tAddConfigurationItem_itemStruct {
+        String elem1
+        tAddConfigurationItem_itemElem2Dict elem2
+    }
 
-	map tAddConfigurationItem_optionsDict {
-		String to Variant
-	}
+    map tAddConfigurationItem_optionsDict {
+        String to Variant
+    }
 
-	map tRemoveConfigurationItem_itemElem2Dict {
-		String to Variant
-	}
+    map tRemoveConfigurationItem_itemElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument RemoveConfigurationItem_item
-	**>
-	struct tRemoveConfigurationItem_itemStruct {
-		String elem1
-		tRemoveConfigurationItem_itemElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument RemoveConfigurationItem_item
+    **>
+    struct tRemoveConfigurationItem_itemStruct {
+        String elem1
+        tRemoveConfigurationItem_itemElem2Dict elem2
+    }
 
-	map tRemoveConfigurationItem_optionsDict {
-		String to Variant
-	}
+    map tRemoveConfigurationItem_optionsDict {
+        String to Variant
+    }
 
-	map tUpdateConfigurationItem_old_itemElem2Dict {
-		String to Variant
-	}
+    map tUpdateConfigurationItem_old_itemElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument UpdateConfigurationItem_old_item
-	**>
-	struct tUpdateConfigurationItem_old_itemStruct {
-		String elem1
-		tUpdateConfigurationItem_old_itemElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument UpdateConfigurationItem_old_item
+    **>
+    struct tUpdateConfigurationItem_old_itemStruct {
+        String elem1
+        tUpdateConfigurationItem_old_itemElem2Dict elem2
+    }
 
-	map tUpdateConfigurationItem_new_itemElem2Dict {
-		String to Variant
-	}
+    map tUpdateConfigurationItem_new_itemElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument UpdateConfigurationItem_new_item
-	**>
-	struct tUpdateConfigurationItem_new_itemStruct {
-		String elem1
-		tUpdateConfigurationItem_new_itemElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument UpdateConfigurationItem_new_item
+    **>
+    struct tUpdateConfigurationItem_new_itemStruct {
+        String elem1
+        tUpdateConfigurationItem_new_itemElem2Dict elem2
+    }
 
-	map tUpdateConfigurationItem_optionsDict {
-		String to Variant
-	}
+    map tUpdateConfigurationItem_optionsDict {
+        String to Variant
+    }
 
-	map tGetSecretConfiguration_optionsDict {
-		String to Variant
-	}
+    map tGetSecretConfiguration_optionsDict {
+        String to Variant
+    }
 
-	map tGetSecretConfiguration_configurationElem2Dict {
-		String to Variant
-	}
+    map tGetSecretConfiguration_configurationElem2Dict {
+        String to Variant
+    }
 
-	<**
-		@description : struct generated for DBus argument GetSecretConfiguration_configuration
-	**>
-	struct tGetSecretConfiguration_configurationStruct {
-		String elem1
-		tGetSecretConfiguration_configurationElem2Dict elem2
-	}
+    <**
+        @description : struct generated for DBus argument GetSecretConfiguration_configuration
+    **>
+    struct tGetSecretConfiguration_configurationStruct {
+        String elem1
+        tGetSecretConfiguration_configurationElem2Dict elem2
+    }
 
-	map tFormat_optionsDict {
-		String to Variant
-	}
+    map tFormat_optionsDict {
+        String to Variant
+    }
 
-	map tOpenForBackup_optionsDict {
-		String to Variant
-	}
+    map tOpenForBackup_optionsDict {
+        String to Variant
+    }
 
-	map tOpenForRestore_optionsDict {
-		String to Variant
-	}
+    map tOpenForRestore_optionsDict {
+        String to Variant
+    }
 
-	map tOpenForBenchmark_optionsDict {
-		String to Variant
-	}
+    map tOpenForBenchmark_optionsDict {
+        String to Variant
+    }
 
-	map tRescan_optionsDict {
-		String to Variant
-	}
+    map tRescan_optionsDict {
+        String to Variant
+    }
 
-	union Variant {
-		String str
-		Int16 i16
-		Int32 i32
-		UInt32 u32
-		UInt16 u16
-		Boolean b 
-	}
+    union Variant {
+        String str
+        Int16 i16
+        Int32 i32
+        UInt32 u32
+        UInt16 u16
+        Boolean b 
+    }
 
 }
 
 interface Drive {
-	
-	version { major 2 minor 1 }
-	
-	map tConfigurationDict {
-		String to Variant
-	}
+    
+    version { major 2 minor 1 }
+    
+    map tConfigurationDict {
+        String to Variant
+    }
 
-	map tEject_optionsDict {
-		String to Variant
-	}
+    map tEject_optionsDict {
+        String to Variant
+    }
 
-	map tSetConfiguration_valueDict {
-		String to Variant
-	}
+    map tSetConfiguration_valueDict {
+        String to Variant
+    }
 
-	map tSetConfiguration_optionsDict {
-		String to Variant
-	}
+    map tSetConfiguration_optionsDict {
+        String to Variant
+    }
 
-	map tPowerOff_optionsDict {
-		String to Variant
-	}
+    map tPowerOff_optionsDict {
+        String to Variant
+    }
 
-	method Eject {
-		in {
-			tEject_optionsDict options
-		}
-	}
-	method SetConfiguration {
-		in {
-			tSetConfiguration_valueDict value
-			tSetConfiguration_optionsDict options
-		}
-	}
-	method PowerOff {
-		in {
-			tPowerOff_optionsDict options
-		}
-	}
+    method Eject {
+        in {
+            tEject_optionsDict options
+        }
+    }
+    method SetConfiguration {
+        in {
+            tSetConfiguration_valueDict value
+            tSetConfiguration_optionsDict options
+        }
+    }
+    method PowerOff {
+        in {
+            tPowerOff_optionsDict options
+        }
+    }
 
-	attribute String Vendor
+    attribute String Vendor
 
-	attribute String Model
+    attribute String Model
 
-	attribute String Revision
+    attribute String Revision
 
-	attribute String Serial
+    attribute String Serial
 
-	attribute String WWN
+    attribute String WWN
 
-	attribute String Id
+    attribute String Id
 
-	attribute tConfigurationDict Configuration
+    attribute tConfigurationDict Configuration
 
-	attribute String Media
+    attribute String Media
 
-	attribute String [ ] MediaCompatibility
+    attribute String [ ] MediaCompatibility
 
-	attribute Boolean MediaRemovable
+    attribute Boolean MediaRemovable
 
-	attribute Boolean MediaAvailable
+    attribute Boolean MediaAvailable
 
-	attribute Boolean MediaChangeDetected
+    attribute Boolean MediaChangeDetected
 
-	attribute UInt64 Size
+    attribute UInt64 Size
 
-	attribute UInt64 TimeDetected
+    attribute UInt64 TimeDetected
 
-	attribute UInt64 TimeMediaDetected
+    attribute UInt64 TimeMediaDetected
 
-	attribute Boolean Optical
+    attribute Boolean Optical
 
-	attribute Boolean OpticalBlank
+    attribute Boolean OpticalBlank
 
-	attribute UInt32 OpticalNumTracks
+    attribute UInt32 OpticalNumTracks
 
-	attribute UInt32 OpticalNumAudioTracks
+    attribute UInt32 OpticalNumAudioTracks
 
-	attribute UInt32 OpticalNumDataTracks
+    attribute UInt32 OpticalNumDataTracks
 
-	attribute UInt32 OpticalNumSessions
+    attribute UInt32 OpticalNumSessions
 
-	attribute Int32 RotationRate
+    attribute Int32 RotationRate
 
-	attribute String ConnectionBus
+    attribute String ConnectionBus
 
-	attribute String Seat
+    attribute String Seat
 
-	attribute Boolean Removable
+    attribute Boolean Removable
 
-	attribute Boolean Ejectable
+    attribute Boolean Ejectable
 
-	attribute String SortKey
+    attribute String SortKey
 
-	attribute Boolean CanPowerOff
+    attribute Boolean CanPowerOff
 
-	attribute String SiblingId
+    attribute String SiblingId
 
-	union Variant {
-		String str
-		Int16 i16
-		Int32 i32
-		UInt32 u32
-		UInt16 u16
-		Boolean b 
-	}
+    union Variant {
+        String str
+        Int16 i16
+        Int32 i32
+        UInt32 u32
+        UInt16 u16
+        Boolean b 
+    }
 
 }

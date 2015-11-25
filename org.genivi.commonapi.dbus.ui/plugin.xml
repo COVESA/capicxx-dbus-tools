@@ -46,20 +46,20 @@
       <page
             class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
             id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
-            name="CommonAPI-DBus"
-            objectClass="org.eclipse.core.resources.IProject">
-      </page>
-      <page
-            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
-            id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
-            name="CommonAPI-DBus"
-            objectClass="org.eclipse.core.resources.IFolder">
-      </page>
-      <page
-            class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
-            id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
-            name="CommonAPI-DBus"
-            objectClass="org.eclipse.core.resources.IFile">
+            name="CommonAPI-DBus">
+                      <enabledWhen>
+                         <or>
+                            <instanceof
+                                  value="org.eclipse.core.resources.IProject">
+                            </instanceof>
+                            <instanceof
+                                  value="org.eclipse.core.resources.IFolder">
+                            </instanceof>
+                            <instanceof
+                                  value="org.eclipse.core.resources.IFile">
+                            </instanceof>
+                         </or>
+                      </enabledWhen>
       </page>
    </extension>
     <extension
@@ -70,5 +70,5 @@
                  schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
                  sequence="Ctrl+Shift+D">
           </key>
-   </extension>   
+   </extension>
 </plugin>

@@ -7,49 +7,49 @@ import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_dep
 import "ObjectPathSimple.fidl"
 
 define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.ObjectPathSimple {
-	PropertiesType = freedesktop
-	
-	attribute objectpath {
-		IsObjectPath = true
-	}
-	attribute nopath {
-		IsObjectPath = false
-	}
+    PropertiesType = freedesktop
+    
+    attribute objectpath {
+        IsObjectPath = true
+    }
+    attribute nopath {
+        IsObjectPath = false
+    }
 
-	method test {
-		Timeout = 1234
-		in {
-			path {
-				IsObjectPath = true
-			}
-		}
-		out {
-			path2 {
-				IsObjectPath = true
-			}
-		}
-	}
+    method test {
+        Timeout = 1234
+        in {
+            path {
+                IsObjectPath = true
+            }
+        }
+        out {
+            path2 {
+                IsObjectPath = true
+            }
+        }
+    }
 
-	broadcast testb {
-		out {
-			path3 {
-				IsObjectPath = true
-			}
-		}
-	}
-	struct pathstruct {
-		path_e {
-			IsObjectPath = true
-		}
-		plain_e {
-			IsObjectPath = false
-		}
-	}
-	union pathunion {
-		path {
-			IsObjectPath = true
-		}
-	}
+    broadcast testb {
+        out {
+            path3 {
+                IsObjectPath = true
+            }
+        }
+    }
+    struct pathstruct {
+        path_e {
+            IsObjectPath = true
+        }
+        plain_e {
+            IsObjectPath = false
+        }
+    }
+    union pathunion {
+        path {
+            IsObjectPath = true
+        }
+    }
 
 }
 

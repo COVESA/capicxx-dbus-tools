@@ -1,0 +1,56 @@
+/* Copyright (C) 2015 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_deployment_spec.fdepl"
+import "LegacyTest.fidl"
+
+define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.LegacyTest {
+    DBusDefaultAttributeType = freedesktop
+    
+    attribute objectpath {
+        IsObjectPath = true
+    }
+    attribute nopath {
+        IsObjectPath = false
+    }
+
+    method test {
+        Timeout = 1234
+        in {
+            path {
+                IsObjectPath = true
+            }
+        }
+        out {
+            path2 {
+                IsObjectPath = true
+            }
+        }
+    }
+
+    broadcast testb {
+        out {
+            path3 {
+                IsObjectPath = true
+            }
+        }
+    }
+    struct pathstruct {
+        path_e {
+            IsObjectPath = true
+        }
+        plain_e {
+            IsObjectPath = false
+        }
+    }
+    union pathunion {
+         DBusVariantType = DBus    
+        path {
+            IsObjectPath = true
+        }
+    }
+
+}
+

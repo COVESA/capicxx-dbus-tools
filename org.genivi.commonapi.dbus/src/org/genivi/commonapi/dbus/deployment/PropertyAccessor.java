@@ -286,4 +286,15 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 		return null;
 	}
 	
+	public Boolean getDBusPredefined (FDInterfaceInstance obj) {
+		Boolean isDBusPredefined = false;
+		try {
+			if (type_ == DeploymentType.PROVIDER)
+				isDBusPredefined = dbusProvider_.getDBusPredefined(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+			if (isDBusPredefined == null) isDBusPredefined = false;
+		return isDBusPredefined;
+	}
+	
 }

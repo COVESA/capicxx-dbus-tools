@@ -22,9 +22,18 @@
          <options>
             <option
                   argCount="0"
+                  description="Switch off generation of common code"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.nocommon"
+                  longName="no-common"
+                  required="false"
+                  shortName="nc">
+            </option>
+            <option
+                  argCount="0"
                   description="Switch off generation of proxy code"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.noproxy"
+                  id="org.genivi.commonapi.dbus.cli.option.noproxy"
                   longName="no-proxy"
                   required="false"
                   shortName="np">
@@ -33,7 +42,7 @@
                   argCount="0"
                   description="Switch off generation of stub code"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.nostub"
+                  id="org.genivi.commonapi.dbus.cli.option.nostub"
                   longName="no-stub"
                   required="false"
                   shortName="ns">
@@ -51,7 +60,7 @@
                   argCount="1"
                   description="The directory for the common code"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.dir.common"
+                  id="org.genivi.commonapi.dbus.cli.option.dir.common"
                   longName="dest-common"
                   required="false"
                   shortName="dc">
@@ -60,7 +69,7 @@
                   argCount="1"
                   description="The directory for proxy code"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.dir.proxy"
+                  id="org.genivi.commonapi.dbus.cli.option.dir.proxy"
                   longName="dest-proxy"
                   required="false"
                   shortName="dp">
@@ -69,7 +78,7 @@
                   argCount="1"
                   description="The directory for stub code"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.dir.stub"
+                  id="org.genivi.commonapi.dbus.cli.option.dir.stub"
                   longName="dest-stub"
                   required="false"
                   shortName="ds">
@@ -78,29 +87,74 @@
                   argCount="1"
                   description="The file path to the license text that will be added to each generated file"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.license"
+                  id="org.genivi.commonapi.dbus.cli.option.license"
                   longName="license"
                   required="false"
                   shortName="l">
             </option>
             <option
-                  argCount="1"
-                  description="Switch on/off validation of the fidl file"
+                  argCount="0"
+                  description="Switch off validation of the fidl file"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.validation"
-                  longName="validation"
+                  id="org.genivi.commonapi.dbus.cli.option.validation"
+                  longName="no-val"
                   required="false"
-                  shortName="val">
+                  shortName="nv">
             </option>
             <option
                   argCount="1"
                   description="The log level (quiet or verbose)"
                   hasOptionalArg="false"
-                  id="org.genivi.commonapi.core.cli.option.loglevel"
+                  id="org.genivi.commonapi.dbus.cli.option.loglevel"
                   longName="loglevel"
                   required="false"
                   shortName="ll">
             </option>  
+            <option
+                  argCount="0"
+                  description="Print out generated files"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.printFiles"
+                  longName="printfiles"
+                  required="false"
+                  shortName="pf">
+            </option>
+            <option
+                  argCount="1"
+                  description="The search path to contain fidl/fdepl files"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.searchpath"
+                  longName="searchpath"
+                  required="false"
+                  shortName="sp">
+            </option>
+            <option
+                  argCount="0"
+                  description="Switch off code generation completely"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.nogeneration"
+                  longName="no-gen"
+                  required="false"
+                  shortName="ng">
+            </option>
+          <option
+                  argCount="0"
+                  description="Switch off code generation of dependencies"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.nodependencies"
+                  longName="without-dependencies"
+                  required="false"
+                  shortName="wod">
+            </option>
+          <option
+                  argCount="0"
+                  description="Switch off code generation of synchronous methods"
+                  hasOptionalArg="false"
+                  id="org.genivi.commonapi.dbus.cli.option.nosynccalls"
+                  longName="no-sync-calls"
+                  required="false"
+                  shortName="nsc">
+            </option>                 
          </options>
       </command>
    </extension>

@@ -17,7 +17,7 @@ This document complements the CommonAPI tutorial with D-Bus specific information
 
 == Integration Guide for CommonAPI users
 
-The following descriptions assume that host and target platform are Linux platforms. However CommonAPI D-bus supports also Windows as host and target platform. All you need to know for Windows concerning CommonAPI you find in the separate Windows paragraph below at the end of this Integration Guide.
+The following descriptions assume that host and target platform are Linux platforms. However CommonAPI D-Bus supports also Windows as host and target platform. All you need to know for Windows concerning CommonAPI you find in the separate Windows paragraph below at the end of this Integration Guide.
 
 === Requirements
 
@@ -42,7 +42,7 @@ image::{imagedir}/CommonAPI-DBus-Dependencies.png[CommonAPI D-Bus Dependencies i
 
 ==== Patching libdbus
 
-CommonAPI-D-Bus needs some api functions of libdbus which are not available in actual libdbus versions. For these additional api functions it is necessary to patch the required libdbus version with the patches in the directory src/dbus-patches.
+CommonAPI-D-Bus needs some API functions of libdbus which are not available in actual libdbus versions. For these additional API functions it is necessary to patch the required libdbus version with all the patches provided in the directory src/dbus-patches.
 
 [NOTE]
 Use autotools to build libdbus.
@@ -52,13 +52,14 @@ $ wget http://dbus.freedesktop.org/releases/dbus/dbus-<VERSION>.tar.gz
 $ tar -xzf dbus-<VERSION>.tar.gz
 $ cd dbus-<VERSION>
 $ patch -p1 < </path/to/CommonAPI-D-Bus/src/dbus-patches/patch-names>.patch 
-$ ./configure --prefix=/usr/local
+$ ./configure --prefix=</path to your preferred installation folder for patched libdbus>
 $ make -C dbus 
-$ sudo make -C dbus install
-$ sudo make install-pkgconfigDATA
+$ make -C dbus install
+$ make install-pkgconfigDATA
 ----
 
 You can change the installation directory by the prefix option or you can let it uninstalled (skip the +make install+ commands).
+WARNING: Installing the patched libdbus to /usr/local can prevent your system from booting correctly at the next reboot.
 
 ==== Command-line
 
@@ -93,7 +94,7 @@ There are several options for calling CMake and make targets.
 
 If you do not want to use nor the installed dbus library and neither the installed CommonAPI library:
 ----
-$ cmake -DUSE_INSTALLED_DBUS=OFF -DUSE_INSTALLED_COMMONAPI=OF ..
+$ cmake -DUSE_INSTALLED_DBUS=OFF -DUSE_INSTALLED_COMMONAPI=OFF ..
 ----
 
 Generate makefile for building a static CommonAPI library (default is a shared library). The library will be in _/build/src/CommonAPI/DBus_.
@@ -141,61 +142,61 @@ Follow the instructions in the CommonAPI User Guide.
 
 === Compile tools
 
-Like the CommonAPI core code generators you can build the D-Bus generator by calling maven from the command-line. Open a console and change in the directory org.genivi.commonapi.dbus.releng of your CommonAPI-Tools directory. Then call:
+Like the CommonAPI core code generators you can build the D-Bus generator by calling maven from the command-line. Open a console and change in the directory org.genivi.commonapi.dbus.releng of your CommonAPI-D-Bus-Tools directory. Then call:
 
 ----
-mvn -Dtarget.id=org.genivi.commonapi.dbus.target clean verify
+mvn clean verify –DCOREPATH=<path to your CommonAPI-Tools dir> -Dtarget.id=org.genivi.commonapi.dbus.target 
 ----
 
-After the successful build you will find the commond-line generators archived in org.genivi.commonapi.dbus.cli.product/target/products/commonapi-generator.zip and the update-sites in org.genivi.commonapi.dbus.updatesite/target.
+COREPATH is the directory, that contains the target definition folder: org.genivi.commonapi.core.target.
 
-=== Build Glue Code
+After the successful build you will find the commond-line generators archived in org.genivi.commonapi.dbus.cli.product/target/products/commonapi_dbus_generator.zip and the update-sites in org.genivi.commonapi.dbus.updatesite/target.
+
+=== Build DBus Glue Code
 
 The glue code library contains the binding specific, generated code. It depends on your specific project how exactly this library is built (with or without skeleton code, divided up into several libraries, e.g. for services and clients, and so on). The glue code for the verification tests can be built by means of the binding specific verification project (for D-Bus it is _org.genivi.commonapi.dbus.verification_ in CommonAPI-D-Bus-Tools):
 
-. Generate CommonAPI code for all requested fidl files using the code generator. The fidl files for the verification tests can be found in _org.genivi.commonapi.core.verification/fidl_.
+. The cmake call below generates CommonAPI code for all requested fidl files using the CommonAPI- core and DBus code generator. The fidl files for the verification tests can be found in _org.genivi.commonapi.core.verification/fidl_.
 . Create a build directory for an out of source build.
 . Call cmake as described below with additional parameters (in eclipse create a make target).
 
 CMake parameters:
 
-[width="90%",cols="5,10"]
+[width="90%",cols="10,10"]
 |=========================================================
 
 |+USE_INSTALLED_COMMONAPI+ |
 ON or OFF
 
-|+BINDING_NAME+ |
-DBus or SomeIP
-
-|+CMAKE_BINDING_NAME+ |
-e.g. CommonAPI-DBus
-
-|+CMAKE_BINDING_PATH+ |
-Path to the build directory of your CommonAPI binding (e.g. CommonAPI-D-Bus/build) 
-
-|+CMAKE_GLUECODE_NAME+ |
-Name of the glue code library, e.g. DBusGlue
-
-|+CMAKE_GLUECODE_PATH+ |
-Path to the glue code library
-
-|+BINDING_EXTRA+ |
-Additional library which is necessary for the build process, e.g. libdbus-1.so
-
 |+COMMONAPI_CMAKE_INSTALL_PATH+ |
 Path to the build directory of CommonAPI (e.g. CommonAPI/build)
 
+|+COMMONAPI_TOOL_GENERATOR+ |
+Core code generator executable with path
+
 |+COMMONAPI_DBUS_TOOL_GENERATOR+ |
-Code generator executable with path
+DBus Code generator executable with path
 
 |=========================================================
 
  
-Example:
+Example to build DBus glue code for the verification tests:
 
 ----
-cmake -DUSE_INSTALLED_COMMONAPI=OFF -DBINDING_NAME=DBus -DCMAKE_BINDING_NAME=CommonAPI-DBus -DCMAKE_BINDING_PATH=myworkpath/CommonAPI-D-Bus/build -DCMAKE_GLUECODE_NAME=DBusGlue -DCMAKE_GLUECODE_PATH=myworkpath/CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.verification/build -DBINDING_EXTRA=/usr/local/lib/libdbus-1.so -DCOMMONAPI_CMAKE_INSTALL_PATH=myworkpath/CommonAPI/build -DCOMMONAPI_DBUS_TOOL_GENERATOR=myworkpath/CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.cli.product/target/products/org.genivi.commonapi.dbus.cli.product/linux/gtk/x86/commonapi_dbus_generator ..
+export PKG_CONFIG_PATH=path/to/patched/libdbus:$PKG_CONFIG_PATH
+
+cd CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.verification/
+mkdir build
+cd build
+
+cmake \
+-DCOMMONAPI_TOOL_GENERATOR=myworkpath/CommonAPI-Tools/org.genivi.commonapi.core.cli.product/target/products/org.genivi.commonapi.core.cli.product/linux/gtk/MYARCH/commonapi-generator-linux-MYARCH \
+-DCOMMONAPI_DBUS_TOOL_GENERATOR=myworkpath/CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.cli.product/target/products/org.genivi.commonapi.dbus.cli.product/linux/gtk/MYARCH/commonapi-dbus-generator-linux-MYARCH \
+-DCommonAPI_DIR=myworkpath/CommonAPI/build \
+-DCommonAPI-DBus_DIR=myworkpath/CommonAPI-D-Bus/build \
+-DCOMMONAPI_TEST_FIDL_PATH=myworkpath/CommonAPI-Tools/org.genivi.commonapi.core.verification/fidl ..
+
+make -j4
 ----
 
 === Project Setup
@@ -205,7 +206,7 @@ cmake -DUSE_INSTALLED_COMMONAPI=OFF -DBINDING_NAME=DBus -DCMAKE_BINDING_NAME=Com
 CommonAPI-D-Bus can be configured as CommonAPI itself by an ini-file. The name of this configuration file is +commonapi-dbus.ini+. There are three places where CommonAPI D-Bus Runtime tries to find this file (in the following order):
 
 1. in the directory of the current executable. If there is a +commonapi-dbus.ini+ file, it has the highest priority.
-2. in the directory which is specified by the environment variable +COMMONAPI_DBUS_DEFAULT_CONFIG+.
+2. in the directory which is specified by the environment variable +COMMONAPI_DBUS_CONFIG+.
 3. in the global default directory +/etc+.
 
 The configuration file has 2 possible kinds of sections; all sections are optional.
@@ -268,8 +269,19 @@ To build the Windows version of D-Bus the following steps have to be done:
 - Download D-Bus from http://www.freedesktop.org/wiki/Software/dbus/ e.g. dbus-1.8.0.tar.gz and unpack the archive into a directory.
 - For building D-Bus, CMake is needed. Download CMake from http://cmake.org/cmake/resources/software.html. The result of the download is e.g. cmake-2.8.12.2-win32-x86.zip. Unpack the archive into a directory.
 - Furthermore +expat+ is needed. +Expat+ can be downloaded from http://expat.sourceforge.net. Example: download expat-win32bin-2.1.0.exe from http://sourceforge.net/projects/expat/files/expat_win32/2.1.0 and install it.
+
+
+
 - Now the Windows D-Bus patch is needed. Download the patch from http://gnuwin32.sourceforge.net/packages/patch.htm e.g. patch-2.5.9-7-setup.exe and install the patch.
-- Install the CommonAPI D-Bus patches e.g. patch -p1 capi-dbus-add-support-for-custom-marshalling.patch.
+
+- Apply all the CommonAPI D-Bus patches (located in _CommonAPI-D-Bus/src/dbus-patches_ ) e.g. call
+
+----
+cd dbus-1.8.0
+find ../CommonAPI-D-Bus/src/dbus-patches/*.patch | xargs -n1 patch -p1 -F3 -i
+----
+(assuming that _CommonAPI-D-Bus_ is on same folder level as _dbus-1.8.0_)
+
 - Build D-Bus via the CMake command line tool:
 -- Open the developer command line for VS2013.
 -- Change into root directory of the unpacked D-Bus archive e.g. dbus-1.8.0.
@@ -300,7 +312,7 @@ Before opening the solution file CommonAPI-DBus.sln the following environment va
 
 - DBUS_DIR: directory containing the patched D-Bus sources e.g. <path_to_folder>\dbus-1.8.0
 - DBUS_BUILD_DIR: directory containing the build DBus e.g. <path_to_folder>\dbus-1.8.0\dbus-build-dir
-- COMMONAPI_DIR: directory containing the CommonAPI e.g. <path_to_folder>\ascgit017.CommonAPI
+- COMMONAPI_DIR: directory containing the CommonAPI e.g. <path_to_folder>\CommonAPI
 
 To run the tests, you need to add the location of your built dbus-1d.dll or dbus-1.dll (depending on Debug or Release built) to the PATH environment variable.
 

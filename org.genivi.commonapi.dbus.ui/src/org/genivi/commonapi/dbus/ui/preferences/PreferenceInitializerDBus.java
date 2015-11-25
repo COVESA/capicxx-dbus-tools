@@ -21,10 +21,11 @@ public class PreferenceInitializerDBus extends AbstractPreferenceInitializer
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#
      * initializeDefaultPreferences()
      */
+    @Override
     public void initializeDefaultPreferences()
     {
         IPreferenceStore store = CommonApiDBusUiPlugin.getDefault().getPreferenceStore();
@@ -32,9 +33,13 @@ public class PreferenceInitializerDBus extends AbstractPreferenceInitializer
         store.setDefault(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
         store.setDefault(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
         store.setDefault(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, PreferenceConstantsDBus.DEFAULT_OUTPUT);
-        store.setDefault(PreferenceConstantsDBus.P_GENERATEPROXY_DBUS, true);
-        store.setDefault(PreferenceConstantsDBus.P_GENERATESTUB_DBUS, true);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_COMMON_DBUS, true);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS, true);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS, true);
         store.setDefault(PreferenceConstantsDBus.P_USEPROJECTSETTINGS_DBUS, false);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_CODE_DBUS, true);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS, true);
+        store.setDefault(PreferenceConstantsDBus.P_ENABLE_DBUS_VALIDATOR, true);
+        store.setDefault(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS, true);
     }
-
 }

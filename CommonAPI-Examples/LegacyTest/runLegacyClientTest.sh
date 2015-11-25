@@ -1,0 +1,2 @@
+build/LegacyTestLegacyClient &
+build/LegacyTestService

@@ -10,10 +10,10 @@
 #include <iostream>
 
 #include <CommonAPI/CommonAPI.hpp>
-#include <v0_1/commonapi/examples/VariantSimpleProxy.hpp>
+#include <v0/commonapi/examples/VariantSimpleProxy.hpp>
 
 
-using namespace v0_1::commonapi::examples;
+using namespace v0::commonapi::examples;
 
 void dumpProperties(const VariantSimple::tPropertiesDict & properties) {
     VariantSimple::tPropertiesDict::const_iterator it;
@@ -33,14 +33,16 @@ void dumpProperties(const VariantSimple::tPropertiesDict & properties) {
 }
 
 void getPropertiesAsyncCB(const CommonAPI::CallStatus& callStatus, const VariantSimple::tPropertiesDict& properties) {
-	std::cout << "Async callStatus: " << ((CommonAPI::CallStatus::SUCCESS == callStatus) ? "SUCCESS" : "NO_SUCCESS") << std::endl;
-	if (CommonAPI::CallStatus::SUCCESS == callStatus) {
-		dumpProperties(properties);
-	}
+    std::cout << "Async callStatus: " << ((CommonAPI::CallStatus::SUCCESS == callStatus) ? "SUCCESS" : "NO_SUCCESS") << std::endl;
+    if (CommonAPI::CallStatus::SUCCESS == callStatus) {
+        dumpProperties(properties);
+    }
 }
 
 int main(int argc, const char * const argv[])
 {
+    CommonAPI::Runtime::setProperty("LibraryBase", "VariantSimple");
+
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
 
     std::cout << "Client" << std::endl;
@@ -58,12 +60,15 @@ int main(int argc, const char * const argv[])
     /*
      *  Subscribe to "GotToTell" broadcast
      */
-    myProxy->getGotToTellEvent().subscribe([&](const int32_t& count, const VariantSimple::SampleUnion & anything) {
+    myProxy->getGotToTellEvent().subscribe([&](const int32_t& count, const VariantSimple::ComplexUnion & anything) {
         if (anything.isType<int>()) {
             std::cout << "Received 'GotToTell' event: " << count << "' anything (int): " << anything.get<int>() << std::endl;
         }
         else if (anything.isType<std::string>()) {
             std::cout << "Received 'GotToTell' event: " << count << "' anything (string): " << anything.get<std::string>() << std::endl;
+        }
+        else if (anything.isType<VariantSimple::SampleUnion>()) {
+            std::cout << "Received 'GotToTell' event: " << count << "' anything (SampleUnion)" << std::endl;
         }
         else {
             std::cout << "Received 'GotToTell' event: " << count << "' anything UNKNOWN TYPE!!" << std::endl;
@@ -90,13 +95,13 @@ int main(int argc, const char * const argv[])
         if (0 == (step & 0x01)) {
             VariantSimple::SampleUnion varArg(step);
             myProxy->callMe("int", varArg, callStatus, strOut, varOut, &info);
-    	}
-    	else
-    	{
-            static const std::string strArg("var_string");
+        }
+        else
+        {
+            static const std::string strArg("/var/string");
             VariantSimple::SampleUnion varArg(strArg);
             myProxy->callMe("str", varArg, callStatus, strOut, varOut, &info);
-    	}
+        }
 
         if (varOut.isType<int>()) {
             std::cout << "'callMe' returned: " << strOut << "' varOut (int): " << varOut.get<int>() << std::endl;

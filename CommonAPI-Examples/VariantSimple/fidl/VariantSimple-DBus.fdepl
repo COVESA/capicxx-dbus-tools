@@ -7,8 +7,20 @@ import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_dep
 import "VariantSimple.fidl"
 
 define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.VariantSimple {
-	DBusDefaultAttributeType=freedesktop
-	union SampleUnion {
-		DBusVariantType = DBus
-	}
+     union SampleUnion {
+         DBusVariantType = DBus
+        str {
+            IsObjectPath = true
+        }
+     }
+    struct ObjectStruct {
+        path {
+            IsObjectPath = true
+        }
+    }
+    struct PathStruct {
+        path {
+            IsObjectPath = true
+        }
+    }
 }

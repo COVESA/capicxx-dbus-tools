@@ -59,6 +59,7 @@ import com.google.inject.Guice;
 public class ValidatorDBus implements IFrancaExternalValidator {
 
     private FTypeCycleDetector cycleDetector;
+    // <fidl file name , set<imported fidl files>>
     private HashMap<String, HashSet<String>> importList = new HashMap<String, HashSet<String>>();
     private AllInfoMapsBuilder aimBuilder = new AllInfoMapsBuilder();
     private Map<String, HashMap<String, HashSet<String>>> fastAllInfo = new HashMap<String, HashMap<String, HashSet<String>>>();
@@ -161,7 +162,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         importList.clear();
 
     }
-
+    // put all imports (with absolute path) of this model to a map
     private void initImportList(FModel model, String cwd, String filePath) {
         HashSet<String> importedFiles = new HashSet<String>();
         for (Import fImport : model.getImports()) {
@@ -310,7 +311,8 @@ public class ValidatorDBus implements IFrancaExternalValidator {
             if (fType instanceof FMapType) {
                 validateMapKey((FMapType) fType, messageAcceptor);
             }
-            acceptInfo("type collections: " + fType, messageAcceptor);
+        	// don't log the good case
+            //acceptInfo("type collections: " + fType, messageAcceptor);
             if (fType instanceof FEnumerationType) {
                 for (FEnumerator fEnumerator : ((FEnumerationType) fType)
                         .getEnumerators()) {
@@ -341,7 +343,8 @@ public class ValidatorDBus implements IFrancaExternalValidator {
             if (!entry.getKey().equals(entryKey)) {
                 if (entry.getValue().packageName.startsWith(model.getName()
                         + "." + fTypeCollection.getName())) {
-            		acceptInfo("imported type collections: " + entry, messageAcceptor); 
+                	// don't log the good case
+            		//acceptInfo("imported type collections: " + entry, messageAcceptor); 
                     if (importList.get(cwd + "/" + file.getName()).contains(
                             entry.getKey())) {
                         acceptError(
@@ -446,7 +449,8 @@ public class ValidatorDBus implements IFrancaExternalValidator {
     private void validateFInterfaceElements(
             ValidationMessageAcceptor messageAcceptor, FInterface fInterface) {
         for (FMethod fMethod : fInterface.getMethods()) {
-        	acceptInfo("interface elements: " + fMethod, messageAcceptor);
+        	// don't log the good case
+        	//acceptInfo("interface elements: " + fMethod, messageAcceptor);
             for (FArgument out : fMethod.getOutArgs()) {
                 validateMethodArgument(messageAcceptor, fMethod, out);
             }

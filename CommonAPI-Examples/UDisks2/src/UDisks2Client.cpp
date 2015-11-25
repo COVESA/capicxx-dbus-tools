@@ -9,9 +9,9 @@
 #include <iostream>
 
 #include <CommonAPI/CommonAPI.hpp>
-#include <v2_1/org/freedesktop/UDisks2/RootProxy.hpp>
+#include <v2/org/freedesktop/UDisks2/RootProxy.hpp>
 
-using namespace v2_1::org::freedesktop::UDisks2;
+using namespace v2::org::freedesktop::UDisks2;
 
 void newBlockDeviceAvailable(const std::string address, const CommonAPI::AvailabilityStatus status) {
     if (status == CommonAPI::AvailabilityStatus::AVAILABLE) {
@@ -24,6 +24,7 @@ void newBlockDeviceAvailable(const std::string address, const CommonAPI::Availab
 }
 
 int main(const int argc,  const char * const argv[]) {
+    CommonAPI::Runtime::setProperty("LibraryBase", "UDisks2");
 
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
 
@@ -42,15 +43,15 @@ int main(const int argc,  const char * const argv[]) {
      * Subscribe for block device event
      */
     CommonAPI::ProxyManager::InstanceAvailabilityStatusChangedEvent& blockEvent =
-    		rootProxy->getProxyManagerBlock().getInstanceAvailabilityStatusChangedEvent();
+            rootProxy->getProxyManagerBlock().getInstanceAvailabilityStatusChangedEvent();
 
     std::function<void(const std::string, const CommonAPI::AvailabilityStatus)> newBlockDeviceAvailableFunc = newBlockDeviceAvailable;
     blockEvent.subscribe(newBlockDeviceAvailableFunc);
 
-	while (true) {
-		std::cout << "Waiting for events... (Abort with CTRL+C)" << std::endl;
-		std::this_thread::sleep_for(std::chrono::seconds(30));
-	}
+    while (true) {
+        std::cout << "Waiting for events... (Abort with CTRL+C)" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(30));
+    }
 
-	return 0;
+    return 0;
 }

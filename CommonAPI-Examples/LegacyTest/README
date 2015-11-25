@@ -1,0 +1,83 @@
+Example: LegacyTest
+~~~~~~~~~~~~~~~~~~~
+
+This example demonstrates how to connect a CommonAPI-generated 
+D-Bus program to a program that was written using GLib GDBus bindings.
+
+The example consists of two pairs of programs, each with a client and
+a server. The other party is written using CommonAPI and the other uses
+GDBus.
+
+The CommonAPI-generated programs use Google Test framework to print
+out a 'FAILED' or 'PASSED' verdict to signify if the programs connected
+successfully.
+
+The code exercises various data types (integer, string, object path, structure, variant)
+under various kinds of dbus object members (methods, signals, properties).
+
+Building and running
+^^^^^^^^^^^^^^^^^^^^
+
+Run the supplied CMake script to build the programs.
+You will need GTK+ 3.0 and GTest 1.5. (or newer).
+
+export GTEST_ROOT=$MY_GTEST_PATH
+export COREGEN=$(readlink -f ../../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.core.cli.product/target/products/org.genivi.commonapi.core.cli.product/linux/gtk/x86_64/commonapi-generator-linux-x86_64)
+export DBUSGEN=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus-Tools/org.genivi.commonapi.dbus.cli.product/target/products/org.genivi.commonapi.dbus.cli.product/linux/gtk/x86_64/commonapi-dbus-generator-linux-x86_64)
+export LIBRARY_PATH=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/patched-dbus/lib)
+
+mkdir build
+cd build
+cmake \
+-DCOMMONAPI_TOOL_GENERATOR=$COREGEN \
+-DCOMMONAPI_DBUS_TOOL_GENERATOR=$DBUSGEN \
+-DUSE_INSTALLED_COMMONAPI=OFF \
+-DUSE_INSTALLED_DBUS=ON \
+-DCommonAPI-DBus_DIR=$(readlink -f ../../../../ascgit017.CommonAPI-D-Bus/build) \
+-DCommonAPI_DIR=$(readlink -f ../../../../ascgit017.CommonAPI/build) \
+..
+
+make
+cd ..
+
+Example output
+--------------
+
+$ ./runLegacyClientTest.sh 
+[==========] Running 1 test from 1 test case.
+[----------] Global test environment set-up.
+[----------] 1 test from LegacyTestServer
+[ RUN      ] LegacyTestServer.LegacyServer
+(CAPI Service) 'teststruct' method called
+(CAPI Service) 'testunion' method called
+(CAPI Service) 'test' method called
+(CAPI Service) 'teststruct' method called
+(CAPI Service) 'testunion' method called
+(CAPI Service) 'test' method called
+[       OK ] LegacyTestServer.LegacyServer (8021 ms)
+[----------] 1 test from LegacyTestServer (8021 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test case ran. (8034 ms total)
+[  PASSED  ] 1 test.
+
+$ ./runLegacyServiceTest.sh 
+[==========] Running 1 test from 1 test case.
+[----------] Global test environment set-up.
+[----------] 1 test from LegacyTestClient
+[ RUN      ] LegacyTestClient.LegacyClient
+(Legacy Service) 'GetManagedObjects' method called
+(Legacy Service) 'test' method called
+(Legacy Service) 'testunion' method called
+(Legacy Service) 'teststruct' method called
+(Legacy Service) 'nopath' attribute set
+(Legacy Service) 'objectpath' attribute set
+(Legacy Service) 'defvalue' attribute set
+[       OK ] LegacyTestClient.LegacyClient (7037 ms)
+[----------] 1 test from LegacyTestClient (7038 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test case ran. (7050 ms total)
+[  PASSED  ] 1 test.
+
+

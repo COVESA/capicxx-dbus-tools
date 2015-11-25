@@ -7,61 +7,61 @@ package commonapi.examples
 
 interface ObjectPathSimple {
 
-	version { major 1 minor 0 }
+    version { major 1 minor 0 }
 
-	attribute String nopath
-	attribute String objectpath
-	attribute String defvalue
+    attribute String nopath
+    attribute String objectpath
+    attribute String defvalue
 
-	method test {
-		in {
-			String plain
-			String path
-		}
-		out {
-			String path2
-			String plain2
-		}
-	}
+    method test {
+        in {
+            String plain
+            String path
+        }
+        out {
+            String path2
+            String plain2
+        }
+    }
 
-	broadcast testb {
-		out {
-			String plain3
-			String path3
-		}
-	}
-	
-	method teststruct {
-		in {
-			pathstruct pathsin
-		}
-		out {
-			pathstruct pathsout
-		}
-	}
-	
-	method testunion {
-		in {
-			Int32 intin
-			pathunion pathuin
-		}
-		out {
-			Int32 intout
-			pathunion pathuout
-		}
-	}
-	
-	struct pathstruct {
-		String path_e
-		String plain_e
-	}
-	
-	union pathunion {
-		Int32 x
-		String path
-	}
-	 
-	array Paths of String
+    broadcast testb {
+        out {
+            String plain3
+            String path3
+        }
+    }
+    
+    method teststruct {
+        in {
+            pathstruct pathsin
+        }
+        out {
+            pathstruct pathsout
+        }
+    }
+    
+    method testunion {
+        in {
+            Int32 intin
+            pathunion pathuin
+        }
+        out {
+            Int32 intout
+            pathunion pathuout
+        }
+    }
+    
+    struct pathstruct {
+        String path_e
+        String plain_e
+    }
+    
+    union pathunion {
+        Int32 x
+        String path
+    }
+     
+    array Paths of String
 
 }
 

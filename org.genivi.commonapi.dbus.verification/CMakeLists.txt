@@ -4,7 +4,7 @@ PROJECT(libdbusglue)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 3 ) 
+SET( ${PROJECT_NAME}_PATCH_LEVEL 4 ) 
 
 message("Project name: ${PROJECT_NAME}")
 
@@ -81,18 +81,18 @@ include(FindPkgConfig)
 ###############################################################################
 # find DBus by using the 'pkg-config' tool
 if (MSVC)
-	#Not beautiful, but it works
-	if (DBus_DIR)
-		if (DBus_BUILD_DIR)
-			set(DBus_INCLUDE_DIRS "${DBus_DIR};${DBus_BUILD_DIR};")
-		else ()
-			message (FATAL_ERROR "DBus_BUILD_DIR not set! Cannot continue.")
-		endif ()
-	else()
-		message (FATAL_ERROR "DBus_DIR not set! Cannot continue.")
-	endif ()
+    #Not beautiful, but it works
+    if (DBus_DIR)
+        if (DBus_BUILD_DIR)
+            set(DBus_INCLUDE_DIRS "${DBus_DIR};${DBus_BUILD_DIR};")
+        else ()
+            message (FATAL_ERROR "DBus_BUILD_DIR not set! Cannot continue.")
+        endif ()
+    else()
+        message (FATAL_ERROR "DBus_DIR not set! Cannot continue.")
+    endif ()
 else()
-	pkg_check_modules(DBus REQUIRED dbus-1>=1.4)
+    pkg_check_modules(DBus REQUIRED dbus-1>=1.4)
 endif()
 
 ##############################################################################
@@ -102,7 +102,7 @@ message("FIDL_FILES: ${FIDL_FILES}")
 execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
-execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest src-gen -sk Default ${FIDL_FILES}
+execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest src-gen ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
 ##############################################################################
@@ -113,7 +113,7 @@ if (MSVC)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /EHsc -DCOMMONAPI_INTERNAL_COMPILATION")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DCOMMONAPI_INTERNAL_COMPILATION")
 else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -DCOMMONAPI_INTERNAL_COMPILATION")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector -fasynchronous-unwind-tables -fno-omit-frame-pointer -D_GLIBCXX_USE_NANOSLEEP")
 endif()
 
 message("Compiler options: ${CMAKE_CXX_FLAGS}") 
@@ -127,23 +127,44 @@ include_directories(
 )
 
 if ("${USE_INSTALLED_DBUS}" STREQUAL "OFF")
-	link_directories(
-		${DBus_INCLUDE_DIRS}/dbus/.libs
-	)
+    link_directories(
+        ${DBus_INCLUDE_DIRS}/dbus/.libs
+    )
 endif()
 
-# source files
-file(GLOB GLUE_SRCS "src-gen/v1_0/commonapi/runtime/*.cpp"
-    "src-gen/v1_0/commonapi/communication/*.cpp"
-    "src-gen/v1_0/commonapi/datatypes/primitive/*.cpp"
-    "src-gen/v1_0/commonapi/datatypes/advanced/*.cpp"
-    "src-gen/v1_0/commonapi/datatypes/derived/*.cpp"
-    "src-gen/v1_0/commonapi/datatypes/combined/*.cpp"
-    "src-gen/v1_0/commonapi/threading/*.cpp"
-    "src-gen/v1_0/commonapi/performance/primitive/*.cpp"
-    "src-gen/v1_0/commonapi/performance/complex/*.cpp"
-    "src-gen/v1_0/commonapi/stability/mp/*.cpp"
-    "src-gen/v1_0/commonapi/stability/sp/*.cpp")
+if (MSVC)
+    # source files
+    file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*.cpp"
+        "src-gen/v1/commonapi/communication/*.cpp"
+        "src-gen/v1/commonapi/advanced/bselective/*.cpp"
+        "src-gen/v1/commonapi/advanced/managed/*.cpp"
+        "src-gen/v1/commonapi/advanced/polymorph/*.cpp"
+        "src-gen/v1/commonapi/datatypes/primitive/*.cpp"
+        "src-gen/v1/commonapi/datatypes/advanced/*.cpp"
+        "src-gen/v1/commonapi/datatypes/derived/*.cpp"
+        "src-gen/v1/commonapi/datatypes/combined/*.cpp"
+        "src-gen/v1/commonapi/threading/*.cpp"
+        "src-gen/v1/commonapi/performance/primitive/*.cpp"
+        "src-gen/v1/commonapi/performance/complex/*.cpp"
+        "src-gen/v1/commonapi/stability/mp/*.cpp"
+        "src-gen/v1/commonapi/stability/sp/*.cpp")
+else()
+    # source files
+    file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*DBus*.cpp"
+        "src-gen/v1/commonapi/communication/*DBus*.cpp"
+        "src-gen/v1/commonapi/advanced/bselective/*DBus*.cpp"
+        "src-gen/v1/commonapi/advanced/managed/*DBus*.cpp"
+        "src-gen/v1/commonapi/advanced/polymorph/*DBus*.cpp"
+        "src-gen/v1/commonapi/datatypes/primitive/*DBus*.cpp"
+        "src-gen/v1/commonapi/datatypes/advanced/*DBus*.cpp"
+        "src-gen/v1/commonapi/datatypes/derived/*DBus*.cpp"
+        "src-gen/v1/commonapi/datatypes/combined/*DBus*.cpp"
+        "src-gen/v1/commonapi/threading/*DBus*.cpp"
+        "src-gen/v1/commonapi/performance/primitive/*DBus*.cpp"
+        "src-gen/v1/commonapi/performance/complex/*DBus*.cpp"
+        "src-gen/v1/commonapi/stability/mp/*DBus*.cpp"
+        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp")
+endif()
 
 # CommonAPI-DBus library
 add_library(DBusGlue ${GLUE_SRCS})

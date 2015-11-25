@@ -11,6 +11,7 @@ import org.franca.core.franca.FModel;
 import org.genivi.commonapi.dbus.verification.ValidatorDBus;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
+import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 import org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage;
 
@@ -18,7 +19,7 @@ import org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPa
  * This validator is automatically triggered from the XText editor.
  */
 public class ValidatorDBusUi extends ValidatorDBus {
-	
+
     @Override
     public void validateModel(FModel model,
             ValidationMessageAcceptor messageAcceptor) {
@@ -27,13 +28,13 @@ public class ValidatorDBusUi extends ValidatorDBus {
         }
         super.validateModel(model, messageAcceptor);
     }
-        
-	
+
+
 	@Override
     protected boolean isWholeWorkspaceCheckActive() {
-		
+
     	IPreferenceStore prefs = CommonApiDBusUiPlugin.getValidatorPreferences();
-    	return prefs != null && prefs.getBoolean(ValidatorDBusPreferencesPage.ENABLED_WORKSPACE_CHECK);		
+    	return prefs != null && prefs.getBoolean(ValidatorDBusPreferencesPage.ENABLED_WORKSPACE_CHECK);
     }
 
     /**
@@ -42,8 +43,8 @@ public class ValidatorDBusUi extends ValidatorDBus {
      */
 	@Override
     public boolean isValidatorEnabled() {
-    	
+
     	IPreferenceStore prefs = CommonApiDBusUiPlugin.getValidatorPreferences();
-    	return prefs != null && prefs.getBoolean(ValidatorDBusPreferencesPage.ENABLED_DBUS_VALIDATOR);
-    }    
+    	return prefs != null && prefs.getBoolean(PreferenceConstantsDBus.P_ENABLE_DBUS_VALIDATOR);
+    }
 }

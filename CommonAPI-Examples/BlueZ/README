@@ -16,6 +16,6 @@ commands to start the BlueZ example client (assuming running it from the example
 directory):
 
 [IMPORTANT]
- export COMMONAPI_DBUS_DEFAULT_CONFIG=./commonapi4dbus.ini +
+ export COMMONAPI_DBUS_CONFIG=./commonapi4dbus.ini +
  ./build/BlueZClient
 

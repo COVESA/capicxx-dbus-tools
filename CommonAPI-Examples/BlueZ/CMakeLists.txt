@@ -42,11 +42,12 @@ pkg_check_modules (DBUS "dbus-1 >= 1.4")
 
 # Source Files
 set(PRJ_SRC_PATH src)
-set(PRJ_SRC_GEN_PATH src-gen/v4_1/org/bluez)
+set(PRJ_SRC_GEN_PATH src-gen/v4/org/bluez)
 
 set(PRJ_NAME_CLIENT ${PRJ_NAME}Client)
 
-FILE(GLOB PRJ_PROXY_GEN_SRCS ${PRJ_SRC_GEN_PATH}/*Proxy.cpp ${PRJ_SRC_GEN_PATH}/${PRJ_NAME}.cpp ${PRJ_SRC_GEN_PATH}/*Deployment.cpp)
+FILE(GLOB PRJ_DBUS_LIB_SRCS ${PRJ_SRC_GEN_PATH}/*DBus*.cpp)
+FILE(GLOB PRJ_PROXY_GEN_SRCS ${PRJ_SRC_GEN_PATH}/${PRJ_NAME}.cpp)
 
 message("PRJ_SRC_GEN_PATH: ${PRJ_SRC_GEN_PATH}")
 message("PRJ_PROXY_GEN_SRCS: ${PRJ_PROXY_GEN_SRCS}")
@@ -78,9 +79,13 @@ link_directories(
 )
 endif()
 
-set(LINK_LIBRARIES -Wl,--no-as-needed CommonAPI-DBus -Wl,--as-needed CommonAPI ${DBUS_LIBRARIES})
+set(LINK_LIBRARIES -Wl,--no-as-needed CommonAPI-DBus -Wl,--as-needed CommonAPI )
 
 # Build Client
 add_executable(${PRJ_NAME_CLIENT} ${PRJ_CLIENT_SRCS})
 target_link_libraries(${PRJ_NAME_CLIENT} ${LINK_LIBRARIES})
+
+# Build gluecode.so
+add_library (${PRJ_NAME}-dbus SHARED ${PRJ_DBUS_LIB_SRCS})
+target_link_libraries(${PRJ_NAME}-dbus CommonAPI-DBus ${DBUS_LIBRARIES})
 
