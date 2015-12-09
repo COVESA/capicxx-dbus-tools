@@ -39,13 +39,17 @@ public class DBusGenerationCommand  extends GenerationCommand {
 
 		final EclipseResourceFileSystemAccess2 fsa = fileAccessProvider.get();
 
-		fsa.setOutputConfigurations(FPreferencesDBus.getInstance().getOutputpathConfiguration());
-
 		fsa.setMonitor(new NullProgressMonitor());
 
 		return fsa;
 	}
 
+	@Override
+	protected void setupOutputDirectories(EclipseResourceFileSystemAccess2 fileSystemAccess) {
+		fileSystemAccess.setOutputConfigurations(FPreferencesDBus.getInstance().getOutputpathConfiguration());
+	}	
+	
+	
 	/**
 	 * Set the properties for the code generation from the resource properties (set with the property page, via the context menu).
 	 * Take default values from the eclipse preference page.
@@ -70,8 +74,8 @@ public class DBusGenerationCommand  extends GenerationCommand {
 		
 		try {
 			// Should project or file specific properties be used ?
-			String useProject1 = project.getPersistentProperty(new QualifiedName(PreferenceConstants.PROJECT_PAGEID, PreferenceConstants.P_USEPROJECTSETTINGS));
-			String useProject2 = file.getPersistentProperty(new QualifiedName(PreferenceConstants.PROJECT_PAGEID, PreferenceConstants.P_USEPROJECTSETTINGS));
+			String useProject1 = project.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_USEPROJECTSETTINGS));
+			String useProject2 = file.getPersistentProperty(new QualifiedName(PreferenceConstantsDBus.PROJECT_PAGEID, PreferenceConstantsDBus.P_USEPROJECTSETTINGS));
 			if("true".equals(useProject1) || "true".equals(useProject2)) {
 				resource = project;
 			} 

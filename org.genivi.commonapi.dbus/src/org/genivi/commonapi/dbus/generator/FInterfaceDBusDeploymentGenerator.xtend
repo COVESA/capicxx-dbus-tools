@@ -48,8 +48,8 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
                                          IResource _modelid) '''
         «generateCommonApiDBusLicenseHeader()»
         
-        #ifndef COMMONAPI_DBUS_«_interface.name.toUpperCase»_DEPLOYMENT_HPP_
-        #define COMMONAPI_DBUS_«_interface.name.toUpperCase»_DEPLOYMENT_HPP_
+        #ifndef «_interface.defineName»_DBUS_DEPLOYMENT_HPP_
+        #define «_interface.defineName»_DBUS_DEPLOYMENT_HPP_
         
         «val DeploymentHeaders = _interface.getDeploymentInputIncludes(_accessor)»
         «DeploymentHeaders.map["#include <" + it + ">"].join("\n")»        
@@ -114,7 +114,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
         «_interface.model.generateNamespaceEndDeclaration»
         «_interface.generateVersionNamespaceEnd»
         
-        #endif // COMMONAPI_DBUS_«_interface.name.toUpperCase»_DEPLOYMENT_HPP_
+        #endif // «_interface.defineName»_DBUS_DEPLOYMENT_HPP_
     '''
 
     def private generateDeploymentSource(FInterface _interface, 

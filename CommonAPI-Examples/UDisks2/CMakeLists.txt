@@ -46,13 +46,11 @@ set(PRJ_SRC_GEN_PATH src-gen/v2/org/freedesktop/UDisks2)
 
 set(PRJ_NAME_CLIENT ${PRJ_NAME}Client)
 
-FILE(GLOB PRJ_PROXY_GEN_SRCS ${PRJ_SRC_GEN_PATH}/${PRJ_NAME}.cpp)
 FILE(GLOB PRJ_DBUS_LIB_SRCS ${PRJ_SRC_GEN_PATH}/*DBus*.cpp)
 
 message("PRJ_SRC_GEN_PATH: ${PRJ_SRC_GEN_PATH}")
-message("PRJ_PROXY_GEN_SRCS: ${PRJ_PROXY_GEN_SRCS}")
 
-set(PRJ_CLIENT_SRCS ${PRJ_SRC_PATH}/${PRJ_NAME_CLIENT}.cpp ${PRJ_PROXY_GEN_SRCS})
+set(PRJ_CLIENT_SRCS ${PRJ_SRC_PATH}/${PRJ_NAME_CLIENT}.cpp)
 
 # Paths
 OPTION(USE_INSTALLED_DBUS "Set to OFF to use the local (patched) version of dbus" ON)

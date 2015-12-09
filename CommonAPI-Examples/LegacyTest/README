@@ -54,11 +54,11 @@ $ ./runLegacyClientTest.sh
 (CAPI Service) 'teststruct' method called
 (CAPI Service) 'testunion' method called
 (CAPI Service) 'test' method called
-[       OK ] LegacyTestServer.LegacyServer (8021 ms)
-[----------] 1 test from LegacyTestServer (8021 ms total)
+[       OK ] LegacyTestServer.LegacyServer (8117 ms)
+[----------] 1 test from LegacyTestServer (8117 ms total)
 
 [----------] Global test environment tear-down
-[==========] 1 test from 1 test case ran. (8034 ms total)
+[==========] 1 test from 1 test case ran. (8118 ms total)
 [  PASSED  ] 1 test.
 
 $ ./runLegacyServiceTest.sh 
@@ -66,18 +66,18 @@ $ ./runLegacyServiceTest.sh
 [----------] Global test environment set-up.
 [----------] 1 test from LegacyTestClient
 [ RUN      ] LegacyTestClient.LegacyClient
-(Legacy Service) 'GetManagedObjects' method called
 (Legacy Service) 'test' method called
 (Legacy Service) 'testunion' method called
 (Legacy Service) 'teststruct' method called
 (Legacy Service) 'nopath' attribute set
 (Legacy Service) 'objectpath' attribute set
 (Legacy Service) 'defvalue' attribute set
-[       OK ] LegacyTestClient.LegacyClient (7037 ms)
-[----------] 1 test from LegacyTestClient (7038 ms total)
+[       OK ] LegacyTestClient.LegacyClient (7050 ms)
+[----------] 1 test from LegacyTestClient (7050 ms total)
 
 [----------] Global test environment tear-down
-[==========] 1 test from 1 test case ran. (7050 ms total)
+[==========] 1 test from 1 test case ran. (7051 ms total)
 [  PASSED  ] 1 test.
+
 
 

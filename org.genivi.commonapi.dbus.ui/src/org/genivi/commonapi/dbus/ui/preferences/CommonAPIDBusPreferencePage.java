@@ -38,7 +38,6 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     public CommonAPIDBusPreferencePage()
     {
         super(GRID);
-        setDescription("Preferences for CommonAPI-DBus");
     }
 
     /**
@@ -69,14 +68,16 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     @Override
     protected void performDefaults()
     {
-        DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS,
-                PreferenceConstantsDBus.DEFAULT_OUTPUT);
-        DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS,
-                PreferenceConstantsDBus.DEFAULT_OUTPUT);
-        DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
-                PreferenceConstantsDBus.DEFAULT_OUTPUT);
+    	if(!projectSettingIsActive) {
+    		DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS,
+    				PreferenceConstantsDBus.DEFAULT_OUTPUT);
+    		DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS,
+    				PreferenceConstantsDBus.DEFAULT_OUTPUT);
+    		DefaultScope.INSTANCE.getNode(PreferenceConstantsDBus.SCOPE).put(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
+    				PreferenceConstantsDBus.DEFAULT_OUTPUT);
 
-        super.performDefaults();
+    		super.performDefaults();
+    	}
     }
 
     @Override
@@ -101,9 +102,12 @@ public class CommonAPIDBusPreferencePage extends FieldEditorOverlayPage implemen
     @Override
     public boolean performOk()
     {
-        boolean result = super.performOk();
+    	if(!projectSettingIsActive) {
+    		boolean result = super.performOk();
 
-        return result;
+    		return result;
+    	}
+    	return true;
     }
 
 }

@@ -54,3 +54,11 @@ define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.Leg
 
 }
 
+define org.genivi.commonapi.dbus.deployment for provider Service {
+	instance commonapi.examples.LegacyTest {
+		InstanceId = "commonapi.examples.LegacyTest"
+		
+		DBusPredefined = true 
+	}
+}
+

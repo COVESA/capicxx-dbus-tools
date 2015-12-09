@@ -124,9 +124,14 @@ class FrancaDBusGenerator implements IGenerator {
         val String deploymentName
             = _deployments.entrySet.filter[it.value == _deployment].head.key
         
+        var int lastIndex = deploymentName.lastIndexOf(File.separatorChar)
+        if (lastIndex == -1) {
+            lastIndex = deploymentName.lastIndexOf('/')
+        }
+
         var String basePath = deploymentName.substring(
-            0, deploymentName.lastIndexOf(File.separatorChar))
-            
+            0, lastIndex)
+                        
         var Set<String> itsImports = new HashSet<String>()
         for (anImport : _deployment.imports) {
             val String cannonical = basePath.getCanonical(anImport.importURI)

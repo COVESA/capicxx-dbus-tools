@@ -50,11 +50,6 @@ static const gchar introspection_xml[] =
             "<arg name=\"_pathuout\" type=\"v\" direction=\"out\" />\n"
         "</method>\n"
   "  </interface>"
-  "  <interface name='org.freedesktop.DBus.ObjectManager'>"
-        "<method name=\"GetManagedObjects\">\n"
-            "<arg name=\"value\" type=\"a{oa{sa{sv}}}\" direction=\"out\" />\n"
-        "</method>\n"
-  "  </interface>"
   "</node>";
 
 static void
@@ -176,82 +171,9 @@ handle_set_property (GDBusConnection  *connection,
     return *error == NULL;
 }
 
-static void
-handle_om_method_call (GDBusConnection       *connection,
-                    const gchar           *sender,
-                    const gchar           *object_path,
-                    const gchar           *interface_name,
-                    const gchar           *method_name,
-                    GVariant              *parameters,
-                    GDBusMethodInvocation *invocation,
-                    gpointer               user_data)
-{
-    if (g_strcmp0(method_name, "GetManagedObjects") == 0) {
-
-        g_printf("(Legacy Service) 'GetManagedObjects' method called\n");
-
-        GVariantBuilder *propdict;
-        propdict = g_variant_builder_new (G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_init (propdict, "a{sv}");
-
-        /* the CommonAPI client currently does not support Properties
-           in the GetManagedObjects method. The property dictionary
-           must be empty.
-           
-        GVariant *key1 = g_variant_new("s", "nopath");
-        GVariant *value1 = g_variant_new("s", "normal_string");
-        GVariant *d1 = g_variant_new_dict_entry(key1, g_variant_new_variant(value1));
-        g_variant_builder_add_value(propdict, d1);
-        GVariant *key2 = g_variant_new("s", "objectpath");
-        GVariant *value2 = g_variant_new("o", "/some/path/name");
-        GVariant *d2 = g_variant_new_dict_entry(key2, g_variant_new_variant(value2));
-        g_variant_builder_add_value(propdict, d2);
-        GVariant *key3 = g_variant_new("s", "defvalue");
-        GVariant *value3 = g_variant_new("s", "default string");
-        GVariant *d3 = g_variant_new_dict_entry(key3, g_variant_new_variant(value3));
-        g_variant_builder_add_value(propdict, d3);
-        */
-        GVariant * pmap;
-        pmap = g_variant_builder_end(propdict);
-
-        GVariantBuilder *ifdict;
-        ifdict = g_variant_builder_new (G_VARIANT_TYPE_DICTIONARY);
-        GVariant *keyi = g_variant_new("s", "commonapi.examples.LegacyTest");
-
-        GVariant *di = g_variant_new_dict_entry(keyi, pmap);
-        g_variant_builder_add_value(ifdict, di);
-        GVariant * imap;
-        imap = g_variant_builder_end(ifdict);
-
-        GVariant *key = g_variant_new("o", "/commonapi/examples/LegacyTest");
-        GVariant *dv = g_variant_new_dict_entry(key, imap);
-
-        GVariantBuilder *builder;
-        builder = g_variant_builder_new (G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add_value (builder, dv);
-
-        GVariant * r;
-        r = g_variant_builder_end(builder);
-
-        GVariant *returnvalue;
-        returnvalue = g_variant_new_tuple(&r, 1);
-
-        g_dbus_method_invocation_return_value(invocation, returnvalue);
-
-    }
-
-}
-
 static const GDBusInterfaceVTable interface_vtable =
 {
   handle_method_call,
-  handle_get_property,
-  handle_set_property
-};
-
-static const GDBusInterfaceVTable om_interface_vtable =
-{
-  handle_om_method_call,
   handle_get_property,
   handle_set_property
 };
@@ -291,15 +213,6 @@ on_bus_acquired (GDBusConnection *connection,
                                                          "/commonapi/examples/LegacyTest",
                                                          introspection_data->interfaces[0],
                                                          &interface_vtable,
-                                                         NULL,  /* user_data */
-                                                         NULL,  /* user_data_free_func */
-                                                         NULL); /* GError** */
-    g_assert (registration_id > 0);
-
-    registration_id = g_dbus_connection_register_object (connection,
-                                                         "/",
-                                                         introspection_data->interfaces[1],
-                                                         &om_interface_vtable,
                                                          NULL,  /* user_data */
                                                          NULL,  /* user_data_free_func */
                                                          NULL); /* GError** */

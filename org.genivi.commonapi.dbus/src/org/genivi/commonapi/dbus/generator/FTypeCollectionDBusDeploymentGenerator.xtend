@@ -241,9 +241,9 @@ class FTypeCollectionDBusDeploymentGenerator {
     }
     
     def protected dispatch String generateDeploymentDeclaration(FStructType _struct, FTypeCollection _tc, PropertyAccessor _accessor) {
-//        if(_struct.isStructEmpty) {
-//            return "static_assert(false, \"struct " + _struct.name + " must not be empty !\");";
-//        }
+        if(_struct.isStructEmpty) {
+            return "static_assert(false, \"struct " + _struct.name + " must not be empty !\");";
+        }
         if (_accessor.hasDeployment(_struct)) {
             var String declaration = ""
             for (structElement : _struct.elements) {
