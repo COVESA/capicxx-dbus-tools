@@ -74,6 +74,12 @@ public class CommandLineHandlerDBus extends AbstractCommandLineHandler implement
 				cliTool.setDefaultDirectory(parsedArguments.getOptionValue("d"));
 			}
 
+			// destination: -dsub --dest-subdirs use destination/<filename>/ subdirs
+			// as dest directory
+			if(parsedArguments.hasOption("dsub")) {
+				cliTool.setDestinationSubdirs();
+			}
+
 			// destination: -dc --dest-common overwrite target directory for
 			// common part
 			if (parsedArguments.hasOption("dc")) {

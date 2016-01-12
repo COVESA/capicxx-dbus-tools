@@ -10,6 +10,7 @@ package org.genivi.commonapi.dbus.preferences;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
 
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.OutputConfiguration;
@@ -56,6 +57,9 @@ public class FPreferencesDBus {
 	        if (!preferences.containsKey(PreferenceConstantsDBus.P_OUTPUT_DEFAULT_DBUS)) {
 	            preferences.put(PreferenceConstantsDBus.P_OUTPUT_DEFAULT_DBUS, PreferenceConstants.DEFAULT_OUTPUT);
 	        }    
+	        if (!preferences.containsKey(PreferenceConstantsDBus.P_OUTPUT_SUBDIRS_DBUS)) {
+	            preferences.put(PreferenceConstantsDBus.P_OUTPUT_SUBDIRS_DBUS, "false");
+	        }
 	        if (!preferences.containsKey(PreferenceConstantsDBus.P_LICENSE_DBUS)) {
 	            preferences.put(PreferenceConstantsDBus.P_LICENSE_DBUS, PreferenceConstantsDBus.DEFAULT_LICENSE);
 	        }
@@ -108,12 +112,29 @@ public class FPreferencesDBus {
 	     * @return
 	     */
 	    public HashMap<String, OutputConfiguration> getOutputpathConfiguration() {
+	        return getOutputpathConfiguration(null);
+	    }
+
+	    /**
+	     * Set the output path configurations (based on stored the preference values) for file system access types
+	     * (instance of AbstractFileSystemAccess)
+			 * @subdir the subdir to use, can be null
+	     * @return
+	     */
+	    public HashMap<String, OutputConfiguration> getOutputpathConfiguration(String subdir) {
 
 	        String defaultDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_DEFAULT_DBUS, PreferenceConstants.DEFAULT_OUTPUT);
 	        String commonDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS, defaultDir);
 	        String outputProxyDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_PROXIES_DBUS, defaultDir);
 	        String outputStubDir = getPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, defaultDir);
-	    	
+
+	        if (null != subdir && getPreference(PreferenceConstants.P_OUTPUT_SUBDIRS, "false").equals("true")) {
+	            defaultDir = new File(defaultDir, subdir).getPath();
+	            commonDir = new File(commonDir, subdir).getPath();
+	            outputProxyDir = new File(outputProxyDir, subdir).getPath();
+	            outputStubDir = new File(outputStubDir, subdir).getPath();
+	        }
+
 	        HashMap<String, OutputConfiguration>  outputs = new HashMap<String, OutputConfiguration> ();
 	        
 	        OutputConfiguration commonOutput = new OutputConfiguration(PreferenceConstantsDBus.P_OUTPUT_COMMON_DBUS);

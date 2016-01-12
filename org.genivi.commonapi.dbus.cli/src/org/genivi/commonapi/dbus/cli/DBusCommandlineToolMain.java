@@ -137,6 +137,14 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 			if (!hasValidationError) {
 				ConsoleLogger.printLog("Generating code for " + file);
 				try {
+					if (FPreferencesDBus.getInstance().getPreference(
+							PreferenceConstantsDBus.P_OUTPUT_SUBDIRS_DBUS, "false").equals("true")) {
+						String subdir = (new File(file)).getName();
+						subdir = subdir.replace(".fidl", "");
+						subdir = subdir.replace(".fdepl", "");
+						fsa.setOutputConfigurations(FPreferencesDBus.getInstance()
+							.getOutputpathConfiguration(subdir));
+					}
 					francaGenerator.doGenerate(resource, fsa);
 				} catch (Exception e) {
 					ConsoleLogger
@@ -238,6 +246,12 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 				optionValue);
 		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
 				optionValue);
+	}
+
+	public void setDestinationSubdirs() {
+		ConsoleLogger.printLog("Using destination subdirs");
+		dbusPref.setPreference(PreferenceConstantsDBus.P_OUTPUT_SUBDIRS_DBUS,
+			"true");
 	}
 
 	public void setCommonDirectory(String optionValue) {

@@ -140,10 +140,9 @@ class FInterfaceDBusProxyGenerator {
             	public:
             	template <typename... _A>
             		DBus«attribute.dbusClassVariableName»Attribute(DBusProxy &_proxy,
-            			const char *_changedEventName,
             			_A ... arguments)
             			: «attribute.dbusClassName(deploymentAccessor, fInterface)»(
-            				_proxy, _changedEventName, arguments...) {}
+            				_proxy, arguments...) {}
             	«IF !attribute.isReadonly »
             	void setValue(const «attribute.getTypeName(fInterface, true)»& requestValue,
             		CommonAPI::CallStatus& callStatus,
