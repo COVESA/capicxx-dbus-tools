@@ -126,7 +126,7 @@ public class CommandLineHandlerDBus extends AbstractCommandLineHandler implement
 				cliTool.listGeneratedFiles();
 			}
 			// finally invoke the generator.
-			cliTool.generateDBus(files);
+			return cliTool.generateDBus(files);
 		} else {
 			System.out.println("A *.fidl or *.fdepl file was not specified !");
 		}

@@ -29,21 +29,21 @@ class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
     @Inject private extension FrancaDBusDeploymentAccessorHelper
-    
+
 
     def generateDBusStubAdapter(FInterface fInterface, IFileSystemAccess fileSystemAccess, PropertyAccessor deploymentAccessor,  List<FDProvider> providers, IResource modelid) {
-        
+
         if(FPreferencesDBus::getInstance.getPreference(PreferenceConstantsDBus::P_GENERATE_CODE_DBUS, "true").equals("true")) {
-            fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, 
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
                     fInterface.generateDBusStubAdapterHeader(deploymentAccessor, modelid))
-            fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, 
+            fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS,
                     fInterface.generateDBusStubAdapterSource(deploymentAccessor, providers, modelid))
-        } 
-        else { 
+        }
+        else {
             // feature: suppress code generation
             fileSystemAccess.generateFile(fInterface.dbusStubAdapterHeaderPath, PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus::NO_CODE)
             fileSystemAccess.generateFile(fInterface.dbusStubAdapterSourcePath,  PreferenceConstantsDBus.P_OUTPUT_STUBS_DBUS, PreferenceConstantsDBus::NO_CODE)
-        }        
+        }
     }
 
     def private generateDBusStubAdapterHeader(FInterface fInterface, PropertyAccessor deploymentAccessor, IResource modelid) '''
@@ -56,9 +56,9 @@ class FInterfaceDBusStubAdapterGenerator {
         «IF fInterface.base != null»
         #include <«fInterface.base.dbusStubAdapterHeaderPath»>
         «ENDIF»
-        #include "«fInterface.dbusDeploymentHeaderPath»"        
+        #include "«fInterface.dbusDeploymentHeaderPath»"
         «val DeploymentHeaders = fInterface.getDeploymentInputIncludes(deploymentAccessor)»
-        «DeploymentHeaders.map["#include <" + it + ">"].join("\n")»        
+        «DeploymentHeaders.map["#include <" + it + ">"].join("\n")»
 
         #if !defined (COMMONAPI_INTERNAL_COMPILATION)
         #define COMMONAPI_INTERNAL_COMPILATION
@@ -75,13 +75,13 @@ class FInterfaceDBusStubAdapterGenerator {
         #include <CommonAPI/DBus/DBusFreedesktopStubAdapterHelper.hpp>
         «ENDIF»
         #include <CommonAPI/DBus/DBusDeployment.hpp>
-        
+
         #undef COMMONAPI_INTERNAL_COMPILATION
 
         «fInterface.generateVersionNamespaceBegin»
         «fInterface.model.generateNamespaceBeginDeclaration»
 
-        typedef CommonAPI::DBus::DBusStubAdapterHelper<«fInterface.stubClassName»> «fInterface.dbusStubAdapterHelperClassName»;
+        typedef CommonAPI::DBus::DBusStubAdapterHelper< «fInterface.stubClassName»> «fInterface.dbusStubAdapterHelperClassName»;
 
         class «fInterface.dbusStubAdapterClassNameInternal»
             : public virtual «fInterface.stubAdapterClassName»,
@@ -132,7 +132,7 @@ class FInterfaceDBusStubAdapterGenerator {
             const CommonAPI::DBus::StubAttributeTable& getStubAttributeTable();
 
             void deactivateManagedInstances();
-            
+
             «IF fInterface.base != null»
             virtual const CommonAPI::Address &getAddress() const {
                 return DBusStubAdapter::getAddress();
@@ -211,20 +211,20 @@ class FInterfaceDBusStubAdapterGenerator {
 
         class «fInterface.dbusStubAdapterClassName»
             : public «fInterface.dbusStubAdapterClassNameInternal»,
-              public std::enable_shared_from_this<«fInterface.dbusStubAdapterClassName»> {
+              public std::enable_shared_from_this< «fInterface.dbusStubAdapterClassName»> {
         public:
             «fInterface.dbusStubAdapterClassName»(
-            	const CommonAPI::DBus::DBusAddress &_address,
+                const CommonAPI::DBus::DBusAddress &_address,
                 const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection,
                 const std::shared_ptr<CommonAPI::StubBase> &_stub)
-            	: CommonAPI::DBus::DBusStubAdapter(
-            		_address, 
-            		_connection,
+                : CommonAPI::DBus::DBusStubAdapter(
+                    _address,
+                    _connection,
                     «IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF»),
                   «fInterface.dbusStubAdapterClassNameInternal»(
-                  	_address, 
-                  	_connection, 
-                  	_stub) { 
+                    _address,
+                    _connection,
+                    _stub) {
             }
         };
 
@@ -238,32 +238,32 @@ class FInterfaceDBusStubAdapterGenerator {
         «FTypeGenerator::generateComments(fAttribute, false)»
         static CommonAPI::DBus::DBusGet«IF deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop»Freedesktop«ENDIF»AttributeStubDispatcher<
                 «fInterface.stubFullClassName»,
-                «val typeName = fAttribute.getTypeName(fInterface, true)»  
-                «val String deploymentType = fAttribute.getDeploymentType(fInterface, true)»                              
+                «val typeName = fAttribute.getTypeName(fInterface, true)»
+                «val String deploymentType = fAttribute.getDeploymentType(fInterface, true)»
                 «typeName»«IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»,
-                «deploymentType»«ENDIF»                
+                «deploymentType»«ENDIF»
                 > «fAttribute.dbusGetStubDispatcherVariable»;
         «IF !fAttribute.isReadonly»
             static CommonAPI::DBus::DBusSet«IF deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop»Freedesktop«ENDIF»«IF fAttribute.observable»Observable«ENDIF»AttributeStubDispatcher<
                     «fInterface.stubFullClassName»,
                     «typeName»«IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»,
-                    «deploymentType»«ENDIF»                    
+                    «deploymentType»«ENDIF»
                     > «fAttribute.dbusSetStubDispatcherVariable»;
         «ENDIF»
     '''
 
     def private generateMethodDispatcherDeclarations(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap) '''
             «FTypeGenerator::generateComments(fMethod, false)»
-            «val accessor = getAccessor(fInterface)»                           
-            
+            «val accessor = getAccessor(fInterface)»
+
             «IF !fMethod.isFireAndForget»
                 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                     «fInterface.stubFullClassName»,
-                    std::tuple<«fMethod.allInTypes»>,
-                    std::tuple<«fMethod.allOutTypes»>,
-                    std::tuple<«fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
-                    std::tuple<«IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
-                    
+                    std::tuple< «fMethod.allInTypes»>,
+                    std::tuple< «fMethod.allOutTypes»>,
+                    std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
+                    std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
+
                     «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                         «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
                         > «fMethod.dbusStubDispatcherVariable»;
@@ -274,8 +274,8 @@ class FInterfaceDBusStubAdapterGenerator {
             «ELSE»
                 static CommonAPI::DBus::DBusMethodStubDispatcher<
                     «fInterface.stubFullClassName»,
-                    std::tuple<«fMethod.allInTypes»>,
-                    std::tuple<«fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>
+                    std::tuple< «fMethod.allInTypes»>,
+                    std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>
                     «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                         «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0); methodnumberMap.put(fMethod, 0);""}»
                         > «fMethod.dbusStubDispatcherVariable»;
@@ -315,7 +315,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     > «fInterface.dbusStubAdapterClassNameInternal»::«fAttribute.dbusGetStubDispatcherVariable»(
                         &«fInterface.stubFullClassName»::«fAttribute.stubClassGetMethodName»
                         «IF deploymentAccessor.getPropertiesType(fInterface)!=PropertyAccessor.PropertiesType.freedesktop», "«fAttribute.dbusSignature(deploymentAccessor)»"«ENDIF»
-                        «IF deploymentAccessor.hasDeployment(fAttribute)», «fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor)»«ENDIF»                        
+                        «IF deploymentAccessor.hasDeployment(fAttribute)», «fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor)»«ENDIF»
                         );
             «IF !fAttribute.isReadonly»
                 CommonAPI::DBus::DBusSet«IF deploymentAccessor.getPropertiesType(fInterface)==PropertyAccessor.PropertiesType.freedesktop»Freedesktop«ENDIF»«IF fAttribute.observable»Observable«ENDIF»AttributeStubDispatcher<
@@ -335,34 +335,34 @@ class FInterfaceDBusStubAdapterGenerator {
 
     def private generateMethodDispatcherDefinitions(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap, PropertyAccessor deploymentAccessor) '''
 
-        «val accessor = getAccessor(fInterface)» 
+        «val accessor = getAccessor(fInterface)»
         «FTypeGenerator::generateComments(fMethod, false)»
         «IF !fMethod.isFireAndForget»
             CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                 «fInterface.stubFullClassName»,
-                std::tuple<«fMethod.allInTypes»>,
-                std::tuple<«fMethod.allOutTypes»>,
-                std::tuple<«fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
-                std::tuple<«IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
-                
+                std::tuple< «fMethod.allInTypes»>,
+                std::tuple< «fMethod.allOutTypes»>,
+                std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
+                std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
+
                 «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                     «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
                     > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»(
                     &«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»",
-					«fMethod.getDeployments(fInterface, accessor, true, false)»,
-                	«fMethod.getDeployments(fInterface, accessor, false, true)»);
+                    «fMethod.getDeployments(fInterface, accessor, true, false)»,
+                    «fMethod.getDeployments(fInterface, accessor, false, true)»);
                 «ELSE»
                     «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
                     > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»",
                     «fMethod.getDeployments(fInterface, accessor, true, false)»,
-                	«fMethod.getDeployments(fInterface, accessor, false, true)»);
+                    «fMethod.getDeployments(fInterface, accessor, false, true)»);
                 «ENDIF»
         «ELSE»
             CommonAPI::DBus::DBusMethodStubDispatcher<
                 «fInterface.stubClassName»,
-                std::tuple<«fMethod.allInTypes»>,
-                std::tuple<«fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>
-                
+                std::tuple< «fMethod.allInTypes»>,
+                std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>
+
                 «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                     «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0); methodnumberMap.put(fMethod, 0);""}»
                     > «fInterface.dbusStubAdapterClassNameInternal»::«fMethod.dbusStubDispatcherVariable»(&«fInterface.stubClassName + "::" + fMethod.elementName»,
@@ -395,7 +395,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «generateCommonApiDBusLicenseHeader()»
         #include <«fInterface.headerPath»>
         #include <«fInterface.dbusStubAdapterHeaderPath»>
-        
+
         «fInterface.generateVersionNamespaceBegin»
         «fInterface.model.generateNamespaceBeginDeclaration»
 
@@ -403,10 +403,10 @@ class FInterfaceDBusStubAdapterGenerator {
                            const CommonAPI::DBus::DBusAddress &_address,
                            const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection,
                            const std::shared_ptr<CommonAPI::StubBase> &_stub) {
-            return std::make_shared<«fInterface.dbusStubAdapterClassName»>(_address, _connection, _stub);
+            return std::make_shared< «fInterface.dbusStubAdapterClassName»>(_address, _connection, _stub);
         }
 
-        INITIALIZER(register«fInterface.dbusStubAdapterClassName») {
+        void initialize«fInterface.dbusStubAdapterClassName»() {
              «FOR p : providers»
                  «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
                  «FOR i : p.instances.filter[target == fInterface]»
@@ -416,9 +416,13 @@ class FInterfaceDBusStubAdapterGenerator {
                          "«providerAccessor.getDBusObjectPath(i)»",
                          "«providerAccessor.getDBusInterfaceName(i)»");
                  «ENDFOR»
-             «ENDFOR»           
+             «ENDFOR»
             CommonAPI::DBus::Factory::get()->registerStubAdapterCreateMethod(
-            	«fInterface.elementName»::getInterface(), &create«fInterface.dbusStubAdapterClassName»);
+                «fInterface.elementName»::getInterface(), &create«fInterface.dbusStubAdapterClassName»);
+        }
+
+        INITIALIZER(register«fInterface.dbusStubAdapterClassName») {
+            CommonAPI::DBus::Factory::get()->registerInterface(initialize«fInterface.dbusStubAdapterClassName»);
         }
 
         «fInterface.dbusStubAdapterClassNameInternal»::~«fInterface.dbusStubAdapterClassNameInternal»() {
@@ -558,7 +562,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         «FOR outArg : broadcast.outArgs SEPARATOR ","»
                             «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
                             «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-                                 CommonAPI::Deployable<«outArg.getTypeName(fInterface, true)», «deploymentType»>
+                                 CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>
                             «ELSE»
                                 «outArg.getTypeName(fInterface, true)»
                             «ENDIF»
@@ -572,7 +576,7 @@ class FInterfaceDBusStubAdapterGenerator {
                             «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
                             «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
                                 «val String deployment = outArg.getDeploymentRef(outArg.array, broadcast, fInterface, deploymentAccessor)»
-                                CommonAPI::Deployable<«outArg.getTypeName(fInterface, true)», «deploymentType»>(_«outArg.name», «deployment»)
+                                CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>(_«outArg.name», «deployment»)
                             «ELSE»
                                 _«outArg.name»
                             «ENDIF»
@@ -619,7 +623,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     «FOR outArg : broadcast.outArgs SEPARATOR ","»
                         «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
                         «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-                             CommonAPI::Deployable<«outArg.getTypeName(fInterface, true)», «deploymentType»>
+                             CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>
                         «ELSE»
                             «outArg.getTypeName(fInterface, true)»
                         «ENDIF»
@@ -632,7 +636,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
                         «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
                             «val String deployment = outArg.getDeploymentRef(outArg.array, broadcast, fInterface, deploymentAccessor)»
-                            CommonAPI::Deployable<«outArg.getTypeName(fInterface, true)», «deploymentType»>(«outArg.name», «deployment»)
+                            CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>(«outArg.name», «deployment»)
                         «ELSE»
                             «outArg.name»
                         «ENDIF»
@@ -660,7 +664,7 @@ class FInterfaceDBusStubAdapterGenerator {
         «FOR managed : fInterface.managedInterfaces»
             bool «fInterface.dbusStubAdapterClassNameInternal»::«managed.stubRegisterManagedMethodImpl» {
                 if («managed.stubManagedSetName».find(_instance) == «managed.stubManagedSetName».end()) {
-                	std::string itsAddress = "local:«managed.fullyQualifiedName»:" + _instance;
+                    std::string itsAddress = "local:«managed.fullyQualifiedName»:" + _instance;
                     CommonAPI::DBus::DBusAddress itsDBusAddress;
                     CommonAPI::DBus::DBusAddressTranslator::get()->translate(itsAddress, itsDBusAddress);
 
@@ -668,7 +672,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     std::string adapterObjectPath(getDBusAddress().getObjectPath());
 
                     if (objectPath.compare(0, adapterObjectPath.length(), adapterObjectPath) == 0) {
-                    	std::shared_ptr<CommonAPI::DBus::Factory> itsFactory = CommonAPI::DBus::Factory::get();
+                        std::shared_ptr<CommonAPI::DBus::Factory> itsFactory = CommonAPI::DBus::Factory::get();
 
                         auto stubAdapter = itsFactory->createDBusStubAdapter(_stub, "«managed.fullyQualifiedName»", itsDBusAddress, connection_);
                         bool isRegistered = itsFactory->registerManagedService(stubAdapter);
@@ -712,8 +716,8 @@ class FInterfaceDBusStubAdapterGenerator {
                 const CommonAPI::DBus::DBusAddress &_address,
                 const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection,
                 const std::shared_ptr<CommonAPI::StubBase> &_stub)
-        	: CommonAPI::DBus::DBusStubAdapter(_address, _connection,«IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF»),
-              «fInterface.dbusStubAdapterHelperClassName»(_address, _connection, std::dynamic_pointer_cast<«fInterface.stubClassName»>(_stub), «IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF»),
+            : CommonAPI::DBus::DBusStubAdapter(_address, _connection,«IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF»),
+              «fInterface.dbusStubAdapterHelperClassName»(_address, _connection, std::dynamic_pointer_cast< «fInterface.stubClassName»>(_stub), «IF !fInterface.managedInterfaces.nullOrEmpty»true«ELSE»false«ENDIF»),
               «IF fInterface.base != null»
               «fInterface.base.dbusStubAdapterClassNameInternal»(_address, _connection, _stub),
               «ENDIF»
@@ -845,7 +849,7 @@ class FInterfaceDBusStubAdapterGenerator {
     def private dbusStubAdapterClassNameInternal(FInterface fInterface) {
         fInterface.dbusStubAdapterClassName + 'Internal'
     }
-    
+
     def private dbusStubAdapterHelperClassName(FInterface fInterface) {
         fInterface.elementName + 'DBusStubAdapterHelper'
     }
@@ -918,8 +922,8 @@ class FInterfaceDBusStubAdapterGenerator {
             );
         «ELSE»
             «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-            CommonAPI::Deployable<«attribute.getTypeName(attribute, true)», «deploymentType»> deployedValue(value, «IF deployment != ""»«deployment»«ELSE»nullptr«ENDIF»);
-            «ENDIF»          
+            CommonAPI::Deployable< «attribute.getTypeName(attribute, true)», «deploymentType»> deployedValue(value, «IF deployment != ""»«deployment»«ELSE»nullptr«ENDIF»);
+            «ENDIF»
             CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
             «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
                 CommonAPI::Deployable<
@@ -966,5 +970,5 @@ class FInterfaceDBusStubAdapterGenerator {
                 «IF fAttribute.readonly»NULL«ELSE»&«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»::«fAttribute.dbusSetStubDispatcherVariable»«ENDIF»
             }
         }
-    '''    
+    '''
 }

@@ -24,32 +24,32 @@ import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.franca.core.franca.FMapType
 
 class FrancaDBusDeploymentAccessorHelper {
-	@Inject private extension FrancaDBusGeneratorExtensions
-	
-    static PropertyAccessor.DBusVariantType DBUS_DEFAULT_VARIANT_TYPE 
-        = PropertyAccessor.DBusVariantType.CommonAPI;	
-	
+    @Inject private extension FrancaDBusGeneratorExtensions
+
+    static PropertyAccessor.DBusVariantType DBUS_DEFAULT_VARIANT_TYPE
+        = PropertyAccessor.DBusVariantType.CommonAPI;
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypedElement _element) {
-    	if (_accessor == null)
-    		return false
+        if (_accessor == null)
+            return false
         if (_accessor.getDBusIsObjectPathHelper(_element)) {
             return true
-        }    		
+        }
         return _accessor.hasDeployment(_element.type)
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FArrayType _array) {
         if (_accessor.hasDeployment(_array.elementType)) {
             return true
         }
-        
+
         return false
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FEnumerationType _enum) {
-    	return false
+        return false
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FStructType _struct) {
         for (element : _struct.elements) {
             if (_accessor.hasDeployment(element)) {
@@ -63,7 +63,7 @@ class FrancaDBusDeploymentAccessorHelper {
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FMapType _map) {
         return _accessor.hasDeployment(_map.valueType);
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FUnionType _union) {
         try {
             var FType type = null
@@ -84,7 +84,7 @@ class FrancaDBusDeploymentAccessorHelper {
 
         return false
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypeDef _typeDef) {
         return _accessor.hasDeployment(_typeDef.actualType)
     }
@@ -96,69 +96,69 @@ class FrancaDBusDeploymentAccessorHelper {
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FType _type) {
         return false;
     }
-    
+
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypeRef _type) {
         if (_type.derived != null)
             return _accessor.hasDeployment(_type.derived)
- 
+
         if (_type.predefined != null)
             return _accessor.hasDeployment(_type.predefined)
- 
-        return false 
+
+        return false
     }
-    
-    def boolean hasSpecificDeployment(PropertyAccessor _accessor, 
+
+    def boolean hasSpecificDeployment(PropertyAccessor _accessor,
                                       FTypedElement _attribute) {
         var FType type = null
         if (_attribute.type.derived != null) {
             type = _attribute.type.derived
-        }                                       	
-                                      	
+        }
+
         try {
             val PropertyAccessor.DBusVariantType variantType
                 = _accessor.getDBusVariantTypeHelper(_attribute)
-                
+
             if (variantType != null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
                 (type == null || variantType != _accessor.getDBusVariantTypeHelper(type))) {
                 return true
             }
-        } catch (NullPointerException e) {}     
-                                          	
+        } catch (NullPointerException e) {}
+
         try {
             val Boolean isPath = _accessor.getDBusIsObjectPathHelper(_attribute)
             if (isPath != null && isPath) {
                 return true
-            }  
-        } catch (NullPointerException e) {}                                      	
+            }
+        } catch (NullPointerException e) {}
         return false
     }
-    
+
     def Boolean getDBusIsObjectPathHelper(PropertyAccessor _accessor, EObject _obj) {
-    	var PropertyAccessor parentAccessor = _accessor;
-		var FTypeCollection tc = _obj.findTypeCollection 	
-	    if (tc != null)
-	    	parentAccessor = tc.accessor
-	    if (parentAccessor != null)
-    		return parentAccessor.getIsObjectPath(_obj);
-    	return new Boolean(false);
+        var PropertyAccessor parentAccessor = _accessor;
+        var FTypeCollection tc = _obj.findTypeCollection
+        if (tc != null)
+            parentAccessor = tc.accessor
+        if (parentAccessor != null)
+            return parentAccessor.getIsObjectPath(_obj);
+        return new Boolean(false);
     }
-    
+
     def PropertyAccessor.DBusVariantType getDBusVariantTypeHelper(PropertyAccessor _accessor, EObject _obj) {
-    	
-    	var PropertyAccessor parentAccessor = _accessor;
-		var FTypeCollection tc = _obj.findTypeCollection
-	    if (tc != null && tc.accessor != null) {
-	    	parentAccessor = tc.accessor
-	    }	
+
+        var PropertyAccessor parentAccessor = _accessor;
+        var FTypeCollection tc = _obj.findTypeCollection
+        if (tc != null && tc.accessor != null) {
+            parentAccessor = tc.accessor
+        }
 
         if (_obj instanceof FAttribute) {
             return parentAccessor.getDBusAttrVariantType(_obj)
         }
-        
+
         if (_obj instanceof FArgument) {
             return parentAccessor.getDBusArgVariantType(_obj)
         }
-        
+
         if (_obj instanceof FField) {
             var PropertyAccessor.DBusVariantType variantType = parentAccessor.getDBusStructVariantType(_obj)
             if (variantType == null)
@@ -169,7 +169,7 @@ class FrancaDBusDeploymentAccessorHelper {
         if (_obj.eContainer() instanceof FUnionType) {
             return parentAccessor.getDBusUnionVariantType(_obj)
         }
-        
+
         if (_obj instanceof FTypeDef) {
             if (_obj.actualType.derived != null) {
                 return parentAccessor.getDBusVariantType(_obj.actualType.derived)
@@ -177,8 +177,8 @@ class FrancaDBusDeploymentAccessorHelper {
                 return DBUS_DEFAULT_VARIANT_TYPE
             }
         }
-        
+
         return parentAccessor.getDBusVariantType(_obj)
     }
-   
+
 }

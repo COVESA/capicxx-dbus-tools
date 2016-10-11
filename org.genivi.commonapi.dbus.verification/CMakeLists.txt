@@ -4,7 +4,7 @@ PROJECT(libdbusglue)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 5 ) 
+SET( ${PROJECT_NAME}_PATCH_LEVEL 8 )
 
 message("Project name: ${PROJECT_NAME}")
 
@@ -22,6 +22,12 @@ message("USE_INSTALLED_COMMONAPI is set to value: ${USE_INSTALLED_COMMONAPI}")
 
 OPTION(USE_INSTALLED_DBUS "Set to OFF to use the local (build tree) version of DBUS" ON)
 message(STATUS "USE_INSTALLED_DBUS is set to value: ${USE_INSTALLED_DBUS}")
+
+OPTION(USE_FILE "Set to OFF to disable file logging" OFF )
+message(STATUS "USE_FILE is set to value: ${USE_FILE}")
+
+OPTION(USE_CONSOLE "Set to OFF to disable console logging" OFF )
+message(STATUS "USE_CONSOLE is set to value: ${USE_CONSOLE}")
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
@@ -108,15 +114,26 @@ execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest src-gen ${FIDL_FILES}
 ##############################################################################
 # dbus glue build section
 
+IF(USE_FILE)
+  add_definitions(-DUSE_FILE)
+ENDIF(USE_FILE)
+IF(USE_CONSOLE)
+  add_definitions(-DUSE_CONSOLE)
+ENDIF(USE_CONSOLE)
+
+SET(MAX_LOG_LEVEL "DEBUG" CACHE STRING "maximum log level")
+message(STATUS "MAX_LOG_LEVEL is set to value: ${MAX_LOG_LEVEL}")
+add_definitions(-DCOMMONAPI_LOGLEVEL=COMMONAPI_LOGLEVEL_${MAX_LOG_LEVEL})
+
 if (MSVC)
 # Visual C++ is not always sure whether he is really C++
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /EHsc -DCOMMONAPI_INTERNAL_COMPILATION")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DCOMMONAPI_INTERNAL_COMPILATION")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /EHsc -DCOMMONAPI_INTERNAL_COMPILATION /wd\\\"4503\\\"")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DCOMMONAPI_INTERNAL_COMPILATION /wd\\\"4503\\\"")
 else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector -fasynchronous-unwind-tables -fno-omit-frame-pointer -D_GLIBCXX_USE_NANOSLEEP")
 endif()
 
-message("Compiler options: ${CMAKE_CXX_FLAGS}") 
+message("Compiler options: ${CMAKE_CXX_FLAGS}")
 
 include_directories(
     src
@@ -146,8 +163,8 @@ if (MSVC)
         "src-gen/v1/commonapi/threading/*.cpp"
         "src-gen/v1/commonapi/performance/primitive/*.cpp"
         "src-gen/v1/commonapi/performance/complex/*.cpp"
-        "src-gen/v1/commonapi/stability/mp/*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*.cpp")
+        "src-gen/v1/commonapi/stability/sp/*.cpp"
+        "src-gen/v1/commonapi/multiprocess/bselective/*.cpp")
 else()
     # source files
     file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*DBus*.cpp"
@@ -162,8 +179,8 @@ else()
         "src-gen/v1/commonapi/threading/*DBus*.cpp"
         "src-gen/v1/commonapi/performance/primitive/*DBus*.cpp"
         "src-gen/v1/commonapi/performance/complex/*DBus*.cpp"
-        "src-gen/v1/commonapi/stability/mp/*DBus*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp")
+        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp"
+        "src-gen/v1/commonapi/multiprocess/bselective/*DBus*.cpp")
 endif()
 
 # CommonAPI-DBus library

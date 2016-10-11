@@ -21,7 +21,7 @@ import org.franca.core.franca.FTypeRef
 import org.franca.core.franca.FUnionType*/
 
 class FInterfaceDBusAutomakeGenerator {
- 
+
     /* @Inject private extension FrancaGeneratorExtensions
     @Inject private extension FrancaDBusGeneratorExtensions
 
@@ -31,7 +31,7 @@ class FInterfaceDBusAutomakeGenerator {
         fileSystemAccess.generateFile(fInterface.dbusAutomakeConfigurePath, fInterface.generateConfig)
         fileSystemAccess.generateFile(fInterface.dbusAutomakeMakefilePath, fInterface.generateMakefile)
     }
-    
+
     def private generateAutogen(FInterface fInterface) '''
         #! /bin/sh
 
@@ -84,7 +84,7 @@ class FInterfaceDBusAutomakeGenerator {
         bin_«fInterface.providerName»_LDADD = ${COMMON_API_LIBS}
         bin_«fInterface.providerName»_CPPFLAGS = ${COMMON_API_CFLAGS}
     '''
-    
+
     def private dbusAutomakeAutogenPath(FInterface fInterface) {
         fInterface.model.directoryPath + '/' + fInterface.dbusAutomakeAutogenFile
     }
@@ -92,7 +92,7 @@ class FInterfaceDBusAutomakeGenerator {
     def private dbusAutomakeAutogenFile(FInterface fInterface) {
         "/autogen.sh"
     }
-    
+
     def private dbusAutomakeMacroPath(FInterface fInterface) {
         fInterface.model.directoryPath + '/' + fInterface.dbusMacroAutogenFile
     }
@@ -100,7 +100,7 @@ class FInterfaceDBusAutomakeGenerator {
     def private dbusAutomakeMacroFile(FInterface fInterface) {
         "/m4/ax_cxx_compile_stdcxx_0x.m4"
     }
-    
+
     def private dbusAutomakeConfigurePath(FInterface fInterface) {
         fInterface.model.directoryPath + '/' + fInterface.dbusAutomakeConfigureFile
     }
@@ -108,7 +108,7 @@ class FInterfaceDBusAutomakeGenerator {
     def private dbusAutomakeConfigureFile(FInterface fInterface) {
         "/configure.ac"
     }
-    
+
     def private dbusAutomakeMakefilePath(FInterface fInterface) {
         fInterface.model.directoryPath + '/' + fInterface.dbusAutomakeMakefileFile
     }
@@ -116,7 +116,7 @@ class FInterfaceDBusAutomakeGenerator {
     def private dbusAutomakeMakefileFile(FInterface fInterface) {
         "/Makefile.am"
     }
- 
+
     def private generateClientSourceIncludes(FInterface fInterface) '''
         «skeletonFolderPath + fInterface.clientAsSourceFileName» \
         «fInterface.generateClientSourceIncludesHelper»
@@ -136,7 +136,7 @@ class FInterfaceDBusAutomakeGenerator {
     def private generateProviderSourceIncludesHelper(FInterface fInterface) '''
         «IF fInterface.base != null»«fInterface.base.generateProviderSourceIncludesHelper» \«ENDIF»
         «fInterface.absoluteFolderPathAsArray.join("/")»/«fInterface.interfaceAdapterClassName.asSourceFileName»'''
-        
+
     def private generateProviderSourceSkeletonIncludesHelper(FInterface fInterface) '''
         «IF fInterface.base != null»«fInterface.base.generateProviderSourceSkeletonIncludesHelper(skeletonFolderPath)» \«ENDIF»
         «skeletonFolderPath»«fInterface.interfaceImplementationSkeletonClassName.asSourceFileName»'''
@@ -169,10 +169,10 @@ class FInterfaceDBusAutomakeGenerator {
             }
             includes.addAll(fMethod.outArgs.map[type].map[typeIncludes].flatten)
         }
-        
+
         return includes
     }
-    
+
     def private dispatch HashSet<String> getTypeIncludes(FTypeRef typeRef) {
         if(typeRef.derived != null) {
             return typeRef.derived.typeIncludes
@@ -265,7 +265,7 @@ class FInterfaceDBusAutomakeGenerator {
                 TOP BUILDDIR:            ${top_builddir}
         ])
     '''
-    
+
     def private getProjectName(FInterface fInterface) {
         return fInterface.model.name.replace(".", "-")
     }
@@ -292,9 +292,9 @@ class FInterfaceDBusAutomakeGenerator {
         #   permitted in any medium without royalty provided the copyright notice
         #   and this notice are preserved. This file is offered as-is, without any
         #   warranty.
-        
+
         #serial 7
-        
+
         AU_ALIAS([AC_CXX_COMPILE_STDCXX_0X], [AX_CXX_COMPILE_STDCXX_0X])
         AC_DEFUN([AX_CXX_COMPILE_STDCXX_0X], [
           AC_CACHE_CHECK(if g++ supports C++0x features without additional flags,
@@ -307,19 +307,19 @@ class FInterfaceDBusAutomakeGenerator {
             {
               static_assert(sizeof(int) <= sizeof(T), "not big enough");
             };
-        
+
             typedef check<check<bool>> right_angle_brackets;
-        
+
             int a;
             decltype(a) b;
-        
+
             typedef check<int> check_type;
             check_type c;
             check_type&& cr = static_cast<check_type&&>(c);],,
           ax_cv_cxx_compile_cxx0x_native=yes, ax_cv_cxx_compile_cxx0x_native=no)
           AC_LANG_RESTORE
           ])
-        
+
           AC_CACHE_CHECK(if g++ supports C++0x features with -std=c++0x,
           ax_cv_cxx_compile_cxx0x_cxx,
           [AC_LANG_SAVE
@@ -332,12 +332,12 @@ class FInterfaceDBusAutomakeGenerator {
             {
               static_assert(sizeof(int) <= sizeof(T), "not big enough");
             };
-        
+
             typedef check<check<bool>> right_angle_brackets;
-        
+
             int a;
             decltype(a) b;
-        
+
             typedef check<int> check_type;
             check_type c;
             check_type&& cr = static_cast<check_type&&>(c);],,
@@ -345,7 +345,7 @@ class FInterfaceDBusAutomakeGenerator {
           CXXFLAGS="$ac_save_CXXFLAGS"
           AC_LANG_RESTORE
           ])
-        
+
           AC_CACHE_CHECK(if g++ supports C++0x features with -std=gnu++0x,
           ax_cv_cxx_compile_cxx0x_gxx,
           [AC_LANG_SAVE
@@ -358,12 +358,12 @@ class FInterfaceDBusAutomakeGenerator {
             {
               static_assert(sizeof(int) <= sizeof(T), "not big enough");
             };
-        
+
             typedef check<check<bool>> right_angle_brackets;
-        
+
             int a;
             decltype(a) b;
-        
+
             typedef check<int> check_type;
             check_type c;
             check_type&& cr = static_cast<check_type&&>(c);],,
@@ -371,7 +371,7 @@ class FInterfaceDBusAutomakeGenerator {
           CXXFLAGS="$ac_save_CXXFLAGS"
           AC_LANG_RESTORE
           ])
-        
+
           if test "$ax_cv_cxx_compile_cxx0x_native" = yes ||
              test "$ax_cv_cxx_compile_cxx0x_cxx" = yes ||
              test "$ax_cv_cxx_compile_cxx0x_gxx" = yes; then

@@ -85,12 +85,12 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 
 	}
 
-	public void generateDBus(List<String> fileList) {
+	public int generateDBus(List<String> fileList) {
 		francaGenerator = injector.getInstance(FrancaDBusGenerator.class);
 
-		doGenerate(fileList);
+		return doGenerate(fileList);
 	}
-	
+
 	protected String normalize(String _path) {
 		File itsFile = new File(_path);
 		return itsFile.getAbsolutePath();
@@ -98,11 +98,11 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 
 	/**
 	 * Call the franca generator for the specified list of files.
-	 * 
+	 *
 	 * @param fileList
 	 *            the list of files to generate code from
 	 */
-	protected void doGenerate(List<String> _fileList) {
+	protected int doGenerate(List<String> _fileList) {
 		fsa.setOutputConfigurations(FPreferencesDBus.getInstance()
 				.getOutputpathConfiguration());
 
@@ -118,7 +118,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 			String absolutePath = normalize(path);
 			fileList.add(absolutePath);
 		}
-		
+
 		for (String file : fileList) {
 			URI uri = URI.createFileURI(file);
 			Resource resource = null;
@@ -169,27 +169,27 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 		}
 		fsa.clearFileList();
 		dumpGeneratedFiles = false;
-		System.exit(error_state);
+		return error_state;
 	}
 
 	/**
 	 * Validate the fidl/fdepl file resource
-	 * 
+	 *
 	 * @param resource
-	 */	
+	 */
 	public void validateDBus(Resource resource) {
 		EObject model = null;
 		CommandlineValidator cliValidator = new CommandlineValidator(
 				cliMessageAcceptor);
-		
+
 		//ConsoleLogger.printLog("validating " + resource.getURI().lastSegment());
 
 		model = cliValidator.loadResource(resource);
 
 		if (model != null) {
 			if (model instanceof FDModel) {
-				// Many error logs would be displayed if a SomeIP deployment file had DBus 
-				// deployment information (or vice versa).  
+				// Many error logs would be displayed if a SomeIP deployment file had DBus
+				// deployment information (or vice versa).
 				// Therefore don't validate fdepl files for DBus at the moment
 				return;
 				// cliValidator.validateImports((FDModel) model, resource.getURI());
@@ -221,7 +221,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 				"false");
 		ConsoleLogger.printLog("No common code will be generated");
 	}
-	
+
 	public void setNoProxyCode() {
 		dbusPref.setPreference(PreferenceConstantsDBus.P_GENERATE_PROXY_DBUS,
 				"false");
@@ -320,7 +320,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 	/**
 	 * Set the text from a file which will be inserted as a comment in each
 	 * generated file (for example your license)
-	 * 
+	 *
 	 * @param fileWithText
 	 * @return
 	 */
@@ -334,7 +334,8 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 		}
 	}
 
-	public String getFrancaVersion() {
+	@Override
+    public String getFrancaVersion() {
 		return Platform.getBundle("org.franca.core").getVersion().toString();
 	}
 
