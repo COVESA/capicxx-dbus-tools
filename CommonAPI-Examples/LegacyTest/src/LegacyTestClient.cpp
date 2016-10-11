@@ -41,7 +41,7 @@ protected:
         myProxy = runtime->buildProxy < LegacyTestProxy > (domain, instance);
 
         while (!myProxy->isAvailable()) {
-            usleep(10);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ASSERT_TRUE(myProxy->isAvailable());
 

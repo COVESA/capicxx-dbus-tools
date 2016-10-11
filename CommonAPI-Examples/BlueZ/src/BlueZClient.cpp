@@ -27,7 +27,7 @@ int main(int argc, const char * const argv[])
 
     std::cout << "Checking 'org.bluez.Manager' availability.." << std::endl;
     while (!mgrProxy->isAvailable()) {
-        usleep(10);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     std::cout << "\t..available." << std::endl;
 
@@ -76,7 +76,7 @@ int main(int argc, const char * const argv[])
         std::cout << "Checking 'org.bluez.Adapter' " << firstAdapter << " availability.." << std::endl;
 
         while (!adapterProxy->isAvailable()) {
-            usleep(10);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         std::cout << "\t..available." << std::endl;
 

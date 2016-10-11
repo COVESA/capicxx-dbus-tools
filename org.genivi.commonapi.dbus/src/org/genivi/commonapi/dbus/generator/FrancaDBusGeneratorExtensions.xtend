@@ -316,14 +316,14 @@ class FrancaDBusGeneratorExtensions {
 
         if (_useTc) {
             if (_type.eContainer instanceof FTypeCollection && !(_type.eContainer instanceof FInterface)) {
-                deploymentType += (_type.eContainer as FModelElement).getElementName(_interface, false) + "_::"
+                deploymentType += (_type.eContainer as FModelElement).getFullName + "_::"
             }
             else if (_interface != null) {
-                deploymentType += _interface.getElementName(_interface, false) + "_::"
+                deploymentType += _interface.getFullName + "_::"
             }
         }
         else if (_interface != null) {
-            deploymentType += _interface.getElementName(_interface, false) + "_::"
+            deploymentType += _interface.getFullName + "_::"
         }
 
         deploymentType += _type.name + "Deployment_t"
@@ -333,19 +333,20 @@ class FrancaDBusGeneratorExtensions {
     // Get deployment type for an element //
     ////////////////////////////////////////
     def String getDeploymentName(FTypedElement _typedElement, FModelElement _element, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_typedElement)) {
+        if (_accessor.hasSpecificDeployment(_typedElement) ||
+            _typedElement.array && _accessor.hasDeployment(_typedElement)) {
             var String deployment = ""
             if (_element != null) {
                 val container = _element.eContainer()
                 if (container instanceof FTypeCollection) {
-                    deployment += container.getElementName(_interface, false) + "_::"
+                    deployment += container.getFullName + "_::"
                 }
                 if (!(_element instanceof FTypedElement && _element == _typedElement))
                     deployment += _element.name + "_"
             } else {
                 val container = _typedElement.eContainer()
                 if (container instanceof FTypeCollection) {
-                    deployment += container.getElementName(_interface, false) + "_::"
+                    deployment += container.getFullName + "_::"
                 }
             }
             deployment += _typedElement.name + "Deployment"
@@ -371,7 +372,7 @@ class FrancaDBusGeneratorExtensions {
             var String name = ""
             val EObject container = _type.eContainer()
             if (container instanceof FTypeCollection) {
-                name += container.getElementName(_interface, false) + "_::"
+                name += container.getFullName + "_::"
             }
             name += _type.name + "Deployment"
             return name

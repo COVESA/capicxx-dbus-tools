@@ -24,7 +24,7 @@ int main() {
     std::shared_ptr<ObjectPathSimpleProxyDefault> myProxy = runtime->buildProxy < ObjectPathSimpleProxy > (domain, instance);
 
     while (!myProxy->isAvailable()) {
-        usleep(10);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 
     // Subscribe to broadcast

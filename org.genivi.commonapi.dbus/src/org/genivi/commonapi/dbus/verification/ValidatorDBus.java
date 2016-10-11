@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -52,7 +51,7 @@ import com.google.inject.Guice;
 
 /**
  * This validator is used with the command line environment (it is not automatically triggered from the XText editor).
- * It is meant to be called before the actual code generation. The code generation may not be executed if this 
+ * It is meant to be called before the actual code generation. The code generation may not be executed if this
  * validator detects errors.
  *
  */
@@ -68,7 +67,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
     private Set<EObject> resourceList = new HashSet<EObject>();
     private boolean isCommandLineEnvironment = false;
     private String path = null;
-    
+
     @Override
     public void validateModel(FModel model,
             ValidationMessageAcceptor messageAcceptor) {
@@ -77,7 +76,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         }
         cycleDetector = Guice.createInjector().getInstance(
                 FTypeCycleDetector.class);
-        
+
         resourceSet = new ResourceSetImpl();
         Resource res = model.eResource();
         URI uri = res.getURI();  // file:/home/.../input/Test.fidl
@@ -88,9 +87,9 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         IPath filePath = null;
         String cwd = null;
         String parentfolder = null;
-        
+
         if(uri.toString().startsWith("platform:")) {
-            segCount = uri.segmentCount() - 2; 
+            segCount = uri.segmentCount() - 2;
             platformPath = new Path(res.getURI().toPlatformString(true));
             file = ResourcesPlugin.getWorkspace().getRoot().getFile(platformPath);
             filePath = file.getLocation();
@@ -112,9 +111,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
             importList = buildImportList(importList);
         } catch (NullPointerException e) {
         }
-        List<String> interfaceTypecollectionNames = new ArrayList<String>();
         for (FTypeCollection fTypeCollection : model.getTypeCollections()) {
-            interfaceTypecollectionNames.add(fTypeCollection.getName());
             validateImportedTypeCollections(model, messageAcceptor, file, cwd,
                     fTypeCollection);
         }
@@ -124,7 +121,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
                 fastAllInfo = aimBuilder.fastAllInfo;
             } else {
                 if (!uri.segment(2).toString().equals("bin"))
-                    aimBuilder.updateAllInfo((EObject) model,
+                    aimBuilder.updateAllInfo(model,
                             filePath.toString());
                 fastAllInfo = aimBuilder.fastAllInfo;
             }
@@ -135,17 +132,16 @@ public class ValidatorDBus implements IFrancaExternalValidator {
 
         HashMap<FInterface, EList<FInterface>> managedInterfaces = new HashMap<FInterface, EList<FInterface>>();
         for (FInterface fInterface : model.getInterfaces()) {
-            interfaceTypecollectionNames.add(fInterface.getName());
             managedInterfaces
                     .put(fInterface, fInterface.getManagedInterfaces());
             validateImportedTypeCollections(model, messageAcceptor, file, parentfolder,
                     fInterface);
         }
-        
+
         for (FTypeCollection fTypeCollection : model.getTypeCollections()) {
             try {
                 validateTypeCollectionName(model, messageAcceptor, filePath,
-                        interfaceTypecollectionNames, fTypeCollection);
+                        fTypeCollection);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -154,11 +150,10 @@ public class ValidatorDBus implements IFrancaExternalValidator {
 
         for (FInterface fInterface : model.getInterfaces()) {
             validateTypeCollectionName(model, messageAcceptor, filePath,
-                    interfaceTypecollectionNames, fInterface);
+                    fInterface);
             validateFInterfaceElements(messageAcceptor, fInterface);
         }
         resourceList.clear();
-        interfaceTypecollectionNames.clear();
         importList.clear();
 
     }
@@ -185,12 +180,8 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         Resource resource = null;
 
         if (cwd != null && cwd.length() > 0) {
-            resourceSet
-                    .getURIConverter()
-                    .getURIMap()
-                    .put(fileURI,
-                            URI.createURI((cwdURI.toString() + "/" + fileURI
-                                    .toString()).replaceAll("/+", "/")));
+            fileURI = URI.createURI((cwdURI.toString() + "/" + fileURI
+                    .toString()).replaceAll("/+", "/"));
         }
 
         try {
@@ -263,7 +254,6 @@ public class ValidatorDBus implements IFrancaExternalValidator {
 
     private void validateTypeCollectionName(FModel model,
     		ValidationMessageAcceptor messageAcceptor, IPath filePath,
-    		List<String> interfaceTypecollectionNames,
     		FTypeCollection fTypeCollection) {
     	String typeCollectionName = fTypeCollection.getName();
     	if(typeCollectionName != null) {
@@ -341,27 +331,30 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         		entryKey = cwd + "/" + file.getName();
         	}
             if (!entry.getKey().equals(entryKey)) {
-                if (entry.getValue().packageName.startsWith(model.getName()
-                        + "." + fTypeCollection.getName())) {
-                	// don't log the good case
-            		//acceptInfo("imported type collections: " + entry, messageAcceptor); 
-                    if (importList.get(cwd + "/" + file.getName()).contains(
-                            entry.getKey())) {
-                        acceptError(
-                                "Imported file's package "
-                                        + entry.getValue().packageName
-                                        + " may not start with package "
-                                        + model.getName() + " + " + type
-                                        + fTypeCollection.getName(),
-                                fTypeCollection,
-                                FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
-                                -1, messageAcceptor);
-                    } else {
-                        acceptWarning(entry.getKey() + ". File's package "
-                                + entry.getValue().packageName
-                                + " starts with package " + model.getName()
-                                + " + " + type + fTypeCollection.getName(),
-                                fTypeCollection, null, -1, messageAcceptor);
+                Triple<String, ArrayList<String>, ArrayList<String>> entryValue = entry.getValue();
+                if (entryValue.packageName != null) {
+                    if (entryValue.packageName.startsWith(model.getName()
+                            + "." + fTypeCollection.getName())) {
+                        // don't log the good case
+                        //acceptInfo("imported type collections: " + entry, messageAcceptor);
+                        if (importList.get(cwd + "/" + file.getName()).contains(
+                                entry.getKey())) {
+                            acceptError(
+                                    "Imported file's package "
+                                            + entryValue.packageName
+                                            + " may not start with package "
+                                            + model.getName() + " + " + type
+                                            + fTypeCollection.getName(),
+                                    fTypeCollection,
+                                    FrancaPackage.Literals.FMODEL_ELEMENT__NAME,
+                                    -1, messageAcceptor);
+                        } else {
+                            acceptWarning(entry.getKey() + ". File's package "
+                                    + entryValue.packageName
+                                    + " starts with package " + model.getName()
+                                    + " + " + type + fTypeCollection.getName(),
+                                    fTypeCollection, null, -1, messageAcceptor);
+                        }
                     }
                 }
             }
@@ -379,7 +372,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         }
 
         if (value.length() == 1) {
-            if (48 > (int) value.charAt(0) || (int) value.charAt(0) > 57) {
+            if (48 > value.charAt(0) || value.charAt(0) > 57) {
                 acceptWarning("Not a valid number!", fEnumerator,
                         FrancaPackage.Literals.FENUMERATOR__VALUE, -1,
                         messageAcceptor);
@@ -406,9 +399,9 @@ public class ValidatorDBus implements IFrancaExternalValidator {
                 // hex
                 if (value.charAt(1) == 'x') {
                     for (int i = 2; i < value.length(); i++) {
-                        if ((48 > (int) value.charAt(i) || (int) value
+                        if ((48 > value.charAt(i) || value
                                 .charAt(i) > 57)
-                                && (97 > (int) value.charAt(i) || (int) value
+                                && (97 > value.charAt(i) || value
                                         .charAt(i) > 102)) {
                             acceptWarning(
                                     "Not a valid number! Should be hexadecimal",
@@ -425,7 +418,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         if (value.charAt(0) == '0') {
             // oct
             for (int i = 1; i < value.length(); i++) {
-                if (48 > (int) value.charAt(i) || (int) value.charAt(i) > 55) {
+                if (48 > value.charAt(i) || value.charAt(i) > 55) {
                     acceptWarning("Not a valid number! Should be octal",
                             fEnumerator,
                             FrancaPackage.Literals.FENUMERATOR__VALUE, -1,
@@ -437,7 +430,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         }
         // dec
         for (int i = 0; i < value.length(); i++) {
-            if (48 > (int) value.charAt(i) || (int) value.charAt(i) > 57) {
+            if (48 > value.charAt(i) || value.charAt(i) > 57) {
                 acceptWarning("Not a valid number! Should be decimal",
                         fEnumerator, FrancaPackage.Literals.FENUMERATOR__VALUE,
                         -1, messageAcceptor);
@@ -472,7 +465,7 @@ public class ValidatorDBus implements IFrancaExternalValidator {
 
     private void validateMapKey(FMapType m,
             ValidationMessageAcceptor messageAcceptor) {
-        if ((boolean) cycleDetector.hasCycle(m)) {
+        if (cycleDetector.hasCycle(m)) {
             return;
         }
 
@@ -550,9 +543,9 @@ public class ValidatorDBus implements IFrancaExternalValidator {
         messageAcceptor.acceptWarning("DBus validation: " + message, object,
                 feature, index, null);
     }
-    
+
     protected void acceptInfo(String message, ValidationMessageAcceptor messageAcceptor) {
         messageAcceptor.acceptInfo(message, null, null, 0, null);
-    }        
+    }
 }
 

@@ -4,7 +4,7 @@ PROJECT(libdbusglue)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 8 )
+SET( ${PROJECT_NAME}_PATCH_LEVEL 9 )
 
 message("Project name: ${PROJECT_NAME}")
 
@@ -155,6 +155,7 @@ if (MSVC)
         "src-gen/v1/commonapi/communication/*.cpp"
         "src-gen/v1/commonapi/advanced/bselective/*.cpp"
         "src-gen/v1/commonapi/advanced/managed/*.cpp"
+        "src-gen/v1/commonapi/advanced/extended/*.cpp"
         "src-gen/v1/commonapi/advanced/polymorph/*.cpp"
         "src-gen/v1/commonapi/datatypes/primitive/*.cpp"
         "src-gen/v1/commonapi/datatypes/advanced/*.cpp"
@@ -171,6 +172,7 @@ else()
         "src-gen/v1/commonapi/communication/*DBus*.cpp"
         "src-gen/v1/commonapi/advanced/bselective/*DBus*.cpp"
         "src-gen/v1/commonapi/advanced/managed/*DBus*.cpp"
+        "src-gen/v1/commonapi/advanced/extended/*DBus*.cpp"
         "src-gen/v1/commonapi/advanced/polymorph/*DBus*.cpp"
         "src-gen/v1/commonapi/datatypes/primitive/*DBus*.cpp"
         "src-gen/v1/commonapi/datatypes/advanced/*DBus*.cpp"

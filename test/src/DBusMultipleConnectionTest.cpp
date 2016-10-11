@@ -38,7 +38,7 @@ class DBusMultipleConnectionTest: public ::testing::Test {
         bool serviceNameAcquired = runtime->registerService(domain, serviceAddress, stub, "connection");
 
         for(unsigned int i = 0; !serviceNameAcquired && i < 100; i++) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
             serviceNameAcquired = runtime->registerService(domain, serviceAddress, stub, "connection");
         }
         ASSERT_TRUE(serviceNameAcquired);
@@ -47,13 +47,13 @@ class DBusMultipleConnectionTest: public ::testing::Test {
         ASSERT_TRUE((bool)proxy);
 
         for(unsigned int i = 0; !proxy->isAvailable() && i < 100; ++i) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
     }
 
     virtual void TearDown() {
         runtime->unregisterService(domain, stub->getStubAdapter()->getInterface(), serviceAddress);
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     std::shared_ptr<CommonAPI::Runtime> runtime;

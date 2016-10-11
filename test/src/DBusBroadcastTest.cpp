@@ -162,7 +162,7 @@ TEST_F(DBusBroadcastTest, ProxysCanHandleBroadcast) {
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -184,7 +184,7 @@ TEST_F(DBusBroadcastTest, ProxysCanHandleBroadcast) {
     stub->fireTestPredefinedTypeBroadcastEvent(2, "xyz");
 
     for(unsigned int i=0; i<100 && !callbackArrived; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     ASSERT_TRUE(callbackArrived);
@@ -197,7 +197,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgain) {
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -219,7 +219,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgain) {
     stub->fireTestPredefinedTypeBroadcastEvent(1, "xyz");
 
     for(unsigned int i=0; i<100 && !callbackArrived; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     ASSERT_TRUE(callbackArrived);
@@ -237,7 +237,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgain) {
     stub->fireTestPredefinedTypeBroadcastEvent(2, "xyz");
 
     for(unsigned int i=0; i<100 && !callbackArrived; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     ASSERT_TRUE(callbackArrived);
@@ -252,7 +252,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainInAL
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -274,7 +274,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainInAL
         stub->fireTestPredefinedTypeBroadcastEvent(i, "xyz");
 
         for(unsigned int j=0; j<100 && !callbackArrived; j++) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
 
         ASSERT_TRUE(callbackArrived);
@@ -290,7 +290,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWith
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -311,7 +311,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWith
     stub->fireTestPredefinedTypeBroadcastEvent(1, "xyz");
 
     for(unsigned int i=0; i<100 && !callbackArrived; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     ASSERT_TRUE(callbackArrived);
@@ -334,7 +334,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWith
     stub->fireTestPredefinedTypeBroadcastEvent(2, "xyz");
 
     for(unsigned int i=0; i<100 && !callbackArrived; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     ASSERT_TRUE(callbackArrived);
@@ -350,7 +350,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWhil
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -384,7 +384,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWhil
     stub->fireTestPredefinedTypeBroadcastEvent(1, "xyz");
 
     for(unsigned int i=0; i<100 && !(callback1Arrived && callback2Arrived); i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     const bool callbackOnBothSubscriptionsArrived = callback1Arrived && callback2Arrived;
@@ -401,7 +401,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWhil
     stub->fireTestPredefinedTypeBroadcastEvent(2, "xyz");
 
     for(unsigned int i=0; i<100; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     const bool onlyCallback2Arrived = !callback1Arrived && callback2Arrived;
@@ -422,7 +422,7 @@ TEST_F(DBusBroadcastTest, ProxysCanUnsubscribeFromBroadcastAndSubscribeAgainWhil
     stub->fireTestPredefinedTypeBroadcastEvent(1, "xyz");
 
     for(unsigned int i=0; i<100 && !(callback1Arrived && callback2Arrived); i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     const bool callbackOnBothSubscriptionsArrivedAgain = callback1Arrived && callback2Arrived;
@@ -448,12 +448,12 @@ TEST_F(DBusBroadcastTest, ProxysCanSubscribeForSelectiveBroadcast)
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for (unsigned int i = 0; !proxyFromSameConnection->isAvailable() && i < 200; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(proxyFromSameConnection->isAvailable());
 
@@ -468,13 +468,13 @@ TEST_F(DBusBroadcastTest, ProxysCanSubscribeForSelectiveBroadcast)
                     });
 
     while(!subscriptionSuccessful) {
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_EQ(stub->getNumberOfSubscribedClients(), 1);
 
     stub->send();
 
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection1, 1);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection2, 0);
 
@@ -488,12 +488,12 @@ TEST_F(DBusBroadcastTest, ProxysCanSubscribeForSelectiveBroadcast)
                     }
                 });
     while(!subscriptionSuccessful2) {
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_EQ(stub->getNumberOfSubscribedClients(), 1); // should still be one because they using the same connection
 
     stub->send();
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection1, 2);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection2, 1);
 
@@ -507,7 +507,7 @@ TEST_F(DBusBroadcastTest, ProxysCanSubscribeForSelectiveBroadcast)
                 }
             });
     while(!subscriptionSuccessful3) {
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_EQ(stub->getNumberOfSubscribedClients(), 2); // should still be two because proxyFromSameConnection1_ is still subscribed
 
@@ -515,14 +515,14 @@ TEST_F(DBusBroadcastTest, ProxysCanSubscribeForSelectiveBroadcast)
     ASSERT_EQ(stub->getNumberOfSubscribedClients(), 2); // should still be two because proxyFromSameConnection1_ is still subscribed
 
     stub->send();
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection1, 3);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection2, 1);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromOtherConnection, 1);
 
     // now only the last subscribed client (which is the one from the other connection) should receive the signal
     stub->sendToLastSubscribedClient();
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection1, 3);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection2, 1);
     EXPECT_EQ(selectiveBroadcastArrivedAtProxyFromOtherConnection, 2);
@@ -544,12 +544,12 @@ TEST_F(DBusBroadcastTest, ProxysCanBeRejectedForSelectiveBroadcast) {
     bool serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(serviceAddressObject_.getDomain(), serviceAddressObject_.getInstance(), stub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for (unsigned int i = 0; !proxyFromSameConnection1->isAvailable() && i < 200; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(proxyFromSameConnection1->isAvailable());
 
@@ -565,7 +565,7 @@ TEST_F(DBusBroadcastTest, ProxysCanBeRejectedForSelectiveBroadcast) {
                         }
                     });
     while(!subscriptionSuccessful) {
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
 
     ASSERT_EQ(stub->getNumberOfSubscribedClients(), 1);
@@ -588,7 +588,7 @@ TEST_F(DBusBroadcastTest, ProxysCanBeRejectedForSelectiveBroadcast) {
 
     stub->send();
 
-    usleep(20000);
+    std::this_thread::sleep_for(std::chrono::microseconds(20000));
     ASSERT_EQ(selectiveBroadcastArrivedAtProxyFromSameConnection1, 1);
     ASSERT_EQ(selectiveBroadcastArrivedAtProxyFromOtherConnection, 0);
 }
@@ -612,12 +612,12 @@ TEST_F(DBusBroadcastTest, ProxyCanBeDeletedAndBuildFromNewInManagedContext) {
     bool managerServiceRegistered = runtime_->registerService(managerServiceAddressObject.getDomain(), managerServiceAddressObject.getInstance(), managerStub, connectionIdService_);
     for (unsigned int i = 0; !managerServiceRegistered && i < 100; ++i) {
         managerServiceRegistered = runtime_->registerService(managerServiceAddressObject.getDomain(), managerServiceAddressObject.getInstance(), managerStub, connectionIdService_);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(managerServiceRegistered);
 
     for (unsigned int i = 0; !managerProxy->isAvailable() && i < 200; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(managerProxy->isAvailable());
 
@@ -637,7 +637,7 @@ TEST_F(DBusBroadcastTest, ProxyCanBeDeletedAndBuildFromNewInManagedContext) {
             ASSERT_TRUE((bool)proxyTestInterface);
 
             for (unsigned int i = 0; !proxyTestInterface->isAvailable() && i < 200; ++i) {
-                usleep(10000);
+                std::this_thread::sleep_for(std::chrono::microseconds(10000));
             }
             ASSERT_TRUE(proxyTestInterface->isAvailable());
 
@@ -666,7 +666,7 @@ TEST_F(DBusBroadcastTest, ProxyCanBeDeletedAndBuildFromNewInManagedContext) {
     ASSERT_TRUE(managedServiceRegistered);
 
     for(unsigned int i=0; i<200 && !callbackArrived; i++) {
-         usleep(10000);
+         std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(callbackArrived);
 
@@ -674,7 +674,7 @@ TEST_F(DBusBroadcastTest, ProxyCanBeDeletedAndBuildFromNewInManagedContext) {
     managerStub->deregisterManagedStubTestInterface(serviceAddressObject_.getInstance());
 
     for(unsigned int i=0; i<200 && !proxyDeleted; i++) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(proxyDeleted);
 
@@ -686,7 +686,7 @@ TEST_F(DBusBroadcastTest, ProxyCanBeDeletedAndBuildFromNewInManagedContext) {
     ASSERT_TRUE(managedServiceRegistered);
 
     for(unsigned int i=0; i<200 && !callbackArrived; i++) {
-         usleep(10000);
+         std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(callbackArrived);
 

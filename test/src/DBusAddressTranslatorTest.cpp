@@ -100,28 +100,28 @@ static const std::string fileString =
 ;
 
 static const std::vector<std::string> commonApiAddresses = {
-    "local:no.nothing.service:no.nothing.instance",
-    "local:service:instance",
-    "local:no.interface.service:no.interface.instance",
-    "local:no.connection.service:no.connection.instance",
-    "local:no.object.service:no.object.instance",
-    "local:only.interface.service:only.interface.instance",
-    "local:only.connection.service:only.connection.instance",
-    "local:only.object.service:only.object.instance",
-    "local:fake.legacy.service.LegacyInterface:fake.legacy.service",
-    "local:fake.legacy.service.LegacyInterfaceNoObjectManager:fake.legacy.service"
+    "local:no.nothing.service:v1_0:no.nothing.instance",
+    "local:service:v1_0:instance",
+    "local:no.interface.service:v1_0:no.interface.instance",
+    "local:no.connection.service:v1_0:no.connection.instance",
+    "local:no.object.service:v1_0:no.object.instance",
+    "local:only.interface.service:v1_0:only.interface.instance",
+    "local:only.connection.service:v1_0:only.connection.instance",
+    "local:only.object.service:v1_0:only.object.instance",
+    "local:fake.legacy.service.LegacyInterface:v1_0:fake.legacy.service",
+    "local:fake.legacy.service.LegacyInterfaceNoObjectManager:v1_0:fake.legacy.service"
 };
 
 typedef std::vector<CommonAPI::DBus::DBusAddress>::value_type vt;
 static const std::vector<CommonAPI::DBus::DBusAddress> dbusAddresses = {
-                vt("no.nothing.service_no.nothing.instance", "/no/nothing/instance", "no.nothing.service"),
-                vt("service.name_connection.name", "/path/to/object", "service.name"),
-                vt("no.interface.service_no.interface.instance", "/no/interface/instance", "no.interface.service"),
-                vt("no.connection.service_no.connection.instance", "/no/connection/instance", "no.connection.service"),
-                vt("no.object.service_no.object.instance", "/no/object/instance", "no.object.service"),
-                vt("only.interface.service_only.interface.instance", "/only/interface/instance", "only.interface.service"),
-                vt("only.connection.service_only.connection.instance", "/only/connection/instance", "only.connection.service"),
-                vt("only.object.service_only.object.instance", "/only/object/instance", "only.object.service"),
+                vt("no.nothing.service.v1_0_no.nothing.instance", "/no/nothing/instance", "no.nothing.service.v1_0"),
+                vt("service.name_connection.name", "/path/to/object", "service.name.v1_0"),
+                vt("no.interface.service.v1_0_no.interface.instance", "/no/interface/instance", "no.interface.service.v1_0"),
+                vt("no.connection.service.v1_0_no.connection.instance", "/no/connection/instance", "no.connection.service.v1_0"),
+                vt("no.object.service.v1_0_no.object.instance", "/no/object/instance", "no.object.service.v1_0"),
+                vt("only.interface.service.v1_0_only.interface.instance", "/only/interface/instance", "only.interface.service.v1_0"),
+                vt("only.connection.service.v1_0_only.connection.instance", "/only/connection/instance", "only.connection.service.v1_0"),
+                vt("only.object.service.v1_0_only.object.instance", "/only/object/instance", "only.object.service.v1_0"),
                 vt("fake.legacy.service.connection", "/some/legacy/path/6259504", "fake.legacy.service.LegacyInterface"),
                 vt("fake.legacy.service.connection", "/some/legacy/path/6259504", "fake.legacy.service.LegacyInterfaceNoObjectManager")
 };
@@ -133,7 +133,7 @@ protected:
     }
 
     virtual void TearDown() {
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
     std::string configFileName_;
 };
@@ -172,11 +172,11 @@ TEST_F(AddressTranslatorTest, ParsesCommonAPIAddresses) {
 TEST_F(AddressTranslatorTest, InsertAddressPossible) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    std::string commonApiAddressRef = "local:my.service:my.instance";
+    std::string commonApiAddressRef = "local:my.service:v1_0:my.instance";
 
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service_my.new.instance", "/my/new/instance", "my.new.service");
-    CommonAPI::DBus::DBusAddress dbusAddressSecondInsertRef("my.new.second.service_my.new.second.instance", "/my/new/second/instance", "my.new.second.service");
-    std::string commonApiSecondInsertAddressRef = "local:my.new.second.service:my.new.second.instance";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service.v1_0_my.new.instance", "/my/new/instance", "my.new.service.v1_0");
+    CommonAPI::DBus::DBusAddress dbusAddressSecondInsertRef("my.new.second.service.v1_0_my.new.second.instance", "/my/new/second/instance", "my.new.second.service.v1_0");
+    std::string commonApiSecondInsertAddressRef = "local:my.new.second.service:v1_0:my.new.second.instance";
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -226,14 +226,14 @@ TEST_F(AddressTranslatorTest, InsertAddressPossible) {
 TEST_F(AddressTranslatorTest, InsertUniqueBusNameTranslate) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    translator->insert("local:my.Interface:busname.legacy.service_1_133",
+    translator->insert("local:my.Interface:v1_0:busname.legacy.service_1_133",
                         ":1.133",        /* unique bus name */
                         "/org/busname/legacy/service",
                         "busname.legacy.service");
 
     CommonAPI::DBus::DBusAddress dbusAddress;
 
-    translator->translate("local:my.Interface:busname.legacy.service_1_133", dbusAddress);
+    translator->translate("local:my.Interface:v1_0:busname.legacy.service_1_133", dbusAddress);
 
     ASSERT_EQ(":1.133", dbusAddress.getService());
     ASSERT_EQ("busname.legacy.service", dbusAddress.getInterface());
@@ -243,11 +243,11 @@ TEST_F(AddressTranslatorTest, InsertUniqueBusNameTranslate) {
 TEST_F(AddressTranslatorTest, InsertAddressNotPossibleConflictTranslate) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    CommonAPI::DBus::DBusAddress dbusAddressRef("my.service.translate_my.instance.translate", "/my/instance/translate", "my.service.translate");
-    std::string commonApiAddressRef = "local:my.service.translate:my.instance.translate";
+    CommonAPI::DBus::DBusAddress dbusAddressRef("my.service.translate.v1_0_my.instance.translate", "/my/instance/translate", "my.service.translate.v1_0");
+    std::string commonApiAddressRef = "local:my.service.translate:v1_0:my.instance.translate";
 
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service.translate_my.new.instance.translate", "/my/new/instance/translate", "my.new.service.translate");
-    std::string commonApiAddressInsertRef = "local:my.new.service.translate:my.new.instance.translate";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service.translate.v1_0_my.new.instance.translate", "/my/new/instance/translate", "my.new.service.translate.v1_0");
+    std::string commonApiAddressInsertRef = "local:my.new.service.translate:v1_0:my.new.instance.translate";
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -292,8 +292,8 @@ TEST_F(AddressTranslatorTest, InsertAddressNotPossibleConflictTranslate) {
 TEST_F(AddressTranslatorTest, InsertAddressNotPossibleConflictConfigFile) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service.config_my.new.instance.config", "/my/new/instance/config", "my.new.service.config");
-    std::string commonApiAddressInsertRef = "local:my.new.service.config:my.new.instance.config";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.new.service.config.v1_0_my.new.instance.config", "/my/new/instance/config", "my.new.service.config.v1_0");
+    std::string commonApiAddressInsertRef = "local:my.new.service.config:v1_0:my.new.instance.config";
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -325,8 +325,8 @@ TEST_F(AddressTranslatorTest, InsertAddressNotPossibleConflictConfigFile) {
 TEST_F(AddressTranslatorTest, UniqueAddressHandlingTranslateWorks) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    std::string commonApiAddressRef = "local:my.unique.translate.interface:my.unique.translate.instance";
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef(":1.6", "/my/unique/translate/instance", "my.unique.translate.interface");
+    std::string commonApiAddressRef = "local:my.unique.translate.interface:v1_0:my.unique.translate.instance";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef(":1.6", "/my/unique/translate/instance", "my.unique.translate.interface.v1_0");
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -346,8 +346,8 @@ TEST_F(AddressTranslatorTest, UniqueAddressHandlingTranslateWorks) {
 TEST_F(AddressTranslatorTest, UniqueAddressHandlingInsertWorks) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    std::string commonApiAddressRef = "local:my.unique.insert.other.interface:my.unique.insert.other.instance";
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef(":1.6", "/my/unique/insert/instance", "my.unique.insert.interface");
+    std::string commonApiAddressRef = "local:my.unique.insert.other.interface:v1_0:my.unique.insert.other.instance";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef(":1.6", "/my/unique/insert/instance", "my.unique.insert.interface.v1_0");
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -372,8 +372,8 @@ TEST_F(AddressTranslatorTest, UniqueAddressHandlingInsertWorks) {
 TEST_F(AddressTranslatorTest, CheckWellKnownNameTranslateWorks) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    std::string commonApiAddressRef = "local:my.well.translate.interface:my.well.translate.instance";
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.well.known.name", "/my/well/translate/instance", "my.well.translate.interface");
+    std::string commonApiAddressRef = "local:my.well.translate.interface:v1_0:my.well.translate.instance";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.well.known.name", "/my/well/translate/instance", "my.well.translate.interface.v1_0");
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -393,8 +393,8 @@ TEST_F(AddressTranslatorTest, CheckWellKnownNameTranslateWorks) {
 TEST_F(AddressTranslatorTest, CheckWellKnownNameInsertWorks) {
     std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
 
-    std::string commonApiAddressRef = "local:my.well.insert.other.interface:my.well.insert.other.instance";
-    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.well.known.name", "/my/well/insert/instance", "my.well.insert.interface");
+    std::string commonApiAddressRef = "local:my.well.insert.other.interface:v1_0:my.well.insert.other.instance";
+    CommonAPI::DBus::DBusAddress dbusAddressInsertRef("my.well.known.name", "/my/well/insert/instance", "my.well.insert.interface.v1_0");
 
     CommonAPI::DBus::DBusAddress dbusAddressResult;
     CommonAPI::Address commonApiAddressResult;
@@ -429,12 +429,12 @@ TEST_F(AddressTranslatorTest, ServicesUsingPredefinedAddressesCanCommunicate) {
     bool serviceNameAcquired = runtime->registerService(commonApiAddress.getDomain(), commonApiAddress.getInstance(), stub, "connection");
     for(unsigned int i = 0; !serviceNameAcquired && i < 100; i++) {
         serviceNameAcquired = runtime->registerService(commonApiAddress.getDomain(), commonApiAddress.getInstance(), stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceNameAcquired);
 
     for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -451,11 +451,11 @@ TEST_F(AddressTranslatorTest, ServicesUsingPredefinedAddressesCanCommunicate) {
 #ifndef WIN32
 
 const std::string domainOfFakeLegacyService = "local";
-const std::string interfaceOfFakeLegacyService = "fake.legacy.service.LegacyInterface";
+const std::string interfaceOfFakeLegacyService = "fake.legacy.service.LegacyInterface:v1_0";
 const std::string instanceOfFakeLegacyService = "fake.legacy.service";
 
 const std::string domainOfFakeLegacyServiceNoObjectManager = "local";
-const std::string interfaceOfFakeLegacyServiceNoObjectManager = "fake.legacy.service.LegacyInterfaceNoObjectManager";
+const std::string interfaceOfFakeLegacyServiceNoObjectManager = "fake.legacy.service.LegacyInterfaceNoObjectManager:v1_0";
 const std::string instanceOfFakeLegacyServiceNoObjectManager = "fake.legacy.service";
 
 TEST_F(AddressTranslatorTest, CreatedProxyHasCorrectCommonApiAddress) {
@@ -496,7 +496,7 @@ void fakeLegacyServiceThreadNoObjectMananger() {
 
 TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressed) {
     std::thread fakeServiceThread = std::thread(fakeLegacyServiceThread);
-    usleep(500000);
+    std::this_thread::sleep_for(std::chrono::microseconds(500000));
 
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
     ASSERT_TRUE((bool)runtime);
@@ -508,7 +508,6 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressed) {
     ASSERT_EQ(domainOfFakeLegacyService, address.getDomain());
     ASSERT_EQ(interfaceOfFakeLegacyService, address.getInterface());
     ASSERT_EQ(instanceOfFakeLegacyService, address.getInstance());
-
     proxyForFakeLegacyService->isAvailableBlocking();
 
     CommonAPI::CallStatus status;
@@ -532,14 +531,14 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressed) {
     }
 
     //end the fake legacy service via dbus
-    callPythonService("sendToFakeLegacyService.py finish " + interfaceOfFakeLegacyService);
+    callPythonService("sendToFakeLegacyService.py finish fake.legacy.service.LegacyInterface");
 
     fakeServiceThread.join();
 }
 
 TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressedNoObjectManager) {
     std::thread fakeServiceThreadNoObjectManager = std::thread(fakeLegacyServiceThreadNoObjectMananger);
-    usleep(500000);
+    std::this_thread::sleep_for(std::chrono::microseconds(500000));
 
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
     ASSERT_TRUE((bool)runtime);
@@ -575,7 +574,7 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressedNoObjectManager) {
     }
 
     //end the fake legacy service via dbus
-    callPythonService("sendToFakeLegacyService.py finish " + interfaceOfFakeLegacyServiceNoObjectManager);
+    callPythonService("sendToFakeLegacyService.py finish fake.legacy.service.LegacyInterfaceNoObjectManager");
 
     fakeServiceThreadNoObjectManager.join();
 }

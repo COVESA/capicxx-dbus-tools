@@ -173,14 +173,14 @@ TEST_F(DBusMainLoopTest, ProxyInDemoMainloopCanCallMethods) {
         VERSION::commonapi::tests::TestInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, testAddress2, stub, "connection"));
 
-    usleep(500000);
+    std::this_thread::sleep_for(std::chrono::microseconds(500000));
 
     auto proxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain, testAddress2, context_);
     ASSERT_TRUE((bool) proxy);
 
     while (!proxy->isAvailable()) {
         mainLoop_->doSingleIteration();
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     uint32_t uint32Value = 42;
@@ -212,7 +212,7 @@ TEST_F(DBusMainLoopTest, ProxyAndServiceInSameDemoMainloopCanCommunicate) {
 
     while (!proxy->isAvailable()) {
         mainLoop_->doSingleIteration();
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     uint32_t uint32Value = 42;
@@ -427,7 +427,7 @@ TEST_F(DBusInGLibMainLoopTest, ProxyInGLibMainloopCanCallMethods) {
 
     while(!proxy->isAvailable()) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     uint32_t uint32Value = 24;
@@ -444,7 +444,7 @@ TEST_F(DBusInGLibMainLoopTest, ProxyInGLibMainloopCanCallMethods) {
 
     while(running_) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     ASSERT_EQ(toString(CommonAPI::CallStatus::SUCCESS), toString(futureStatus.get()));
@@ -466,7 +466,7 @@ TEST_F(DBusInGLibMainLoopTest, ServiceInGLibMainloopCanBeAddressed) {
 
     while(!proxy->isAvailable()) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     std::future<CommonAPI::CallStatus> futureStatus = proxy->testVoidPredefinedTypeMethodAsync(
@@ -483,7 +483,7 @@ TEST_F(DBusInGLibMainLoopTest, ServiceInGLibMainloopCanBeAddressed) {
 
     while(running_) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     ASSERT_EQ(toString(CommonAPI::CallStatus::SUCCESS), toString(futureStatus.get()));
@@ -505,7 +505,7 @@ TEST_F(DBusInGLibMainLoopTest, ProxyAndServiceInSameGlibMainloopCanCommunicate) 
 
     while(!proxy->isAvailable()) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     std::future<CommonAPI::CallStatus> futureStatus = proxy->testVoidPredefinedTypeMethodAsync(
@@ -522,7 +522,7 @@ TEST_F(DBusInGLibMainLoopTest, ProxyAndServiceInSameGlibMainloopCanCommunicate) 
 
     while(running_) {
         g_main_context_iteration(NULL, mayBlock_);
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
     }
 
     ASSERT_EQ(toString(CommonAPI::CallStatus::SUCCESS), toString(futureStatus.get()));

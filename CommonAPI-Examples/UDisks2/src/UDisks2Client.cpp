@@ -35,7 +35,7 @@ int main(const int argc,  const char * const argv[]) {
 
     std::cout << "Checking 'org.freedesktop.UDisks2' availability.." << std::endl;
     while (!rootProxy->isAvailable()) {
-        usleep(10);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     std::cout << "\t..available." << std::endl;
 

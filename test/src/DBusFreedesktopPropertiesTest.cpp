@@ -35,14 +35,14 @@ protected:
         registerTestStub();
 
         for (unsigned int i = 0; !proxy_->isAvailable() && i < 100; ++i) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
         ASSERT_TRUE(proxy_->isAvailable());
     }
 
     virtual void TearDown() {
         deregisterTestStub();
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     void registerTestStub() {
@@ -114,7 +114,7 @@ TEST_F(FreedesktopPropertiesTest, CanSendAndReceiveNotificationForSingleProperty
         }
     });
 
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
 
     testAttribute.getChangedEvent().subscribe(listener);
 
@@ -129,7 +129,7 @@ TEST_F(FreedesktopPropertiesTest, CanSendAndReceiveNotificationForSingleProperty
 
     uint8_t waitCounter = 0;
     while(!callbackArrived && waitCounter < 10) {
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
         waitCounter++;
     }
 
@@ -153,7 +153,7 @@ TEST_F(FreedesktopPropertiesTest, CanSendAndReceiveNotificationForEnumProperty) 
         }
     });
 
-    usleep(200000);
+    std::this_thread::sleep_for(std::chrono::microseconds(200000));
 
     testAttribute.getChangedEvent().subscribe(listener);
 
@@ -168,7 +168,7 @@ TEST_F(FreedesktopPropertiesTest, CanSendAndReceiveNotificationForEnumProperty) 
 
     uint8_t waitCounter = 0;
     while(!callbackArrived && waitCounter < 10) {
-        usleep(50000);
+        std::this_thread::sleep_for(std::chrono::microseconds(50000));
         waitCounter++;
     }
 
@@ -185,14 +185,14 @@ protected:
         registerTestStub();
 
         for (unsigned int i = 0; !proxy_->isAvailable() && i < 100; ++i) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
         ASSERT_TRUE(proxy_->isAvailable());
     }
 
     virtual void TearDown() {
         deregisterTestStub();
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     void registerTestStub() {

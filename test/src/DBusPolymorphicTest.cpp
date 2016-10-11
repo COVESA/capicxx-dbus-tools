@@ -20,7 +20,7 @@
 #include <v1/commonapi/tests/TestInterfaceDBusStubAdapter.hpp>
 #include <v1/commonapi/tests/TestInterfaceStubDefault.hpp>
 
-static const std::string interfaceName = "commonapi.tests.TestInterface";
+static const std::string interfaceName = "commonapi.tests.TestInterface.v1_0";
 static const std::string busName = "commonapi.tests.TestInterface_CommonAPI.DBus.tests.DBusProxyTestService";
 static const std::string objectPath = "/CommonAPI/DBus/tests/DBusProxyTestService";
 
@@ -52,10 +52,10 @@ public:
         _reply();
     }
 
-                   
+
     void TestMapOfPolymorphicStructMethod(
-        const std::shared_ptr<CommonAPI::ClientId> clientId, 
-        ::commonapi::tests::DerivedTypeCollection::MapIntToPolymorphic inMap, 
+        const std::shared_ptr<CommonAPI::ClientId> clientId,
+        ::commonapi::tests::DerivedTypeCollection::MapIntToPolymorphic inMap,
         TestMapOfPolymorphicStructMethodReply_t _reply) {
         (void)clientId;
 
@@ -84,8 +84,8 @@ public:
     }
 
     void TestStructWithPolymorphicMemberMethod(
-        const std::shared_ptr<CommonAPI::ClientId> _client, 
-        ::commonapi::tests::DerivedTypeCollection::StructWithPolymorphicMember inStruct, 
+        const std::shared_ptr<CommonAPI::ClientId> _client,
+        ::commonapi::tests::DerivedTypeCollection::StructWithPolymorphicMember inStruct,
         TestStructWithPolymorphicMemberMethodReply_t _reply) {
         (void)_client;
 
@@ -120,7 +120,7 @@ protected:
         registerTestStub();
 
         for (unsigned int i = 0; !proxy_->isAvailable() && i < 100; ++i) {
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
         ASSERT_TRUE(proxy_->isAvailable());
 
@@ -133,7 +133,7 @@ protected:
 
     virtual void TearDown() {
         deregisterTestStub();
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     void registerTestStub() {
@@ -141,7 +141,7 @@ protected:
         ASSERT_TRUE(stubDBusConnection_->connect());
 
         testStub = std::make_shared<PolymorphicTestStub>();
-        stubAdapter_ = std::make_shared<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter>(CommonAPI::DBus::DBusAddress(busName, objectPath, interfaceName), stubDBusConnection_, testStub);
+        stubAdapter_ = std::make_shared<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter<VERSION::commonapi::tests::TestInterfaceStub>>(CommonAPI::DBus::DBusAddress(busName, objectPath, interfaceName), stubDBusConnection_, testStub);
         stubAdapter_->init(stubAdapter_);
 
         const bool isStubAdapterRegistered = CommonAPI::Runtime::get()->registerService(
@@ -164,7 +164,7 @@ protected:
     std::shared_ptr<VERSION::commonapi::tests::TestInterfaceDBusProxy> proxy_;
 
     std::shared_ptr<CommonAPI::DBus::DBusConnection> stubDBusConnection_;
-    std::shared_ptr<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter> stubAdapter_;
+    std::shared_ptr<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter<VERSION::commonapi::tests::TestInterfaceStub>> stubAdapter_;
 
     std::shared_ptr<::commonapi::tests::DerivedTypeCollection::TestPolymorphicStruct> baseInstance1_;
     std::shared_ptr<::commonapi::tests::DerivedTypeCollection::TestExtendedPolymorphicStruct> extendedInstance1_;

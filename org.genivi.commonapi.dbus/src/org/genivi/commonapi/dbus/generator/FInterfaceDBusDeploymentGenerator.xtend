@@ -160,27 +160,27 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
     '''
 
     def protected dispatch String generateDeploymentDeclaration(FAttribute _attribute, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_attribute)) {
-            return "extern " + _attribute.getDeploymentType(null, true) + " " + _attribute.name + "Deployment;"
+        if (_accessor.hasSpecificDeployment(_attribute) || (_attribute.array && _accessor.hasDeployment(_attribute))) {
+            return "extern " + _attribute.getDeploymentType(_interface, true) + " " + _attribute.name + "Deployment;"
         }
         return ""
     }
 
     def protected String generateDeploymentDeclaration(FArgument _argument, FMethod _method, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_argument)) {
-            return "extern " + _argument.getDeploymentType(null, true) + " " + _method.name + "_" + _argument.name + "Deployment;"
+        if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
+            return "extern " + _argument.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "Deployment;"
         }
     }
 
     def protected String generateDeploymentDeclaration(FArgument _argument, FBroadcast _broadcast, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_argument)) {
-            return "extern " + _argument.getDeploymentType(null, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment;"
+        if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
+            return "extern " + _argument.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment;"
         }
     }
 
     def protected dispatch String generateDeploymentDefinition(FAttribute _attribute, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_attribute)) {
-            var String definition = _attribute.getDeploymentType(null, true) + " " + _attribute.name + "Deployment("
+        if (_accessor.hasSpecificDeployment(_attribute) || (_attribute.array && _accessor.hasDeployment(_attribute))) {
+            var String definition = _attribute.getDeploymentType(_interface, true) + " " + _attribute.name + "Deployment("
             definition += _attribute.getDeploymentParameter(_attribute, _accessor)
             definition += ");"
             return definition
@@ -189,8 +189,8 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
     }
 
     def protected String generateDeploymentDefinition(FArgument _argument, FMethod _method, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_argument)) {
-            var String definition = _argument.getDeploymentType(null, true) + " " + _method.name + "_" + _argument.name + "Deployment("
+        if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
+            var String definition = _argument.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "Deployment("
             definition += _argument.getDeploymentParameter(_argument, _accessor)
             definition += ");"
             return definition
@@ -198,8 +198,8 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
     }
 
     def protected String generateDeploymentDefinition(FArgument _argument, FBroadcast _broadcast, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_argument)) {
-            var String definition = _argument.getDeploymentType(null, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment("
+        if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
+            var String definition = _argument.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment("
             definition += _argument.getDeploymentParameter(_argument, _accessor)
             definition += ");"
             return definition

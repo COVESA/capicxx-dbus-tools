@@ -44,7 +44,7 @@ static const std::string domain = "local";
 static const std::string commonApiAddress = "CommonAPI.DBus.tests.DBusProxyTestService";
 static const std::string commonApiAddressExtended = "CommonAPI.DBus.tests.DBusProxyTestService2";
 static const std::string commonApiServiceName = "CommonAPI.DBus.tests.DBusProxyTestInterface";
-static const std::string interfaceName = "commonapi.tests.TestInterface";
+static const std::string interfaceName = "commonapi.tests.TestInterface.v1_0";
 static const std::string busName = "commonapi.tests.TestInterface_CommonAPI.DBus.tests.DBusProxyTestService";
 static const std::string objectPath = "/CommonAPI/DBus/tests/DBusProxyTestService";
 static const std::string objectPathExtended = "/CommonAPI/DBus/tests/DBusProxyTestService2";
@@ -69,7 +69,7 @@ protected:
     std::shared_ptr<CommonAPI::Runtime> runtime_;
 
     virtual void TearDown() {
-        usleep(300000);
+        std::this_thread::sleep_for(std::chrono::microseconds(300000));
     }
 
     void registerTestStub() {
@@ -77,7 +77,7 @@ protected:
         bool isTestStubAdapterRegistered_ = runtime_->registerService<VERSION::commonapi::tests::TestInterfaceStub>(domain, commonApiAddress, stubDefault_, "serviceConnection");
         ASSERT_TRUE(isTestStubAdapterRegistered_);
 
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
 
     void registerExtendedStub() {
@@ -86,7 +86,7 @@ protected:
         bool isExtendedStubAdapterRegistered_ = runtime_->registerService<VERSION::commonapi::tests::ExtendedInterfaceStub>(domain, commonApiAddressExtended, stubExtended_, "serviceConnection");
         ASSERT_TRUE(isExtendedStubAdapterRegistered_);
 
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
 
     void deregisterTestStub() {
@@ -111,7 +111,7 @@ protected:
         proxyStatusSubscription_ = proxy_->getProxyStatusEvent().subscribe([&](const CommonAPI::AvailabilityStatus& availabilityStatus) {
             proxyAvailabilityStatus_ = availabilityStatus;
         });
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
 
     void proxyDeregisterForAvailabilityStatus() {
@@ -123,7 +123,7 @@ protected:
             if (proxyAvailabilityStatus_ == availabilityStatus) {
                 return true;
             }
-            usleep(200000);
+            std::this_thread::sleep_for(std::chrono::microseconds(200000));
         }
 
         return false;
@@ -177,38 +177,28 @@ TEST_F(ProxyTest, DBusProxyStatusEventBeforeServiceIsRegistered) {
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::AVAILABLE));
 
     deregisterTestStub();
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
 
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::NOT_AVAILABLE));
 
     proxyDeregisterForAvailabilityStatus();
 }
 
-/*
-This test fails in Windows. Calling disconnect and then connect again somehow
-damages the connection in libdbus. In Linux this all works fine.
-*/
-#ifndef WIN32
 TEST_F(ProxyTest, DBusProxyStatusEventAfterServiceIsRegistered) {
-    proxyDBusConnection_->disconnect();
 
     registerTestStub();
-
-    EXPECT_TRUE(proxyDBusConnection_->connect());
 
     proxyRegisterForAvailabilityStatus();
 
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::AVAILABLE));
 
     deregisterTestStub();
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
 
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::NOT_AVAILABLE));
 
     proxyDeregisterForAvailabilityStatus();
 }
-#endif
-
 
 TEST_F(ProxyTest, IsAvailableBlocking) {
     registerTestStub();
@@ -261,7 +251,7 @@ TEST_F(ProxyTest, CallMethodFromExtendedInterface) {
 
     // give the proxy time to become available
     for (uint32_t i = 0; !extendedProxy->isAvailable() && i < 200; ++i) {
-        usleep(20 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
     }
 
     EXPECT_TRUE(extendedProxy->isAvailable());
@@ -274,7 +264,7 @@ TEST_F(ProxyTest, CallMethodFromExtendedInterface) {
                         ASSERT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
                         wasCalled = true;
                     });
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
 
     EXPECT_TRUE(wasCalled);
     deregisterExtendedStub();
@@ -286,7 +276,7 @@ TEST_F(ProxyTest, CallMethodFromParentInterface) {
     auto extendedProxy = runtime_->buildProxy<VERSION::commonapi::tests::ExtendedInterfaceProxy>(domain, commonApiAddressExtended);
 
     for (uint32_t i = 0; !extendedProxy->isAvailable() && i < 200; ++i) {
-        usleep(10 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10 * 1000));
     }
     EXPECT_TRUE(extendedProxy->isAvailable());
     
@@ -296,7 +286,7 @@ TEST_F(ProxyTest, CallMethodFromParentInterface) {
                         ASSERT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
                         wasCalled = true;
                     });
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
     EXPECT_TRUE(wasCalled);
     
     deregisterExtendedStub();
@@ -306,7 +296,7 @@ TEST_F(ProxyTest, CanHandleRemoteAttribute) {
     registerTestStub();
 
     for (uint32_t i = 0; !proxy_->isAvailable() && i < 200; ++i) {
-        usleep(20 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
     }
     ASSERT_TRUE(proxy_->isAvailable());
 
@@ -326,7 +316,7 @@ TEST_F(ProxyTest, CanHandleRemoteAttribute) {
     EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
     EXPECT_EQ(value, responseValue);
 
-    usleep(50000);
+    std::this_thread::sleep_for(std::chrono::microseconds(50000));
     deregisterTestStub();
 }
 
@@ -337,14 +327,14 @@ TEST_F(ProxyTest, CanHandleRemoteAttributeFromParentInterface) {
     auto extendedProxy = runtime_->buildProxy<VERSION::commonapi::tests::ExtendedInterfaceProxy>(domain, commonApiAddressExtended);
 
     for (uint32_t i = 0; !extendedProxy->isAvailable() && i < 200; ++i) {
-        usleep(20 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
     }
     ASSERT_TRUE(extendedProxy->isAvailable());
 
     CommonAPI::CallStatus callStatus(CommonAPI::CallStatus::REMOTE_ERROR);
     uint32_t value;
 
-    usleep(50000);
+    std::this_thread::sleep_for(std::chrono::microseconds(50000));
     
     auto& testAttribute = extendedProxy->getTestPredefinedTypeAttributeAttribute();
 
@@ -359,7 +349,7 @@ TEST_F(ProxyTest, CanHandleRemoteAttributeFromParentInterface) {
     EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
     EXPECT_EQ(value, responseValue);
     
-    usleep(50000);
+    std::this_thread::sleep_for(std::chrono::microseconds(50000));
     deregisterExtendedStub();
 }
 
@@ -369,7 +359,7 @@ TEST_F(ProxyTest, ProxyCanFetchVersionAttributeFromInheritedInterfaceStub) {
     auto extendedProxy = runtime_->buildProxy<VERSION::commonapi::tests::ExtendedInterfaceProxy>(domain, commonApiAddressExtended);
 
     for (uint32_t i = 0; !extendedProxy->isAvailable() && i < 200; ++i) {
-        usleep(20 * 1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
     }
     EXPECT_TRUE(extendedProxy->isAvailable());
 
@@ -386,7 +376,7 @@ TEST_F(ProxyTest, ProxyCanFetchVersionAttributeFromInheritedInterfaceStub) {
     });
 
     futureVersion.wait();
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
 
     EXPECT_TRUE(wasCalled);
 
@@ -410,7 +400,7 @@ protected:
             VERSION::commonapi::tests::TestInterfaceStub>(domain, commonApiAddress, stubDefault_, "serviceConnection");
         ASSERT_TRUE(isTestStubAdapterRegistered_);
 
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
 
     void deregisterTestStub(const std::string commonApiAddress) {
@@ -470,7 +460,7 @@ TEST_F(ProxyTest2, DBusProxyStatusEventAfterServiceIsRegistered) {
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::AVAILABLE));
 
     deregisterTestStub(commonApiAddress);
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::microseconds(100000));
 
     EXPECT_TRUE(proxyWaitForAvailabilityStatus(CommonAPI::AvailabilityStatus::NOT_AVAILABLE));
 
@@ -500,7 +490,7 @@ TEST_F(ProxyTest2, DBusProxyCanUseOrgFreedesktopAddress) {
                             ASSERT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
                             wasCalled = true;
                         });
-        usleep(100000);
+        std::this_thread::sleep_for(std::chrono::microseconds(100000));
         EXPECT_TRUE(wasCalled);
     }
 

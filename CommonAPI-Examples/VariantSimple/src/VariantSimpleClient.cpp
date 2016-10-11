@@ -53,7 +53,7 @@ int main(int argc, const char * const argv[])
 
     std::cout << "Checking availability!" << std::endl;
     while (!myProxy->isAvailable()) {
-        usleep(10);
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     std::cout << "Available..." << std::endl;
 

@@ -51,7 +51,7 @@ class DBusCommunicationTest: public ::testing::Test {
         runtime_->unregisterService(domain_, interface_, serviceAddress3_);
         runtime_->unregisterService(domain_, interface_, serviceAddress4_);
         runtime_->unregisterService(domain_, interface_, serviceAddress5_);
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     std::shared_ptr<CommonAPI::Runtime> runtime_;
@@ -86,12 +86,12 @@ TEST_F(DBusCommunicationTest, RemoteMethodCallSucceeds) {
     bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
     for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -115,7 +115,7 @@ TEST_F(DBusCommunicationTest, AccessStubAdapterAfterInitialised) {
         if (!serviceRegistered) {
             serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
         }
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
     ASSERT_EQ(in, stub->getTestPredefinedTypeAttributeAttribute());
@@ -134,7 +134,7 @@ TEST_F(DBusCommunicationTest, AccessStubAdapterBeforeInitialised) {
         if (!serviceRegistered) {
             serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
         }
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 }
@@ -163,14 +163,14 @@ TEST_F(DBusCommunicationTest, SameStubCanBeRegisteredSeveralTimes) {
         if (!serviceRegistered3) {
             serviceRegistered3 = runtime_->registerService(domain_, serviceAddress3_, stub, "connection");
         }
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
     ASSERT_TRUE(serviceRegistered2);
     ASSERT_TRUE(serviceRegistered3);
 
     for(unsigned int i = 0; (!defaultTestProxy->isAvailable() || !defaultTestProxy2->isAvailable() || !defaultTestProxy3->isAvailable()) && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
     ASSERT_TRUE(defaultTestProxy2->isAvailable());
@@ -199,12 +199,12 @@ TEST_F(DBusCommunicationTest, RemoteMethodCallWithNonstandardAddressSucceeds) {
     bool serviceRegistered = runtime_->registerService(domain_, nonstandardAddress_, stub, "connection");
     for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, nonstandardAddress_, stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -227,12 +227,12 @@ TEST_F(DBusCommunicationTest, MixedSyncAndAsyncCallsSucceed) {
     bool serviceRegistered = runtime_->registerService(domain_, serviceAddress5_, stub, "connection");
     for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, serviceAddress5_, stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for (unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -253,7 +253,7 @@ TEST_F(DBusCommunicationTest, MixedSyncAndAsyncCallsSucceed) {
     }
 
     for (unsigned int i = 0; i < 500 && responseCounter < 10; i++) {
-        usleep(1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(1000));
     }
     EXPECT_EQ(10u, responseCounter);
 }
@@ -269,12 +269,12 @@ TEST_F(DBusCommunicationTest, RemoteMethodCallHeavyLoad) {
     bool serviceRegistered = runtime_->registerService(domain_, serviceAddress4_, stub, "connection");
     for (unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, serviceAddress4_, stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
     for (unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -300,7 +300,7 @@ TEST_F(DBusCommunicationTest, ProxyCanFetchVersionAttributeFromStub) {
     ASSERT_TRUE(serviceRegistered);
 
     for (unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
 
@@ -330,7 +330,7 @@ TEST_F(DBusCommunicationTest, ProxyCanFetchVersionAttributeFromStub) {
 //    bool serviceRegistered = stubFactory_->registerService(stub, serviceAddress_);
 //    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
 //        serviceRegistered = stubFactory_->registerService(stub, serviceAddress_);
-//        usleep(10000);
+//        std::this_thread::sleep_for(std::chrono::microseconds(10000));
 //    }
 //    ASSERT_TRUE(serviceRegistered);
 //
@@ -342,7 +342,7 @@ TEST_F(DBusCommunicationTest, ProxyCanFetchVersionAttributeFromStub) {
 //                            proxyDBusConnection);
 //
 //    for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
-//        usleep(10000);
+//        std::this_thread::sleep_for(std::chrono::microseconds(10000));
 //    }
 //    ASSERT_TRUE(defaultTestProxy->isAvailable());
 //
@@ -411,7 +411,7 @@ class DBusLowLevelCommunicationTest: public ::testing::Test {
     }
 
     virtual void TearDown() {
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
     }
 
     std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> createDBusStubAdapter(std::shared_ptr<CommonAPI::DBus::DBusConnection> dbusConnection,
@@ -422,7 +422,8 @@ class DBusLowLevelCommunicationTest: public ::testing::Test {
         std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> dbusStubAdapter;
         std::shared_ptr<VERSION::commonapi::tests::TestInterfaceStubDefault> stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubDefault>();
 
-        dbusStubAdapter = std::make_shared<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter>(dbusAddress, dbusConnection, stub);
+        dbusStubAdapter = std::make_shared<VERSION::commonapi::tests::TestInterfaceDBusStubAdapter<VERSION::commonapi::tests::TestInterfaceStub>>(dbusAddress, dbusConnection, stub);
+
         dbusStubAdapter->init(dbusStubAdapter);
 
         std::shared_ptr<CommonAPI::DBus::DBusObjectManagerStub> rootDBusObjectManagerStub = dbusConnection->getDBusObjectManager()->getRootDBusObjectManagerStub();
@@ -439,15 +440,15 @@ class DBusLowLevelCommunicationTest: public ::testing::Test {
     std::shared_ptr<CommonAPI::Factory> proxyFactory_;
 
     static const std::string domain_;
-    static const std::string lowLevelAddress_;
+    static const std::string lowLevelCapiAddress_;
     static const std::string lowLevelAddressInstance_;
     static const std::string lowLevelConnectionName_;
 };
 
 const std::string DBusLowLevelCommunicationTest::domain_ = "local";
-const std::string DBusLowLevelCommunicationTest::lowLevelAddress_ = "local:commonapi.tests.TestInterface:CommonAPI.DBus.tests.DBusProxyLowLevelService";
+const std::string DBusLowLevelCommunicationTest::lowLevelCapiAddress_ = "local:commonapi.tests.TestInterface:v1_0:CommonAPI.DBus.tests.DBusProxyLowLevelService";
 const std::string DBusLowLevelCommunicationTest::lowLevelAddressInstance_ = "CommonAPI.DBus.tests.DBusProxyLowLevelService";
-const std::string DBusLowLevelCommunicationTest::lowLevelConnectionName_ = "commonapi.tests.TestInterface_CommonAPI.DBus.tests.DBusProxyLowLevelService";
+const std::string DBusLowLevelCommunicationTest::lowLevelConnectionName_ = "commonapi.tests.TestInterface.v1_0_CommonAPI.DBus.tests.DBusProxyLowLevelService";
 
 namespace DBusCommunicationTestNamespace {
 ::DBusHandlerResult onLibdbusObjectPathMessageThunk(::DBusConnection* libdbusConnection,
@@ -479,7 +480,7 @@ TEST_F(DBusLowLevelCommunicationTest, AgressiveNameClaimingOfServicesIsHandledCo
         status = stat;
     });
 
-    usleep(1000000);
+    std::this_thread::sleep_for(std::chrono::microseconds(1000000));
 
     EXPECT_EQ(1u, counter);
     EXPECT_EQ(CommonAPI::AvailabilityStatus::NOT_AVAILABLE, status);
@@ -510,7 +511,7 @@ TEST_F(DBusLowLevelCommunicationTest, AgressiveNameClaimingOfServicesIsHandledCo
     //Test first connect
     std::shared_ptr<CommonAPI::DBus::DBusConnection> dbusConnection1 = std::make_shared<CommonAPI::DBus::DBusConnection>(libdbusConnection1, "connection1");
     ASSERT_TRUE(dbusConnection1->isConnected());
-    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter1 = createDBusStubAdapter(dbusConnection1, lowLevelAddress_);
+    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter1 = createDBusStubAdapter(dbusConnection1, lowLevelCapiAddress_);
 
     int libdbusStatus = dbus_bus_request_name(libdbusConnection1,
                     lowLevelConnectionName_.c_str(),
@@ -523,7 +524,7 @@ TEST_F(DBusLowLevelCommunicationTest, AgressiveNameClaimingOfServicesIsHandledCo
                     NULL,
                     NULL);
 
-    usleep(1000000);
+    std::this_thread::sleep_for(std::chrono::microseconds(1000000));
 
     EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, libdbusStatus);
     EXPECT_EQ(2u, counter);
@@ -532,7 +533,7 @@ TEST_F(DBusLowLevelCommunicationTest, AgressiveNameClaimingOfServicesIsHandledCo
     //Test second connect
     std::shared_ptr<CommonAPI::DBus::DBusConnection> dbusConnection2 = std::make_shared<CommonAPI::DBus::DBusConnection>(libdbusConnection2, "connection2");
     ASSERT_TRUE(dbusConnection2->isConnected());
-    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter2 = createDBusStubAdapter(dbusConnection2, lowLevelAddress_);
+    std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> adapter2 = createDBusStubAdapter(dbusConnection2, lowLevelCapiAddress_);
 
     libdbusStatus = dbus_bus_request_name(libdbusConnection2,
                     lowLevelConnectionName_.c_str(),
@@ -545,7 +546,7 @@ TEST_F(DBusLowLevelCommunicationTest, AgressiveNameClaimingOfServicesIsHandledCo
                     NULL,
                     NULL);
 
-    usleep(1000000);
+    std::this_thread::sleep_for(std::chrono::microseconds(1000000));
 
     EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, libdbusStatus);
 

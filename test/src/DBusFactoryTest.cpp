@@ -71,7 +71,7 @@ class DBusProxyFactoryTest: public ::testing::Test {
     }
 
     virtual void TearDown() {
-        usleep(30000);
+        std::this_thread::sleep_for(std::chrono::microseconds(30000));
         std::remove(configFileName_.c_str());
     }
 

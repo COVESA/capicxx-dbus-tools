@@ -224,7 +224,7 @@ class FInterfaceDBusProxyGenerator {
                  «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
                  «FOR i : p.instances.filter[target == fInterface]»
                      CommonAPI::DBus::DBusAddressTranslator::get()->insert(
-                         "local:«fInterface.fullyQualifiedName»:«providerAccessor.getInstanceId(i)»",
+                         "local:«fInterface.fullyQualifiedNameWithVersion»:«providerAccessor.getInstanceId(i)»",
                          "«providerAccessor.getDBusServiceName(i)»",
                          "«providerAccessor.getDBusObjectPath(i)»",
                          "«providerAccessor.getDBusInterfaceName(i)»");
@@ -252,7 +252,7 @@ class FInterfaceDBusProxyGenerator {
             getDeployments(fInterface, deploymentAccessor)»)
                 «ENDFOR»
                 «FOR managed : fInterface.managedInterfaces BEFORE ',' SEPARATOR ','»
-                    «managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName»")
+                    «managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName».«managed.interfaceVersion»","«managed.fullyQualifiedNameWithVersion»")
                 «ENDFOR»
         {
             «FOR p : providers»
@@ -426,7 +426,7 @@ class FInterfaceDBusProxyGenerator {
         var ret = fAttribute.dbusClassVariableName + '(*this'
 
         if (deploymentAccessor.getPropertiesType(fInterface) == PropertyAccessor.PropertiesType.freedesktop) {
-            ret = ret + ', getAddress().getInterface(), "' + fAttribute.elementName + '"'
+            ret = ret + ', getDBusAddress().getInterface(), "' + fAttribute.elementName + '"'
         } else {
 
             if (fAttribute.isObservable)

@@ -61,7 +61,7 @@ protected:
     }
 
     virtual void TearDown() {
-        usleep(1000000);
+        std::this_thread::sleep_for(std::chrono::microseconds(1000000));
     }
 
 public:
@@ -115,7 +115,7 @@ TEST_F(DBusLoadTest, SingleClientMultipleProxiesSingleStubCallsSucceed) {
     bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
     for (auto i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -126,7 +126,7 @@ TEST_F(DBusLoadTest, SingleClientMultipleProxiesSingleStubCallsSucceed) {
             allProxiesAvailable = allProxiesAvailable && testProxies[j]->isAvailable();
         }
         if (!allProxiesAvailable)
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(allProxiesAvailable);
 
@@ -154,7 +154,7 @@ TEST_F(DBusLoadTest, SingleClientMultipleProxiesSingleStubCallsSucceed) {
     for (unsigned int i = 0; !allCallsSucceeded && i < 100; ++i) {
         allCallsSucceeded = std::all_of(callSucceeded_.cbegin(), callSucceeded_.cend(), [](int b){ return b; });
         if (!allCallsSucceeded)
-            usleep(100000);
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_TRUE(allCallsSucceeded);
 
@@ -176,7 +176,7 @@ TEST_F(DBusLoadTest, MultipleClientsSingleStubCallsSucceed) {
     for (auto i = 0; !serviceRegistered && i < 100; ++i) {
         serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
         if(!serviceRegistered)
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(serviceRegistered);
 
@@ -187,7 +187,7 @@ TEST_F(DBusLoadTest, MultipleClientsSingleStubCallsSucceed) {
             allProxiesAvailable = allProxiesAvailable && testProxies[j]->isAvailable();
         }
         if (!allProxiesAvailable)
-            usleep(10000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     ASSERT_TRUE(allProxiesAvailable);
 
@@ -215,7 +215,7 @@ TEST_F(DBusLoadTest, MultipleClientsSingleStubCallsSucceed) {
     for (unsigned int i = 0; !allCallsSucceeded && i < 100; ++i) {
         allCallsSucceeded = std::all_of(callSucceeded_.cbegin(), callSucceeded_.cend(), [](int b){ return b; });
         if (!allCallsSucceeded)
-            usleep(100000);
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_TRUE(allCallsSucceeded);
 
@@ -241,7 +241,7 @@ TEST_F(DBusLoadTest, MultipleClientsMultipleServersCallsSucceed) {
         for (auto j = 0; !serviceRegistered && j < 100; ++j) {
             serviceRegistered = runtime_->registerService(domain_, serviceAddress_ + std::to_string(i), testStubs[i], "connection");
             if(!serviceRegistered)
-                usleep(10000);
+                std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
         ASSERT_TRUE(serviceRegistered);
     }
@@ -253,7 +253,7 @@ TEST_F(DBusLoadTest, MultipleClientsMultipleServersCallsSucceed) {
             allProxiesAvailable = allProxiesAvailable && testProxies[j]->isAvailable();
         }
         if (!allProxiesAvailable)
-            usleep(1000000);
+            std::this_thread::sleep_for(std::chrono::microseconds(1000000));
     }
     ASSERT_TRUE(allProxiesAvailable);
 
@@ -281,7 +281,7 @@ TEST_F(DBusLoadTest, MultipleClientsMultipleServersCallsSucceed) {
     for (auto i = 0; !allCallsSucceeded && i < 100; ++i) {
         allCallsSucceeded = std::all_of(callSucceeded_.cbegin(), callSucceeded_.cend(), [](int b){ return b; });
         if (!allCallsSucceeded)
-            usleep(100000);
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ASSERT_TRUE(allCallsSucceeded);
 
