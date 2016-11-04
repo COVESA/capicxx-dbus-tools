@@ -4,7 +4,7 @@ PROJECT(libdbusglue)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 9 )
+SET( ${PROJECT_NAME}_PATCH_LEVEL 10 )
 
 message("Project name: ${PROJECT_NAME}")
 
@@ -164,8 +164,7 @@ if (MSVC)
         "src-gen/v1/commonapi/threading/*.cpp"
         "src-gen/v1/commonapi/performance/primitive/*.cpp"
         "src-gen/v1/commonapi/performance/complex/*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*.cpp"
-        "src-gen/v1/commonapi/multiprocess/bselective/*.cpp")
+        "src-gen/v1/commonapi/stability/sp/*.cpp")
 else()
     # source files
     file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*DBus*.cpp"
@@ -181,8 +180,7 @@ else()
         "src-gen/v1/commonapi/threading/*DBus*.cpp"
         "src-gen/v1/commonapi/performance/primitive/*DBus*.cpp"
         "src-gen/v1/commonapi/performance/complex/*DBus*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp"
-        "src-gen/v1/commonapi/multiprocess/bselective/*DBus*.cpp")
+        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp")
 endif()
 
 # CommonAPI-DBus library

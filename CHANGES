@@ -1,0 +1,10 @@
+Changes
+=======
+
+v3.1.10
+- Upgrade to JDK-1.8.
+- Moved mutex lock in 'DemoMainLoop::registerWatch' to avoid deadlock. The mutex was moved after registering the file descriptor. Otherwise a deadlock can occur when 'DemoMainLoop::unregisterWatch' is called in parallel.
+- Support DBus message type Error. It is now possible to deploy a broadcast with type 'error'. An error broadcast signals an occured error due to a method call and needs an appropriate error name.
+- Replace polling mechanism in Windows main-loop. The current polling mechanism of the main-loops is not reliable under Windows. It is replaced with a WSAPoll on the file descriptors instead of WSAWaitForMultipleEvents on wsa events.
+- Fix merge of core type deployments to interfaces and type collections.
+

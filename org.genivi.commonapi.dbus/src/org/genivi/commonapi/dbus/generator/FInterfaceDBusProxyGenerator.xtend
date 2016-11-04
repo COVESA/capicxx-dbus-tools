@@ -26,6 +26,7 @@ import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import java.util.List
 import org.franca.deploymodel.dsl.fDeploy.FDProvider
 import org.franca.deploymodel.core.FDeployedProvider
+import java.util.LinkedList
 
 class FInterfaceDBusProxyGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -123,7 +124,7 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
-            virtual «broadcast.generateGetMethodDefinition»;
+                virtual «broadcast.generateGetMethodDefinition»;
             «ENDFOR»
 
             «FOR method : fInterface.methods»
@@ -189,7 +190,13 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
 
             «FOR broadcast : fInterface.broadcasts»
-            «broadcast.dbusClassName(deploymentAccessor, fInterface)» «broadcast.dbusClassVariableName»;
+                «IF !broadcast.isErrorType(deploymentAccessor)»
+                    «broadcast.dbusClassName(deploymentAccessor, fInterface)» «broadcast.dbusClassVariableName»;
+                «ELSE»
+                
+                typedef «broadcast.dbusErrorEventClassName(deploymentAccessor, fInterface)» «broadcast.dbusErrorEventTypedefName(deploymentAccessor)»;
+                «broadcast.dbusErrorEventTypedefName(deploymentAccessor)» «broadcast.dbusClassVariableName»;
+                «ENDIF»
             «ENDFOR»
 
             «FOR managed : fInterface.managedInterfaces»
@@ -248,8 +255,12 @@ class FInterfaceDBusProxyGenerator {
                     «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
                 «ENDFOR»
                 «FOR broadcast : fInterface.broadcasts BEFORE ',' SEPARATOR ','»
-                    «broadcast.dbusClassVariableName»(*this, "«broadcast.elementName»", "«broadcast.dbusSignature(deploymentAccessor)»", «broadcast.
-            getDeployments(fInterface, deploymentAccessor)»)
+                    «IF !broadcast.isErrorType(deploymentAccessor)»
+                        «broadcast.dbusClassVariableName»(*this, "«broadcast.elementName»", "«broadcast.dbusSignature(deploymentAccessor)»", «broadcast.
+                getDeployments(fInterface, deploymentAccessor)»)
+                    «ELSE»
+                        «broadcast.dbusClassVariableName»(«broadcast.dbusErrorEventTypedefName(deploymentAccessor)»("«deploymentAccessor.getErrorName(broadcast)»"«IF !broadcast.errorArgs(deploymentAccessor).empty», std::make_tuple(«broadcast.errorArgs(deploymentAccessor).map[getDeploymentRef(it.array, broadcast, fInterface, deploymentAccessor)].join(', ')»)«ENDIF»))
+                    «ENDIF»
                 «ENDFOR»
                 «FOR managed : fInterface.managedInterfaces BEFORE ',' SEPARATOR ','»
                     «managed.proxyManagerMemberName»(*this, "«managed.fullyQualifiedName».«managed.interfaceVersion»","«managed.fullyQualifiedNameWithVersion»")
@@ -275,9 +286,15 @@ class FInterfaceDBusProxyGenerator {
             «broadcast.generateGetMethodDefinitionWithin(fInterface.dbusProxyClassName)» {
                 return «broadcast.dbusClassVariableName»;
             }
-            «ENDFOR»
+              «ENDFOR»
 
             «FOR method : fInterface.methods»
+                «var errorClasses = new LinkedList()»
+                «FOR broadcast : fInterface.broadcasts»
+                    «IF broadcast.isErrorType(method, deploymentAccessor)»
+                        «{errorClasses.add('&' + broadcast.dbusClassVariableName);""}»
+                    «ENDIF»
+                «ENDFOR»
                 «val timeout = method.getTimeout(deploymentAccessor)»
                 «val inParams = method.generateInParams(deploymentAccessor)»
                 «IF generateSyncCalls || method.isFireAndForget»
@@ -300,7 +317,8 @@ class FInterfaceDBusProxyGenerator {
             «IF inParams != ""»«inParams»,«ENDIF»
             _internalCallStatus«IF method.hasError»,
             deploy_error«ENDIF»«IF outParams != ""»,
-            «outParams»«ENDIF»);
+            «outParams»«ENDIF»«IF !method.isFireAndForget && !errorClasses.empty»,
+            «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
             «method.generateOutParamsValue(deploymentAccessor)»
             }
             «ENDIF»
@@ -316,7 +334,8 @@ class FInterfaceDBusProxyGenerator {
                     "«method.dbusInSignature(deploymentAccessor)»",
                     (_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),
                     «IF inParams != ""»«inParams»,«ENDIF»
-                    «method.generateCallback(fInterface, deploymentAccessor)»);
+                    «method.generateCallback(fInterface, deploymentAccessor)»«IF !errorClasses.empty»,
+                    «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
                 }
             «ENDIF»
               «ENDFOR»
@@ -358,6 +377,12 @@ class FInterfaceDBusProxyGenerator {
 
         return classVariableName
     }
+    
+    def private dbusErrorEventTypedefName(FBroadcast fBroadcast, PropertyAccessor deploymentAccessor) {
+        checkArgument(fBroadcast.isErrorType(deploymentAccessor), 'FBroadcast is no error type: ' + fBroadcast)
+        
+        return 'DBus' + fBroadcast.className
+    }
 
     def private dbusProxyHeaderFile(FInterface fInterface) {
         fInterface.elementName + "DBusProxy.hpp"
@@ -381,6 +406,12 @@ class FInterfaceDBusProxyGenerator {
 
     def private generateDBusProxyHelperClass(FMethod fMethod,
         FInterface _interface, PropertyAccessor _accessor) '''
+        «var errorEventTypedefs = new LinkedList()»
+        «FOR broadcast : _interface.broadcasts»
+            «IF broadcast.isErrorType(fMethod, _accessor)»
+                «{errorEventTypedefs.add(broadcast.dbusErrorEventTypedefName(_accessor));""}»
+            «ENDIF»
+        «ENDFOR»
     CommonAPI::DBus::DBusProxyHelper<
         CommonAPI::DBus::DBusSerializableArguments<
         «FOR a : fMethod.inArgs»
@@ -394,7 +425,8 @@ class FInterfaceDBusProxyGenerator {
         «FOR a : fMethod.outArgs»
             CommonAPI::Deployable< «a.getTypeName(fMethod, true)»,«a.getDeploymentType(_interface, true)»>«IF a != fMethod.outArgs.last»,«ENDIF»
         «ENDFOR»
-        >
+        >«IF !errorEventTypedefs.empty»,«ENDIF»
+        «errorEventTypedefs.map[it].join(',\n')»
         >'''
 
     def private dbusClassName(FAttribute fAttribute, PropertyAccessor deploymentAccessor, FInterface fInterface) {
@@ -465,6 +497,17 @@ class FInterfaceDBusProxyGenerator {
         ret = ret + '>'
 
         return ret
+    }
+    
+    def private dbusErrorEventClassName(FBroadcast fBroadcast, PropertyAccessor deploymentAccessor, FInterface fInterface) {
+        checkArgument(fBroadcast.isErrorType(deploymentAccessor), 'FBroadcast is no error type: ' + fBroadcast)
+
+        var ret = 'CommonAPI::DBus::DBusErrorEvent<\n'
+        if (fBroadcast.outArgs.size > 1) {
+            ret = ret + '    std::tuple< ' + fBroadcast.errorArgs(deploymentAccessor).map[it.getTypeName(fInterface, true)].join(', ') + '>,\n'
+            ret = ret + '    std::tuple< ' + fBroadcast.errorArgs(deploymentAccessor).map[it.getDeploymentType(fInterface, true)].join(', ') + '>\n'
+        }
+        return ret + '>'
     }
 
     def private generateProxyHelperDeployments(FMethod _method,

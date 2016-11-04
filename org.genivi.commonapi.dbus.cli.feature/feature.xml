@@ -2,7 +2,7 @@
 <feature
       id="org.genivi.commonapi.dbus.cli.feature"
       label="CommonAPI D-Bus CLI Generator Feature"
-      version="3.1.9.qualifier"
+      version="3.1.10.qualifier"
       provider-name="BMW AG">
 
    <description url="http://www.example.com/description">

@@ -24,6 +24,7 @@ import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import java.util.List
 import org.franca.deploymodel.dsl.fDeploy.FDProvider
 import org.franca.deploymodel.core.FDeployedProvider
+import java.util.LinkedList
 
 class FInterfaceDBusStubAdapterGenerator {
     @Inject private extension FrancaGeneratorExtensions
@@ -120,7 +121,9 @@ class FInterfaceDBusStubAdapterGenerator {
                     void «broadcast.unsubscribeSelectiveMethodName»(const std::shared_ptr<CommonAPI::ClientId> clientId);
                     std::shared_ptr<CommonAPI::ClientIdList> const «broadcast.stubAdapterClassSubscribersMethodName»();
                 «ELSE»
-                    void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface, true) + '& ' + elementName].join(', ')»);
+                    «IF !broadcast.isErrorType(deploymentAccessor)»
+                        void «broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface, true) + '& ' + elementName].join(', ')»);
+                    «ENDIF»
                 «ENDIF»
 
             «ENDFOR»
@@ -185,7 +188,7 @@ class FInterfaceDBusStubAdapterGenerator {
             «var counterMap = new HashMap<String, Integer>()»
             «var methodnumberMap = new HashMap<FMethod, Integer>()»
             «FOR method : fInterface.methods»
-                «generateMethodDispatcherDeclarations(method, fInterface, counterMap, methodnumberMap)»
+                «generateMethodDispatcherDeclarations(method, fInterface, counterMap, methodnumberMap, deploymentAccessor)»
 
             «ENDFOR»
             «FOR broadcast: fInterface.broadcasts»
@@ -262,12 +265,14 @@ class FInterfaceDBusStubAdapterGenerator {
                         «ENDIF»
                     «ENDFOR»
                     «FOR broadcast : fInterface.broadcasts»
-                        «FTypeGenerator::generateComments(broadcast, false)»
-                        "<signal name=\"«broadcast.elementName»\">\n"
-                        «FOR outArg : broadcast.outArgs»
-                            "<arg name=\"«outArg.elementName»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" />\n"
-                        «ENDFOR»
-                        "</signal>\n"
+                        «IF !broadcast.isErrorType(deploymentAccessor)»
+                            «FTypeGenerator::generateComments(broadcast, false)»
+                            "<signal name=\"«broadcast.elementName»\">\n"
+                            «FOR outArg : broadcast.outArgs»
+                                "<arg name=\"«outArg.elementName»\" type=\"«outArg.getTypeDbusSignature(deploymentAccessor)»\" />\n"
+                            «ENDFOR»
+                            "</signal>\n"
+                        «ENDIF»
                     «ENDFOR»
                     «FOR method : fInterface.methods»
                         «FTypeGenerator::generateComments(method, false)»
@@ -410,32 +415,34 @@ class FInterfaceDBusStubAdapterGenerator {
                     return std::make_shared<CommonAPI::ClientIdList>(*«broadcast.stubAdapterClassSubscriberListPropertyName»);
                 }
             «ELSE»
-                template <typename _Stub, typename... _Stubs>
-                void «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface, true) + '& ' + elementName].join(', ')») {
-                    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
-                    «FOR outArg : broadcast.outArgs SEPARATOR ","»
-                        «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
-                        «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-                             CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>
-                        «ELSE»
-                            «outArg.getTypeName(fInterface, true)»
-                        «ENDIF»
-                    «ENDFOR»
-                    >>::sendSignal(
-                            *this,
-                            "«broadcast.elementName»",
-                            "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
-                    «FOR outArg : broadcast.outArgs SEPARATOR ","»
-                        «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
-                        «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
-                            «val String deployment = outArg.getDeploymentRef(outArg.array, broadcast, fInterface, deploymentAccessor)»
-                            CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>(«outArg.name», «deployment»)
-                        «ELSE»
-                            «outArg.name»
-                        «ENDIF»
-                    «ENDFOR»
-                    );
-                }
+                «IF !broadcast.isErrorType(deploymentAccessor)»
+                    template <typename _Stub, typename... _Stubs>
+                    void «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«broadcast.stubAdapterClassFireEventMethodName»(«broadcast.outArgs.map['const ' + getTypeName(fInterface, true) + '& ' + elementName].join(', ')») {
+                        CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
+                        «FOR outArg : broadcast.outArgs SEPARATOR ","»
+                            «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
+                            «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
+                                 CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>
+                            «ELSE»
+                                «outArg.getTypeName(fInterface, true)»
+                            «ENDIF»
+                        «ENDFOR»
+                        >>::sendSignal(
+                                *this,
+                                "«broadcast.elementName»",
+                                "«broadcast.dbusSignature(deploymentAccessor)»"«IF broadcast.outArgs.size > 0»,«ENDIF»
+                        «FOR outArg : broadcast.outArgs SEPARATOR ","»
+                            «val String deploymentType = outArg.getDeploymentType(fInterface, true)»
+                            «IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»
+                                «val String deployment = outArg.getDeploymentRef(outArg.array, broadcast, fInterface, deploymentAccessor)»
+                                CommonAPI::Deployable< «outArg.getTypeName(fInterface, true)», «deploymentType»>(«outArg.name», «deployment»)
+                            «ELSE»
+                                «outArg.name»
+                            «ENDIF»
+                        «ENDFOR»
+                        );
+                    }
+                «ENDIF»
             «ENDIF»
 
         «ENDFOR»
@@ -534,17 +541,25 @@ class FInterfaceDBusStubAdapterGenerator {
         «ENDIF»
     '''
 
-    def private generateMethodDispatcherDeclarations(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap) '''
+    def private generateMethodDispatcherDeclarations(FMethod fMethod, FInterface fInterface, HashMap<String, Integer> counterMap, HashMap<FMethod, Integer> methodnumberMap, PropertyAccessor deploymentAccessor) '''
             «FTypeGenerator::generateComments(fMethod, false)»
             «val accessor = getAccessor(fInterface)»
-
             «IF !fMethod.isFireAndForget»
+                «var errorReplyTypes = new LinkedList()»
+                «FOR broadcast : fInterface.broadcasts»
+                    «IF broadcast.isErrorType(fMethod, deploymentAccessor)»
+                        «{errorReplyTypes.add(broadcast.errorReplyTypes(fMethod, deploymentAccessor));""}»
+                        «broadcast.generateErrorReplyCallback(fInterface, fMethod, deploymentAccessor)»
+                    «ENDIF»
+                «ENDFOR»
+                
                 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                     «fInterface.stubFullClassName»,
                     std::tuple< «fMethod.allInTypes»>,
                     std::tuple< «fMethod.allOutTypes»>,
                     std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
-                    std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
+                    std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>«IF errorReplyTypes.size > 0»,«ENDIF»
+                    «errorReplyTypes.map['std::function< void (' + it + ')>'].join(',\n')»
 
                     «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                         «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
@@ -622,25 +637,36 @@ class FInterfaceDBusStubAdapterGenerator {
         «val accessor = getAccessor(fInterface)»
         «FTypeGenerator::generateComments(fMethod, false)»
         «IF !fMethod.isFireAndForget»
+            «var errorReplyTypes = new LinkedList()»
+            «var errorReplyCallbacks = new LinkedList()»
+            «FOR broadcast : fInterface.broadcasts»
+                «IF broadcast.isErrorType(fMethod, deploymentAccessor)»
+                    «{errorReplyTypes.add(broadcast.errorReplyTypes(fMethod, deploymentAccessor));""}»
+                    «{errorReplyCallbacks.add('std::bind(&' + fInterface.dbusStubAdapterClassNameInternal + '<_Stub, _Stubs...>::' +
+                        broadcast.errorReplyCallbackName(deploymentAccessor) + ', ' + broadcast.errorReplyCallbackBindArgs(deploymentAccessor) + ')'
+                    );""}»
+                «ENDIF»
+            «ENDFOR»
             template <typename _Stub, typename... _Stubs>
             CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
                 «fInterface.stubFullClassName»,
                 std::tuple< «fMethod.allInTypes»>,
                 std::tuple< «fMethod.allOutTypes»>,
                 std::tuple< «fMethod.inArgs.getDeploymentTypes(fInterface, accessor)»>,
-                std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>
+                std::tuple< «IF fMethod.hasError»«fMethod.getErrorDeploymentType(true)»«ENDIF»«fMethod.outArgs.getDeploymentTypes(fInterface, accessor)»>«IF errorReplyTypes.size > 0»,«ENDIF»
+                «errorReplyTypes.map['std::function< void (' + it + ')>'].join(',\n')»
 
                 «IF !(counterMap.containsKey(fMethod.dbusStubDispatcherVariable))»
                     «{counterMap.put(fMethod.dbusStubDispatcherVariable, 0);  methodnumberMap.put(fMethod, 0);""}»
                     > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fMethod.dbusStubDispatcherVariable»(
                     &«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»",
                     «fMethod.getDeployments(fInterface, accessor, true, false)»,
-                    «fMethod.getDeployments(fInterface, accessor, false, true)»);
+                    «fMethod.getDeployments(fInterface, accessor, false, true)»«IF errorReplyCallbacks.size > 0»,«'\n' + errorReplyCallbacks.map[it].join(',\n')»«ENDIF»);
                 «ELSE»
                     «{counterMap.put(fMethod.dbusStubDispatcherVariable, counterMap.get(fMethod.dbusStubDispatcherVariable) + 1);  methodnumberMap.put(fMethod, counterMap.get(fMethod.dbusStubDispatcherVariable));""}»
                     > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fMethod.dbusStubDispatcherVariable»«Integer::toString(counterMap.get(fMethod.dbusStubDispatcherVariable))»(&«fInterface.stubClassName + "::" + fMethod.elementName», "«fMethod.dbusOutSignature(deploymentAccessor)»",
                     «fMethod.getDeployments(fInterface, accessor, true, false)»,
-                    «fMethod.getDeployments(fInterface, accessor, false, true)»);
+                    «fMethod.getDeployments(fInterface, accessor, false, true)»«IF errorReplyCallbacks.size > 0»,«'\n' + errorReplyCallbacks.map[it].join(',\n')»«ENDIF»);
                 «ENDIF»
         «ELSE»
             template <typename _Stub, typename... _Stubs>
@@ -865,4 +891,18 @@ class FInterfaceDBusStubAdapterGenerator {
                 «IF fAttribute.readonly»(CommonAPI::DBus::DBusSetFreedesktopAttributeStubDispatcher<«fInterface.stubFullClassName», int>*)NULL«ELSE»&«fInterface.absoluteNamespace»::«fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fAttribute.dbusSetStubDispatcherVariable»«ENDIF»
             );
     '''
+    
+    def private generateErrorReplyCallback(FBroadcast fBroadcast, FInterface fInterface, FMethod fMethod, PropertyAccessor deploymentAccessor) '''
+            
+        static void «fBroadcast.errorReplyCallbackName(deploymentAccessor)»(«fBroadcast.generateErrorReplyCallbackSignature(fMethod, deploymentAccessor)») {
+            «IF fBroadcast.errorArgs(deploymentAccessor).size > 1»
+                auto args = std::make_tuple(
+                    «fBroadcast.errorArgs(deploymentAccessor).map[it.getDeployable(fInterface, deploymentAccessor) + '(' + '_' + it.elementName + ', ' + getDeploymentRef(it.array, fBroadcast, fInterface, deploymentAccessor) + ')'].join(",\n")  + ");"»
+            «ELSE»
+                auto args = std::make_tuple();
+            «ENDIF»
+            sayHelloStubDispatcher.sendErrorReply(_callId, "«fBroadcast.dbusErrorReplyOutSignature(fMethod, deploymentAccessor)»", _«fBroadcast.errorName(deploymentAccessor)», args);
+        }
+    '''
+    
 }

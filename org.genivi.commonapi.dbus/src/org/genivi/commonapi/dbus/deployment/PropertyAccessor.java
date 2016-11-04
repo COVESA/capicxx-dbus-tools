@@ -296,5 +296,9 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 			if (isDBusPredefined == null) isDBusPredefined = false;
 		return isDBusPredefined;
 	}
+
+	public static void BroadcastType() {
+	  throw new UnsupportedOperationException("TODO: auto-generated method stub");
+	}
 	
 }

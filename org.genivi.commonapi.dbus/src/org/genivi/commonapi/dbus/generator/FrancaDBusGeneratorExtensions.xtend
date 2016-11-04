@@ -79,6 +79,16 @@ class FrancaDBusGeneratorExtensions {
 
         return fMethod.errors.dbusFTypeSignature(deploymentAccessor)
     }
+    
+    def dbusErrorReplyOutSignature(FBroadcast fBroadcast, FMethod fMethod, PropertyAccessor deploymentAccessor) {
+        checkArgument(fBroadcast.isErrorType(deploymentAccessor), 'FBroadcast is no valid error type: ' + fBroadcast)
+
+        var signature = "s";
+        if(!fBroadcast.errorArgs(deploymentAccessor).empty) {
+            signature = fBroadcast.errorArgs(deploymentAccessor).map[getTypeDbusSignature(deploymentAccessor)].join;
+        }
+        return signature
+    }
 
     def dbusSetMethodName(FAttribute fAttribute) {
         'set' + fAttribute.className
