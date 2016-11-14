@@ -901,7 +901,7 @@ class FInterfaceDBusStubAdapterGenerator {
             «ELSE»
                 auto args = std::make_tuple();
             «ENDIF»
-            sayHelloStubDispatcher.sendErrorReply(_callId, "«fBroadcast.dbusErrorReplyOutSignature(fMethod, deploymentAccessor)»", _«fBroadcast.errorName(deploymentAccessor)», args);
+            «fMethod.dbusStubDispatcherVariable».sendErrorReply(_callId, "«fBroadcast.dbusErrorReplyOutSignature(fMethod, deploymentAccessor)»", _«fBroadcast.errorName(deploymentAccessor)», args);
         }
     '''
     
