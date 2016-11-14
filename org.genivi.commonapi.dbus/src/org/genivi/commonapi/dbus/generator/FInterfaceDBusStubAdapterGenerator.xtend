@@ -705,7 +705,7 @@ class FInterfaceDBusStubAdapterGenerator {
             > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fBroadcast.dbusStubDispatcherVariableUnsubscribe»(&«fInterface.stubAdapterClassName + "::" + fBroadcast.unsubscribeSelectiveMethodName», "");
     '''
 
-    def private getInterfaceHierarchy(FInterface fInterface) {
+    def private String getInterfaceHierarchy(FInterface fInterface) {
         if (fInterface.base == null) {
             fInterface.stubFullClassName
         } else {

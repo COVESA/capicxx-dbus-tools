@@ -15,7 +15,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.xtext.builder.EclipseResourceFileSystemAccess2;
-import org.genivi.commonapi.core.preferences.PreferenceConstants;
 import org.genivi.commonapi.core.ui.handler.GenerationCommand;
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
@@ -26,7 +25,7 @@ public class DBusGenerationCommand  extends GenerationCommand {
 	/**
 	 * Init dbus preferences
 	 * @param page
-	 * @param project
+	 * @param projects
 	 */
 	@Override
 	protected void setupPreferences(IFile file) {

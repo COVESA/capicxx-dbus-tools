@@ -6,15 +6,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
-import javax.inject.Inject
+import java.util.Collection
 import java.util.HashMap
-import java.util.Map
 import java.util.HashSet
+import java.util.Map
 import java.util.Set
-
-import org.eclipse.core.resources.IResource
-import org.franca.core.franca.FArrayType
+import javax.inject.Inject
+import org.eclipse.emf.common.util.EList
+import org.eclipse.emf.ecore.EObject
 import org.franca.core.franca.FArgument
+import org.franca.core.franca.FArrayType
 import org.franca.core.franca.FAttribute
 import org.franca.core.franca.FBasicTypeId
 import org.franca.core.franca.FBroadcast
@@ -25,21 +26,18 @@ import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.franca.core.franca.FStructType
 import org.franca.core.franca.FType
+import org.franca.core.franca.FTypeCollection
 import org.franca.core.franca.FTypeDef
 import org.franca.core.franca.FTypeRef
 import org.franca.core.franca.FTypedElement
 import org.franca.core.franca.FUnionType
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
-import org.osgi.framework.FrameworkUtil
-import java.util.Collection
-import org.franca.core.franca.FTypeCollection
-import org.eclipse.emf.common.util.EList
-import org.eclipse.emf.ecore.EObject
-
-import static com.google.common.base.Preconditions.*
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import org.osgi.framework.FrameworkUtil
+
+import static com.google.common.base.Preconditions.*
 
 class FrancaDBusGeneratorExtensions {
     @Inject private extension FrancaGeneratorExtensions
@@ -166,6 +164,7 @@ class FrancaDBusGeneratorExtensions {
 
     def private dispatch dbusFTypeSignature(FEnumerationType fEnumerationType, PropertyAccessor deploymentAccessor) {
         val FBasicTypeId backingType = fEnumerationType.getBackingType(deploymentAccessor)
+        
         if (backingType == FBasicTypeId.UNDEFINED)
             return FBasicTypeId.INT32.dbusSignature
 

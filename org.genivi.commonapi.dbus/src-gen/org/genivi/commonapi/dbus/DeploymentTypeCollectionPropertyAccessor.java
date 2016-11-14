@@ -5,8 +5,8 @@
 package org.genivi.commonapi.dbus;
 
 import org.eclipse.emf.ecore.EObject;
-import org.franca.core.franca.FInterface;
 import org.franca.core.franca.FField;
+import org.franca.core.franca.FInterface;
 import org.franca.deploymodel.core.FDeployedTypeCollection;
 
 /**
