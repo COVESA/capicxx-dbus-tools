@@ -172,6 +172,7 @@ endif()
 file(GLOB FIDL_FILES "fidl/*.fidl")
 message("FIDL_FILES: ${FIDL_FILES}")
 file(GLOB FDEPL_FILES "fidl/*.fdepl")
+message("FDEPL_FILES: ${FDEPL_FILES}")
 
 execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen/dbus ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -180,6 +181,9 @@ execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen/dbus ${FD
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )                        
 execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -sk Default -dest src-gen/core ${FIDL_FILES}
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        )
+execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -sk Default -dest src-gen/core ${FDEPL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
 ##############################################################################
@@ -271,6 +275,7 @@ target_link_libraries(DBusAddressTranslatorTest ${TEST_LINK_LIBRARIES})
 ##############################################################################
 
 add_executable(DBusCommunicationTest src/DBusCommunicationTest.cpp
+                                     src/stubs/TestInterfaceStubImpl.cpp
                                      ${TestInterfaceDBusSources})
 
 target_link_libraries(DBusCommunicationTest ${TEST_LINK_LIBRARIES})

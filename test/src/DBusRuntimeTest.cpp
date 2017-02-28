@@ -34,7 +34,7 @@ TEST_F(DBusRuntimeTest, LoadsDefaultStaticallyLinkedDBusLibrary) {
 
 
 /*TEST_F(DBusRuntimeTest, LoadsDBusLibraryAsSingleton) {
-#ifdef WIN32*/
+#ifdef _WIN32*/
     /*
      access the middlewareInfo in order to get a call to DBusRuntime. This forces the windows linker not to remove DBusRuntime from resulting binary
      */

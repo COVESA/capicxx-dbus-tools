@@ -77,6 +77,33 @@ interface TestInterface {
         }
     }
 
+    method testErrorReplyMethod {
+        in {
+            String name
+        }
+        out {
+            String message
+        }
+    }
+
+    method testOverloadedMethod {
+        in {
+            UInt8 x
+        }
+        out {
+            UInt8 y
+        }
+    }
+
+    method testOverloadedMethod {
+        in {
+            UInt8 x
+            UInt8 y
+        }
+        out {
+            UInt8 z
+        }
+    }
 
     broadcast TestPredefinedTypeBroadcast {
         out {
@@ -93,6 +120,14 @@ interface TestInterface {
             UInt32 uint32Value
             String stringValue
         }        
+    }
+
+    broadcast disconnectedError {
+        out {
+            String errorName
+            String errorDescription
+            Int32 errorCode
+        }
     }
 }
 

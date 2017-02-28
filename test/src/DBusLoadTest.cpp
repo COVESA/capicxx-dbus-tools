@@ -95,7 +95,7 @@ const std::string DBusLoadTest::domain_ = "local";
 const std::string DBusLoadTest::serviceAddress_ = "CommonAPI.DBus.tests.DBusProxyTestService";
 const uint32_t DBusLoadTest::numCallsPerProxy_ = 100;
 
-#ifdef WIN32
+#ifdef _WIN32
 // test with just 50 proxies under windows as it becomes very slow with more ones
 const uint32_t DBusLoadTest::numProxies_ = 50;
 #else

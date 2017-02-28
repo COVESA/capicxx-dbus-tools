@@ -15,7 +15,7 @@
 #include <utility>
 #include <tuple>
 #include <type_traits>
-#ifndef WIN32
+#ifndef _WIN32
 #include <glib.h>
 #endif
 
@@ -269,7 +269,7 @@ TEST_F(DBusMainLoopTest, DemoMainloopClientsHandleNonavailableServices) {
 }
 
 //##################################################################################################
-#ifndef WIN32
+#ifndef _WIN32
 class GDispatchWrapper: public GSource {
  public:
     GDispatchWrapper(CommonAPI::DispatchSource* dispatchSource): dispatchSource_(dispatchSource) {}

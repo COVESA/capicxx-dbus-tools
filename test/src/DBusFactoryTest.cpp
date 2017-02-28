@@ -53,7 +53,7 @@ class DBusProxyFactoryTest: public ::testing::Test {
         runtime_ = CommonAPI::Runtime::get();
         ASSERT_TRUE((bool)runtime_);
 
-#ifdef WIN32
+#ifdef _WIN32
         configFileName_ = _pgmptr;
 #else
         char cCurrentPath[FILENAME_MAX];

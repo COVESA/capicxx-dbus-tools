@@ -15,7 +15,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#ifdef WIN32
+#ifdef _WIN32
 #include <WinSock2.h>
 #else
 #include <poll.h>
@@ -44,7 +44,7 @@ class MainLoop {
                           running_(false),
                           isBroken_(false) {
 
-    #ifdef WIN32
+    #ifdef _WIN32
         WSADATA wsaData;
         int iResult;
 
@@ -204,7 +204,7 @@ class MainLoop {
         context_->unsubscribeForTimeouts(timeoutSourceListenerSubscription_);
         context_->unsubscribeForWakeupEvents(wakeupListenerSubscription_);
 
-    #ifdef WIN32
+    #ifdef _WIN32
         // shutdown the connection since no more data will be sent
         int iResult = shutdown(wakeFd_.fd, SD_SEND);
         if (iResult == SOCKET_ERROR) {
@@ -458,7 +458,7 @@ class MainLoop {
             }
         }
 
-    #ifdef WIN32
+    #ifdef _WIN32
         int numReadyFileDescriptors = WSAPoll(&managedFileDescriptors_[0], managedFileDescriptors_.size(), int(currentMinimalTimeoutInterval_));
     #else
         int numReadyFileDescriptors = ::poll(&(managedFileDescriptors_[0]),
@@ -553,7 +553,7 @@ class MainLoop {
     }
 
     void wakeup() {
-    #ifdef WIN32
+    #ifdef _WIN32
         // Send an initial buffer
         char *sendbuf = "1";
 
@@ -574,7 +574,7 @@ class MainLoop {
     }
 
     void wakeupAck() {
-    #ifdef WIN32
+    #ifdef _WIN32
         // Receive until the peer closes the connection
         int iResult;
         char recvbuf[DEFAULT_BUFLEN];
@@ -891,7 +891,7 @@ class MainLoop {
     bool hasToStop_;
     bool running_;
 
-#ifdef WIN32
+#ifdef _WIN32
     pollfd sendFd_;
 #endif
 

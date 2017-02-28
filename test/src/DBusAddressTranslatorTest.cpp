@@ -79,7 +79,7 @@ static const std::string fileString =
 "path=/some/legacy/path/6259504\n"
 "interface=fake.legacy.service.LegacyInterface\n"
 // all tests run within the same binary under windows, meaning the config file will only be read once. That's why we already have to add the factory configuration used by DBusFactoryTest and the predifined instances for DBusServiceRegistryTest here.
-#ifdef WIN32
+#ifdef _WIN32
 "[local:Interface1:predefined.Instance1]\n"
 "service=DBusServiceRegistryTest.Predefined.Service\n"
 "path=/tests/predefined/Object1\n"
@@ -448,7 +448,7 @@ TEST_F(AddressTranslatorTest, ServicesUsingPredefinedAddressesCanCommunicate) {
     runtime->unregisterService(commonApiAddress.getDomain(), stub->getStubAdapter()->getInterface(), commonApiAddress.getInstance());
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 
 const std::string domainOfFakeLegacyService = "local";
 const std::string interfaceOfFakeLegacyService = "fake.legacy.service.LegacyInterface:v1_0";
@@ -578,7 +578,7 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressedNoObjectManager) {
 
     fakeServiceThreadNoObjectManager.join();
 }
-#endif // !WIN32
+#endif // !_WIN32
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {

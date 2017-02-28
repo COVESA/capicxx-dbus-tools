@@ -33,8 +33,9 @@
 #include "v1/commonapi/tests/TestInterfaceProxy.hpp"
 #include "v1/commonapi/tests/TestInterfaceStubDefault.hpp"
 #include "v1/commonapi/tests/TestInterfaceDBusStubAdapter.hpp"
-
 #include "v1/commonapi/tests/TestInterfaceDBusProxy.hpp"
+
+#include "stubs/TestInterfaceStubImpl.hpp"
 
 #define VERSION v1_0
 
@@ -101,6 +102,172 @@ TEST_F(DBusCommunicationTest, RemoteMethodCallSucceeds) {
     defaultTestProxy->testVoidPredefinedTypeMethod(v1, v2, stat);
 
     EXPECT_EQ(stat, CommonAPI::CallStatus::SUCCESS);
+}
+
+TEST_F(DBusCommunicationTest, RemoteMethodCallWithErrorReply) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    auto stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubImpl>();
+    interface_ = stub->getStubAdapter()->getInterface();
+
+    bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
+        serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(serviceRegistered);
+
+    for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(defaultTestProxy->isAvailable());
+
+    bool errorReplyEventReceived = false;
+    defaultTestProxy->getDisconnectedErrorEvent().subscribe([&errorReplyEventReceived, &stub](const std::string &_errorMessage, const std::string &_errorDescription,
+            const int32_t _errorCode) {
+        EXPECT_EQ(stub->getErrorReplyMessage(), _errorMessage);
+        EXPECT_EQ(stub->getErrorReplyDescription(), _errorDescription);
+        EXPECT_EQ(stub->getErrorReplyCode(), _errorCode);
+        errorReplyEventReceived = true;
+    });
+
+    CommonAPI::CallStatus stat;
+    std::string message;
+    defaultTestProxy->testErrorReplyMethod("dummyStr", stat, message);
+    EXPECT_EQ(stat, CommonAPI::CallStatus::REMOTE_ERROR);
+    ASSERT_TRUE(errorReplyEventReceived);
+}
+
+TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReply) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    auto stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubImpl>();
+    interface_ = stub->getStubAdapter()->getInterface();
+
+    bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
+        serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(serviceRegistered);
+
+    for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(defaultTestProxy->isAvailable());
+
+    bool errorReplyEventReceived = false;
+    defaultTestProxy->getDisconnectedErrorEvent().subscribe([&errorReplyEventReceived, &stub](const std::string &_errorMessage, const std::string &_errorDescription,
+            const int32_t _errorCode) {
+        EXPECT_EQ(stub->getErrorReplyMessage(), _errorMessage);
+        EXPECT_EQ(stub->getErrorReplyDescription(), _errorDescription);
+        EXPECT_EQ(stub->getErrorReplyCode(), _errorCode);
+        errorReplyEventReceived = true;
+    });
+
+    bool errorReplyResponseReceived = false;
+    defaultTestProxy->testErrorReplyMethodAsync("dummyStr", [&errorReplyResponseReceived](const CommonAPI::CallStatus &_status, const std::string &_message) {
+        (void)_message;
+        EXPECT_EQ(_status, CommonAPI::CallStatus::REMOTE_ERROR);
+        errorReplyResponseReceived = true;
+    });
+
+    for(unsigned int i = 0; !errorReplyResponseReceived && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+
+    ASSERT_TRUE(errorReplyEventReceived);
+    ASSERT_TRUE(errorReplyResponseReceived);
+}
+
+TEST_F(DBusCommunicationTest, RemoteOverloadedMethodCall) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    auto stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubImpl>();
+    interface_ = stub->getStubAdapter()->getInterface();
+
+    bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
+        serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(serviceRegistered);
+
+    for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(defaultTestProxy->isAvailable());
+
+    uint8_t x = 5;
+    uint8_t y = 4;
+    uint8_t z = 0;
+    CommonAPI::CallStatus callStatus;
+
+    defaultTestProxy->testOverloadedMethod(x, callStatus, z);
+    EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
+    EXPECT_EQ(x, z);
+
+    x = 5;
+    y = 4;
+    z = 0;
+    defaultTestProxy->testOverloadedMethod(x, y, callStatus, z);
+    EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
+    EXPECT_EQ(x+y, z);
+
+}
+
+TEST_F(DBusCommunicationTest, RemoteAsyncOverloadedMethodCall) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    auto stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubImpl>();
+    interface_ = stub->getStubAdapter()->getInterface();
+
+    bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
+        serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(serviceRegistered);
+
+    for(unsigned int i = 0; !defaultTestProxy->isAvailable() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(defaultTestProxy->isAvailable());
+
+    uint8_t x = 5;
+    std::vector<uint8_t> values;
+
+    defaultTestProxy->testOverloadedMethodAsync(x, [&values](const CommonAPI::CallStatus& callStatus, uint8_t z) {
+        EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
+        values.push_back(z);
+    });
+
+    for(unsigned int i = 0; values.empty() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+
+    EXPECT_EQ(1u, values.size());
+    EXPECT_EQ(x, values[0]);
+
+    x = 5;
+    uint8_t y = 4;
+    values.clear();
+
+    defaultTestProxy->testOverloadedMethodAsync(x, y, [&values](const CommonAPI::CallStatus& callStatus, uint8_t z) {
+        EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
+        values.push_back(z);
+    });
+
+    for(unsigned int i = 0; values.empty() && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+
+    EXPECT_EQ(1u, values.size());
+    EXPECT_EQ(x+y, values[0]);
 }
 
 TEST_F(DBusCommunicationTest, AccessStubAdapterAfterInitialised) {
@@ -216,7 +383,6 @@ TEST_F(DBusCommunicationTest, RemoteMethodCallWithNonstandardAddressSucceeds) {
     EXPECT_EQ(stat, CommonAPI::CallStatus::SUCCESS);
 }
 
-
 TEST_F(DBusCommunicationTest, MixedSyncAndAsyncCallsSucceed) {
     auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress5_);
     ASSERT_TRUE((bool)defaultTestProxy);
@@ -312,7 +478,6 @@ TEST_F(DBusCommunicationTest, ProxyCanFetchVersionAttributeFromStub) {
     ASSERT_EQ(CommonAPI::CallStatus::SUCCESS, status);
     ASSERT_TRUE(version.Major > 0 || version.Minor > 0);
 }
-
 
 //XXX This test case requires CommonAPI::DBus::DBusConnection::suspendDispatching and ...::resumeDispatching to be public!
 
