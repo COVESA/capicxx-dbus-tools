@@ -38,6 +38,7 @@ SET(COMMONAPI_CMAKE_INSTALL_PATH "na" CACHE STRING "CommonAPI install path of th
 SET(COMMONAPI_DBUS_CMAKE_INSTALL_PATH "na" CACHE STRING "CommonAPI-DBus install path of the cmake files")
 SET(COMMONAPI_DBUS_TOOL_GENERATOR "na" CACHE STRING "CommonAPI-DBus-Tools generator install path")
 SET(COMMONAPI_TEST_FIDL_PATH "na" CACHE STRING "Path to directory with test fidl files for code generation")
+SET(COMMONAPI_SRC_GEN_DEST "src-gen" CACHE STRING "Path to the destination directory of the generated sources")
 
 if("${COMMONAPI_DBUS_TOOL_GENERATOR}" STREQUAL "na")
     message(FATAL_ERROR "The file path for the commonapi_dbus_generator needs to be specified! Use '-DCOMMONAPI_DBUS_TOOL_GENERATOR' to do so.")
@@ -53,6 +54,8 @@ else()
     message("COMMONAPI_TOOL_GENERATOR specified: ${COMMONAPI_TOOL_GENERATOR}")
 endif()
 message("Build type: ${CMAKE_BUILD_TYPE}")
+
+message("The path to the destination directory of the generated sources is set to: ${COMMONAPI_SRC_GEN_DEST}")
 
 ##############################################################################
 # add COMMONAPI install path to cmake find root path
@@ -105,10 +108,10 @@ endif()
 # generate code from fidl
 file(GLOB FIDL_FILES "${COMMONAPI_TEST_FIDL_PATH}/*.fidl")
 message("FIDL_FILES: ${FIDL_FILES}")
-execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen ${FIDL_FILES}
+execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest ${COMMONAPI_SRC_GEN_DEST} ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
-execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest src-gen ${FIDL_FILES}
+execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -dest ${COMMONAPI_SRC_GEN_DEST} ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
 ##############################################################################
@@ -137,13 +140,17 @@ message("Compiler options: ${CMAKE_CXX_FLAGS}")
 
 include_directories(
     src
-    src-gen
+    ${COMMONAPI_SRC_GEN_DEST}
     ${COMMONAPI_INCLUDE_DIRS}
     ${DBus_INCLUDE_DIRS}
     ${COMMONAPI_DBUS_INCLUDE_DIRS}
 )
 
-if ("${USE_INSTALLED_DBUS}" STREQUAL "OFF")
+if ("${USE_INSTALLED_DBUS}" STREQUAL "ON")
+    link_directories(
+        ${DBus_LIBRARY_DIRS}
+    )
+else()
     link_directories(
         ${DBus_INCLUDE_DIRS}/dbus/.libs
     )
@@ -151,36 +158,36 @@ endif()
 
 if (MSVC)
     # source files
-    file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*.cpp"
-        "src-gen/v1/commonapi/communication/*.cpp"
-        "src-gen/v1/commonapi/advanced/bselective/*.cpp"
-        "src-gen/v1/commonapi/advanced/managed/*.cpp"
-        "src-gen/v1/commonapi/advanced/extended/*.cpp"
-        "src-gen/v1/commonapi/advanced/polymorph/*.cpp"
-        "src-gen/v1/commonapi/datatypes/primitive/*.cpp"
-        "src-gen/v1/commonapi/datatypes/advanced/*.cpp"
-        "src-gen/v1/commonapi/datatypes/derived/*.cpp"
-        "src-gen/v1/commonapi/datatypes/combined/*.cpp"
-        "src-gen/v1/commonapi/threading/*.cpp"
-        "src-gen/v1/commonapi/performance/primitive/*.cpp"
-        "src-gen/v1/commonapi/performance/complex/*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*.cpp")
+    file(GLOB GLUE_SRCS "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/runtime/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/communication/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/bselective/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/managed/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/extended/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/polymorph/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/primitive/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/advanced/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/derived/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/combined/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/threading/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/performance/primitive/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/performance/complex/*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/stability/sp/*.cpp")
 else()
     # source files
-    file(GLOB GLUE_SRCS "src-gen/v1/commonapi/runtime/*DBus*.cpp"
-        "src-gen/v1/commonapi/communication/*DBus*.cpp"
-        "src-gen/v1/commonapi/advanced/bselective/*DBus*.cpp"
-        "src-gen/v1/commonapi/advanced/managed/*DBus*.cpp"
-        "src-gen/v1/commonapi/advanced/extended/*DBus*.cpp"
-        "src-gen/v1/commonapi/advanced/polymorph/*DBus*.cpp"
-        "src-gen/v1/commonapi/datatypes/primitive/*DBus*.cpp"
-        "src-gen/v1/commonapi/datatypes/advanced/*DBus*.cpp"
-        "src-gen/v1/commonapi/datatypes/derived/*DBus*.cpp"
-        "src-gen/v1/commonapi/datatypes/combined/*DBus*.cpp"
-        "src-gen/v1/commonapi/threading/*DBus*.cpp"
-        "src-gen/v1/commonapi/performance/primitive/*DBus*.cpp"
-        "src-gen/v1/commonapi/performance/complex/*DBus*.cpp"
-        "src-gen/v1/commonapi/stability/sp/*DBus*.cpp")
+    file(GLOB GLUE_SRCS "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/runtime/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/communication/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/bselective/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/managed/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/extended/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/advanced/polymorph/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/primitive/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/advanced/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/derived/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/datatypes/combined/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/threading/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/performance/primitive/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/performance/complex/*DBus*.cpp"
+        "${COMMONAPI_SRC_GEN_DEST}/v1/commonapi/stability/sp/*DBus*.cpp")
 endif()
 
 # CommonAPI-DBus library

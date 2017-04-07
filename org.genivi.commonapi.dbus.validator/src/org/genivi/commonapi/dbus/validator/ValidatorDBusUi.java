@@ -23,16 +23,10 @@ public class ValidatorDBusUi extends ValidatorDBus {
     @Override
     public void validateModel(FModel model,
             ValidationMessageAcceptor messageAcceptor) {
-        try {
-            if (!isValidatorEnabled()) {
-                return;
-            }
-            super.validateModel(model, messageAcceptor);
+        if (!isValidatorEnabled()) {
+            return;
         }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            throw ex;
-        }
+        super.validateModel(model, messageAcceptor);
     }
 
 

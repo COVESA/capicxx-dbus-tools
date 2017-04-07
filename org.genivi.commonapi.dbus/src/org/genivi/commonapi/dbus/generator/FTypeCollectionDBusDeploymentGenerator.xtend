@@ -336,8 +336,18 @@ class FTypeCollectionDBusDeploymentGenerator {
 
     def protected dispatch String generateDeploymentDefinition(FField _field, FTypeCollection _tc, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_field)) {
-            var String definition = _field.getDeploymentType(null, false) + " " + _field.getRelativeName() + "Deployment("
-            definition += getDeploymentParameter(_field.type, _field, _accessor)
+            var String definition = "";
+            if (_field.array) {
+                definition += _field.type.getDeploymentType(null, false) + " " + _field.getRelativeName() + "ElementDeployment("
+                definition += getDeploymentParameter(_field.type, _field, _accessor)
+                definition += ");\n";
+            }
+            definition += _field.getDeploymentType(null, false) + " " + _field.getRelativeName() + "Deployment("
+            if (_field.array) {
+                definition += "&" + _field.getRelativeName() + "ElementDeployment"
+            } else {
+                definition += getDeploymentParameter(_field.type, _field, _accessor)
+            }
             definition += ");\n"
             return definition
         }
@@ -349,16 +359,6 @@ class FTypeCollectionDBusDeploymentGenerator {
     }
 
     def protected dispatch String generateDeploymentDefinition(FTypeRef _typeRef, FTypeCollection _tc, PropertyAccessor _accessor) {
-        return ""
-    }
-
-    def protected dispatch String generateDeploymentDefinition(FAttribute _attribute, FTypeCollection _tc, PropertyAccessor _accessor) {
-        if (_accessor.hasSpecificDeployment(_attribute)) {
-            var String definition = _attribute.getDeploymentType(null, false) + " " + _attribute.name + "Deployment("
-            definition += _attribute.getDeploymentParameter(_attribute, _accessor)
-            definition += ");"
-            return definition
-        }
         return ""
     }
 

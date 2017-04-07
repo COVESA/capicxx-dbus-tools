@@ -180,18 +180,38 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
 
     def protected dispatch String generateDeploymentDefinition(FAttribute _attribute, FInterface _interface, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_attribute) || (_attribute.array && _accessor.hasDeployment(_attribute))) {
-            var String definition = _attribute.getDeploymentType(_interface, true) + " " + _attribute.name + "Deployment("
-            definition += _attribute.getDeploymentParameter(_attribute, _accessor)
+            var String definition = ""
+            if (_attribute.array) {
+                definition += _attribute.type.getDeploymentType(_interface, true) + " " + _attribute.name + "ElementDeployment("
+                definition += getDeploymentParameter(_attribute.type, _attribute, _accessor)
+                definition += ");\n";
+            }
+            definition += _attribute.getDeploymentType(_interface, true) + " " + _attribute.name + "Deployment("
+            if (_attribute.array) {
+                definition += "&" + _attribute.name + "ElementDeployment"                
+            } else {
+                definition += _attribute.getDeploymentParameter(_attribute, _accessor)
+            }
             definition += ");"
             return definition
         }
-        return ""
+        return ""        
     }
 
     def protected String generateDeploymentDefinition(FArgument _argument, FMethod _method, FInterface _interface, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
-            var String definition = _argument.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "Deployment("
-            definition += _argument.getDeploymentParameter(_argument, _accessor)
+            var String definition = ""
+            if (_argument.array) {
+                definition += _argument.type.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "ElementDeployment("
+                definition += getDeploymentParameter(_argument.type, _argument, _accessor)
+                definition += ");\n";
+            }
+            definition += _argument.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "Deployment("
+            if (_argument.array) {
+                definition += "&" + _method.name + "_" + _argument.name + "ElementDeployment"                
+            } else {
+                definition += _argument.getDeploymentParameter(_argument, _accessor)
+            }
             definition += ");"
             return definition
         }
@@ -199,8 +219,18 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
 
     def protected String generateDeploymentDefinition(FArgument _argument, FBroadcast _broadcast, FInterface _interface, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_argument) || (_argument.array && _accessor.hasDeployment(_argument))) {
-            var String definition = _argument.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment("
-            definition += _argument.getDeploymentParameter(_argument, _accessor)
+            var String definition = ""
+            if (_argument.array) {
+                definition += _argument.type.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "ElementDeployment("
+                definition += getDeploymentParameter(_argument.type, _argument, _accessor)
+                definition += ");\n";
+            }
+            definition += _argument.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "Deployment("
+            if (_argument.array) {
+                definition += "&" + _broadcast.name + "_" + _argument.name + "ElementDeployment"                
+            } else {
+                definition += _argument.getDeploymentParameter(_argument, _accessor)
+            }
             definition += ");"
             return definition
         }

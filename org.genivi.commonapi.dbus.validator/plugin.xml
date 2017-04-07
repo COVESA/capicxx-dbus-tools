@@ -14,7 +14,7 @@
                 <page
                       class="org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage"
                       id="org.genivi.commonapi.dbus.validator.preference"
-                      name="Validator DBus">
+                      name="CommonAPI-DBus Validator">
                 </page>
              </extension>
 </plugin>

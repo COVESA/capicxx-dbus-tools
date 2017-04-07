@@ -733,7 +733,7 @@ class FInterfaceDBusStubAdapterGenerator {
                  «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
                  «FOR i : p.instances.filter[target == fInterface]»
                      CommonAPI::DBus::DBusAddressTranslator::get()->insert(
-                         "local:«fInterface.fullyQualifiedNameWithVersion»»:«providerAccessor.getInstanceId(i)»",
+                         "local:«fInterface.fullyQualifiedNameWithVersion»:«providerAccessor.getInstanceId(i)»",
                          "«providerAccessor.getDBusServiceName(i)»",
                          "«providerAccessor.getDBusObjectPath(i)»",
                          "«providerAccessor.getDBusInterfaceName(i)»");

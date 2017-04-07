@@ -28,10 +28,10 @@ public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
     @Override
     public void createFieldEditors() {
         addField(new BooleanFieldEditor(PreferenceConstantsDBus.P_ENABLE_DBUS_VALIDATOR,
-                "validator enabled", getFieldEditorParent()));
+                "Enable CommonAPI-DBus specific validation of Franca IDL files", getFieldEditorParent()));
         addField(new BooleanFieldEditor(
                 ENABLED_WORKSPACE_CHECK,
-                "enable the whole workspace check (Note: Validations takes up to two minutes if enabled)",
+                "Enable whole workspace check",
                 getFieldEditorParent()));
     }
 
@@ -39,7 +39,6 @@ public class ValidatorDBusPreferencesPage extends FieldEditorPreferencePage
     public void init(IWorkbench workbench) {
         IPreferenceStore prefStore = CommonApiDBusUiPlugin.getValidatorPreferences();
         setPreferenceStore(prefStore);
-        setDescription("Disable or enable the dbus validator!");
     }
 
 }
