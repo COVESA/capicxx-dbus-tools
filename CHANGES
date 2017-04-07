@@ -1,5 +1,8 @@
 Changes
 =======
+v3.1.11.2
+- Export deployment data
+
 v3.1.11.1
 - Support deployment for anonymous arrays
 

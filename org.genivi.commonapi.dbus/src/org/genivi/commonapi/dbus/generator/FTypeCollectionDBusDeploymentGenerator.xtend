@@ -223,7 +223,7 @@ class FTypeCollectionDBusDeploymentGenerator {
     def protected dispatch String generateDeploymentDeclaration(FArrayType _array, FTypeCollection _tc, PropertyAccessor _accessor) {
         if (_accessor.hasDeployment(_array)) {
             return _array.elementType.generateDeploymentDeclaration(_tc, _accessor) +
-                   "extern " + _array.getDeploymentType(null, false) + " " + _array.name + "Deployment;"
+                   "COMMONAPI_EXPORT extern " + _array.getDeploymentType(null, false) + " " + _array.name + "Deployment;"
         }
         return ""
     }
@@ -236,7 +236,7 @@ class FTypeCollectionDBusDeploymentGenerator {
         if (_accessor.hasDeployment(_map)) {
             return _map.keyType.generateDeploymentDeclaration(_tc, _accessor) +
                    _map.valueType.generateDeploymentDeclaration(_tc, _accessor) +
-                   "extern " + _map.getDeploymentType(null, false) + " " + _map.name + "Deployment;"
+                   "COMMONAPI_EXPORT extern " + _map.getDeploymentType(null, false) + " " + _map.name + "Deployment;"
         }
     }
 
@@ -249,7 +249,7 @@ class FTypeCollectionDBusDeploymentGenerator {
             for (structElement : _struct.elements) {
                 declaration += structElement.generateDeploymentDeclaration(_tc, _accessor)
             }
-            declaration += "extern " + _struct.getDeploymentType(null, false) + " " + _struct.name + "Deployment;"
+            declaration += "COMMONAPI_EXPORT extern " + _struct.getDeploymentType(null, false) + " " + _struct.name + "Deployment;"
             return declaration + "\n"
         }
         return ""
@@ -261,7 +261,7 @@ class FTypeCollectionDBusDeploymentGenerator {
             for (structElement : _union.elements) {
                 declaration += structElement.generateDeploymentDeclaration(_tc, _accessor)
             }
-            declaration += "extern " + _union.getDeploymentType(null, false) + " " + _union.name + "Deployment;"
+            declaration += "COMMONAPI_EXPORT extern " + _union.getDeploymentType(null, false) + " " + _union.name + "Deployment;"
             return declaration + "\n"
         }
         return ""
@@ -269,7 +269,7 @@ class FTypeCollectionDBusDeploymentGenerator {
 
     def protected dispatch String generateDeploymentDeclaration(FField _field, FTypeCollection _tc, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_field)) {
-            return "extern " + _field.getDeploymentType(null, false) + " " + _field.getRelativeName() + "Deployment;\n"
+            return "COMMONAPI_EXPORT extern " + _field.getDeploymentType(null, false) + " " + _field.getRelativeName() + "Deployment;\n"
         }
         return ""
     }
