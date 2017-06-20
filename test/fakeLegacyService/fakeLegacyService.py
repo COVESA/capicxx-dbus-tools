@@ -12,29 +12,33 @@ import math
 import dbus
 import dbus.service
 import dbus.mainloop.glib
+import argparse
 
-BASE_PATH = 'fake.legacy.service'
-OBJECT_PATH = '/some/legacy/path/6259504'
+parser=argparse.ArgumentParser(
+    description='''Registers a fake Legacy Service (with or without Object Manager)''')
+parser.add_argument('service', help='DBus Service Name')
+parser.add_argument('object_path', help='DBus Object Path')
+parser.add_argument('interface', help='DBus Interface name')
+parser.add_argument("--withObjectManager", help="has DBus Object Manager", action="store_true")
+args=parser.parse_args()
 
-command=sys.argv[1]
-if command=='withObjectManager':
-	INTERFACE = BASE_PATH + '.LegacyInterface'
-elif command=='noObjectManager':
-	INTERFACE = BASE_PATH + '.LegacyInterfaceNoObjectManager'
+SERVICE = args.service
+OBJECT_PATH = args.object_path
+INTERFACE = args.interface
 
 loop = gobject.MainLoop()
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 class FakeLegacyService(dbus.service.Object):
   def __init__(self, loop):
-    busName = dbus.service.BusName(BASE_PATH + '.connection', bus = dbus.SessionBus())
+    busName = dbus.service.BusName(SERVICE , bus = dbus.SessionBus())
     dbus.service.Object.__init__(self, busName, OBJECT_PATH)
     #self.properties = {'RestartReason': 1, 'ShutdownReason': 2, 'WakeUpReason' :3, 'BootMode' :4}
     self.ABus=""
     self.APath=""
     self.loop=loop
 
-  @dbus.service.method(dbus_interface=BASE_PATH + '.Introspectable', out_signature = 's')
+  @dbus.service.method(dbus_interface='fake.legacy.service' + '.Introspectable', out_signature = 's')
   def Introspect(self):
     f = open('fake.legacy.service.xml', "r")
     text = f.read()
@@ -59,7 +63,7 @@ class FakeLegacyService(dbus.service.Object):
 
 class ObjectManager(dbus.service.Object):
   def __init__(self, loop):
-    busName = dbus.service.BusName(BASE_PATH + '.connection', bus = dbus.SessionBus())
+    busName = dbus.service.BusName(SERVICE, bus = dbus.SessionBus())
     dbus.service.Object.__init__(self, busName, '/')
     self.ABus=""
     self.APath=""
@@ -70,13 +74,15 @@ class ObjectManager(dbus.service.Object):
     response = {}
     idict = {}
     idict[INTERFACE] = {}
-    idict[BASE_PATH + '.Introspectable'] = {}
-    response[OBJECT_PATH] = idict  
+    idict['fake.legacy.service' + '.Introspectable'] = {}
+    response[OBJECT_PATH] = idict
+    objectManager = OBJECT_PATH [0 : OBJECT_PATH.rfind('/')]
+    response[objectManager] = {}
     return response
 
 nsm = FakeLegacyService(loop)
-if command=='withObjectManager':
-	ObjectManager(loop)
+if args.withObjectManager :
+  ObjectManager(loop)
     
 loop.run()
 

@@ -19,6 +19,8 @@
 #include <CommonAPI/DBus/DBusConnection.hpp>
 #include <CommonAPI/DBus/DBusStubAdapter.hpp>
 #include <CommonAPI/DBus/DBusFactory.hpp>
+#include <CommonAPI/DBus/DBusAddress.hpp>
+#include <CommonAPI/DBus/DBusAddressTranslator.hpp>
 
 #include <v1/commonapi/tests/TestInterfaceDBusProxy.hpp>
 #include <v1/commonapi/tests/TestInterfaceDBusStubAdapter.hpp>
@@ -28,6 +30,9 @@
 #include <v1/commonapi/tests/ExtendedInterfaceDBusProxy.hpp>
 #include <v1/commonapi/tests/ExtendedInterfaceDBusStubAdapter.hpp>
 #include <v1/commonapi/tests/ExtendedInterfaceStubDefault.hpp>
+
+#include <v1/fake/legacy/service/LegacyInterfaceProxy.hpp>
+#include <v1/fake/legacy/service/LegacyInterfaceNoObjectManagerProxy.hpp>
 
 #include "DBusTestUtils.hpp"
 
@@ -53,6 +58,7 @@ static const std::string commonApiAddressFreedesktop = "CommonAPI.DBus.tests.DBu
 #define VERSION v1_0
 
 class ProxyTest: public ::testing::Test {
+
 protected:
     void SetUp() {
         runtime_ = CommonAPI::Runtime::get();
@@ -495,6 +501,160 @@ TEST_F(ProxyTest2, DBusProxyCanUseOrgFreedesktopAddress) {
     }
 
     deregisterTestStub(commonApiAddressFreedesktop);
+}
+
+static const std::string fakeLegacyServiceInstance = "fake.legacy.service";
+
+class ProxyTestCreateAndDeleteFakeLegacyService: public ::testing::Test {
+public:
+
+    template<template<typename ...> class Proxy_>
+    class TestHelper {
+    public:
+
+        void startFakeLegacyServices(const bool _withObjectManager = false) {
+            for(uint32_t i = 1; i <= services_; i++) {
+                CommonAPI::Address capiAddress("domain", Proxy_<>::getInterface(), fakeLegacyServiceInstance + std::to_string(i));
+                auto addressTranslator = CommonAPI::DBus::DBusAddressTranslator::get();
+                CommonAPI::DBus::DBusAddress dbusAddress;
+                addressTranslator->translate(capiAddress, dbusAddress);
+                
+                fakeLegacyServices_.push_back(dbusAddress);
+                if(_withObjectManager) {
+                    startFakeLegacyServiceWithObjectMananger(dbusAddress);
+                } else {
+                    startFakeLegacyServiceNoObjectMananger(dbusAddress);
+                }
+            }
+        }
+
+        void createAndDeleteProxies() {
+
+            std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
+            ASSERT_TRUE((bool)runtime);
+
+            // create dummy proxy to avoid destruction of DBusConnection and DBusServiceRegistry
+            dummyProxy = runtime->buildProxy<Proxy_>(domain, fakeLegacyServiceInstance + std::to_string(services_));
+
+            for (uint32_t i = 0; !dummyProxy->isAvailable() && i < 200; ++i) {
+                std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
+            }
+            ASSERT_TRUE(dummyProxy->isAvailable());
+
+            // create proxy for each service
+            // only a certain number of proxies can be connected simultaneously ('maxConnectedProxies')
+            for(uint32_t i = 1; i <= services_;) {
+                for(auto it = connectedProxies_.begin(); it != connectedProxies_.end();) {
+                    it = connectedProxies_.erase(it);
+                }
+                for(uint32_t j = i; j < i + maxConnectedProxies_; j++) {
+                    auto proxy = runtime->buildProxy<Proxy_>(domain, fakeLegacyServiceInstance + std::to_string(j));
+                    ASSERT_TRUE((bool)proxy);
+                    connectedProxies_.push_back(proxy);
+                }
+                i += maxConnectedProxies_;
+            }
+
+            // create proxy for each service in reverse order
+            for(uint32_t i = services_; i >= 1;) {
+                for(auto it = connectedProxies_.begin(); it != connectedProxies_.end();) {
+                    it = connectedProxies_.erase(it);
+                }
+                for(uint32_t j = i; j > i - maxConnectedProxies_; j--) {
+                    auto proxy = runtime->buildProxy<Proxy_>(domain, fakeLegacyServiceInstance + std::to_string(j));
+                    ASSERT_TRUE((bool)proxy);
+                    connectedProxies_.push_back(proxy);
+                }
+                i -= maxConnectedProxies_;
+            }
+        }
+
+        void checkAvailability() {
+            // check if the last built proxies are available
+            for(const auto &it : connectedProxies_) {
+                for (uint32_t i = 0; !it->isAvailable() && i < 200; ++i) {
+                    std::this_thread::sleep_for(std::chrono::microseconds(20 * 1000));
+                }
+                EXPECT_TRUE(it->isAvailable());
+            }
+        }
+
+        void unregisterFakeLegacyServices() {
+            // unregister fake legacy services
+            for(const auto &it : fakeLegacyServices_) {
+                CommonAPI::DBus::DBusAddress dbusAddress = it;
+                callPythonService("sendToFakeLegacyService.py finish " + dbusAddress.getService() + " " + dbusAddress.getObjectPath() + " " + dbusAddress.getInterface());
+            }
+        }
+
+    protected:
+
+        void startFakeLegacyServiceWithObjectMananger(const CommonAPI::DBus::DBusAddress& _dbusAddress) {
+            callPythonService("fakeLegacyService.py " + _dbusAddress.getService() + " " + _dbusAddress.getObjectPath() + " " + _dbusAddress.getInterface() + " --withObjectManager");
+        }
+
+        void startFakeLegacyServiceNoObjectMananger(const CommonAPI::DBus::DBusAddress& _dbusAddress) {
+            callPythonService("fakeLegacyService.py " + _dbusAddress.getService() + " " + _dbusAddress.getObjectPath() + " " + _dbusAddress.getInterface());
+        }
+
+        void callPythonService(const std::string& _pythonFileNameAndCommand) {
+            const char *pathToFolderForFakeLegacyService =
+                    getenv("TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER");
+
+            ASSERT_NE(pathToFolderForFakeLegacyService, nullptr) << "Environment variable "
+                    "TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER "
+                    "is not set!";
+
+            std::stringstream stream;
+            stream << "python " << pathToFolderForFakeLegacyService << "/" << _pythonFileNameAndCommand + " &";
+
+            int resultCode = system(stream.str().c_str());
+            EXPECT_EQ(0, resultCode);
+        }
+
+        const uint32_t services_ = 10;
+        const uint32_t maxConnectedProxies_ = 5;
+
+        std::vector<CommonAPI::DBus::DBusAddress> fakeLegacyServices_;
+        std::vector<std::shared_ptr<Proxy_<>>> connectedProxies_;
+
+        // dummy proxy to avoid destruction of DBusConnection and DBusServiceRegistry
+        std::shared_ptr<Proxy_<>> dummyProxy;
+    };
+
+protected:
+    void SetUp() {
+        runtime_ = CommonAPI::Runtime::get();
+
+        proxyDBusConnection_ = CommonAPI::DBus::DBusConnection::getBus(CommonAPI::DBus::DBusType_t::SESSION, "clientConnection");
+        ASSERT_TRUE(proxyDBusConnection_->connect());
+    }
+
+    std::shared_ptr<CommonAPI::Runtime> runtime_;
+
+    virtual void TearDown() {
+        std::this_thread::sleep_for(std::chrono::microseconds(300000));
+    }
+
+    std::shared_ptr<CommonAPI::DBus::DBusConnection> proxyDBusConnection_;
+};
+
+TEST_F(ProxyTestCreateAndDeleteFakeLegacyService, DBusProxiesAvailableForFakeLegacyServicesWithObjectManager) {
+    TestHelper<VERSION::fake::legacy::service::LegacyInterfaceProxy> helper;
+
+    helper.startFakeLegacyServices(true);
+    helper.createAndDeleteProxies();
+    helper.checkAvailability();
+    helper.unregisterFakeLegacyServices();
+}
+
+TEST_F(ProxyTestCreateAndDeleteFakeLegacyService, DBusProxiesAvailableForFakeLegacyServicesNoObjectManager) {
+    TestHelper<VERSION::fake::legacy::service::LegacyInterfaceNoObjectManagerProxy> helper;
+
+    helper.startFakeLegacyServices();
+    helper.createAndDeleteProxies();
+    helper.checkAvailability();
+    helper.unregisterFakeLegacyServices();
 }
 
 #ifndef __NO_MAIN__

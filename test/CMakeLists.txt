@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.8.1)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 3 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 5 ) 
+SET( ${PROJECT_NAME}_PATCH_LEVEL 5 )
 
 ##############################################################################
 
@@ -147,7 +147,7 @@ else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector -fasynchronous-unwind-tables -fno-omit-frame-pointer -D_GLIBCXX_USE_NANOSLEEP")
 endif()
 
-message("Compiler options: ${CMAKE_CXX_FLAGS}") 
+message("Compiler options: ${CMAKE_CXX_FLAGS}")
 
 include_directories(
     src
@@ -179,7 +179,7 @@ execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen/dbus ${FI
                         )
 execute_process(COMMAND ${COMMONAPI_DBUS_TOOL_GENERATOR} -dest src-gen/dbus ${FDEPL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                        )                        
+                        )
 execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -sk Default -dest src-gen/core ${FIDL_FILES}
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         )
@@ -197,7 +197,7 @@ set(TestInterfaceDBusSources ${TestInterfaceSources}
                              src-gen/dbus/${VERSION}/commonapi/tests/TestInterfaceDBusProxy.cpp
                              src-gen/dbus/${VERSION}/commonapi/tests/TestInterfaceDBusStubAdapter.cpp
                              src-gen/dbus/${VERSION}/fake/legacy/service/LegacyInterfaceDBusProxy.cpp
-	                         src-gen/dbus/${VERSION}/fake/legacy/service/LegacyInterfaceNoObjectManagerDBusProxy.cpp)
+                             src-gen/dbus/${VERSION}/fake/legacy/service/LegacyInterfaceNoObjectManagerDBusProxy.cpp)
 
 set(TestInterfaceManagerSources src-gen/core/${VERSION}/commonapi/tests/TestInterfaceManagerStubDefault.cpp)
 
@@ -235,10 +235,42 @@ set(ExtendedInterfaceDBusSources ${ExtendedInterfaceSources}
                                  src-gen/dbus/${VERSION}/commonapi/tests/ExtendedInterfaceDBusProxy.cpp
                                  src-gen/dbus/${VERSION}/commonapi/tests/ExtendedInterfaceDBusStubAdapter.cpp)
 
+set(ObjectPathSources src-gen/core/${VERSION}/test/objectpath/TestInterfaceStubDefault.cpp)
+
+set(ObjectPathDBusSources ${ObjectPathSources}
+                          src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusProxy.cpp
+                          src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusDeployment.cpp
+                          src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusStubAdapter.cpp)
+
+set(UnixFDSources src-gen/core/${VERSION}/test/unixfd/TestInterfaceStubDefault.cpp)
+
+set(UnixFDDBusSources ${UnixFDSources}
+                          src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusProxy.cpp
+                          src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusDeployment.cpp
+                          src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusStubAdapter.cpp)
 
 set(TEST_LINK_LIBRARIES -Wl,--no-as-needed CommonAPI-DBus -Wl,--as-needed CommonAPI ${DBus_LDFLAGS} ${DL_LIBRARY} gtest ${PTHREAD_LIBRARY})
 
 set(TEST_LINK_LIBRARIES_WITHOUT_COMMONAPI_DBUS CommonAPI gtest ${PTHREAD_LIBRARY})
+
+##############################################################################
+# DBusObjectPathTest
+##############################################################################
+
+add_executable(DBusObjectPathTest src/DBusObjectPathTest.cpp
+                               src/stubs/ObjectPathStubImpl.cpp
+                               ${ObjectPathDBusSources})
+target_link_libraries(DBusObjectPathTest ${TEST_LINK_LIBRARIES})
+
+##############################################################################
+# DBusUnixFDTest
+##############################################################################
+
+add_executable(DBusUnixFDTest src/DBusUnixFDTest.cpp
+                               src/stubs/UnixFDStubImpl.cpp
+                               ${UnixFDDBusSources})
+target_link_libraries(DBusUnixFDTest ${TEST_LINK_LIBRARIES})
+
 
 ##############################################################################
 # DBusManagedTest
@@ -388,10 +420,12 @@ add_dependencies(DBusFactoryTest gtest)
 add_dependencies(DBusMultipleConnectionTest gtest)
 add_dependencies(DBusProxyTest gtest)
 add_dependencies(DBusFreedesktopPropertiesTest gtest)
-add_dependencies(DBusRuntimeTest gtest)                
+add_dependencies(DBusRuntimeTest gtest)
 add_dependencies(DBusBroadcastTest gtest)
 add_dependencies(DBusPolymorphicTest gtest)
 add_dependencies(DBusLoadTest gtest)
+add_dependencies(DBusObjectPathTest gtest)
+add_dependencies(DBusUnixFDTest gtest)
 
 ##############################################################################
 # Add tests to the target build_tests
@@ -407,10 +441,12 @@ add_dependencies(build_tests DBusFactoryTest)
 add_dependencies(build_tests DBusMultipleConnectionTest)
 add_dependencies(build_tests DBusProxyTest)
 add_dependencies(build_tests DBusFreedesktopPropertiesTest)
-add_dependencies(build_tests DBusRuntimeTest)              
+add_dependencies(build_tests DBusRuntimeTest)
 add_dependencies(build_tests DBusBroadcastTest)
 add_dependencies(build_tests DBusPolymorphicTest)
 add_dependencies(build_tests DBusLoadTest)
+add_dependencies(build_tests DBusObjectPathTest)
+add_dependencies(build_tests DBusUnixFDTest)
 
 ##############################################################################
 # Add tests
@@ -435,8 +471,7 @@ set_property(TEST DBusMainLoopIntegrationTest APPEND PROPERTY ENVIRONMENT ${DBUS
 add_test(NAME DBusAddressTranslatorTest WORKING_DIRECTORY ${libcommonapi-dbus_SOURCE_DIR} COMMAND DBusAddressTranslatorTest)
 set_property(TEST DBusAddressTranslatorTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
 set_property(TEST DBusAddressTranslatorTest APPEND PROPERTY ENVIRONMENT "COMMONAPI_DBUS_CONFIG=${TEST_INI_FILE}")
-set_property(TEST DBusAddressTranslatorTest APPEND PROPERTY ENVIRONMENT "TEST_COMMONAPI_DBUS_ADDRESS_TRANSLATOR_FAKE_LEGACY_SERVICE_FOLDER=${PYTHON_TEST_DIR}")
-message("TEST_COMMONAPI_DBUS_ADDRESS_TRANSLATOR_FAKE_LEGACY_SERVICE_FOLDER: = ${PYTHON_TEST_DIR}")
+set_property(TEST DBusAddressTranslatorTest APPEND PROPERTY ENVIRONMENT "TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER=${PYTHON_TEST_DIR}")
 
 add_test(NAME DBusCommunicationTest COMMAND DBusCommunicationTest)
 set_property(TEST DBusCommunicationTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
@@ -455,6 +490,7 @@ set_property(TEST DBusMultipleConnectionTest APPEND PROPERTY ENVIRONMENT ${DBUS_
 
 add_test(NAME DBusProxyTest COMMAND DBusProxyTest)
 set_property(TEST DBusProxyTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
+set_property(TEST DBusProxyTest APPEND PROPERTY ENVIRONMENT "TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER=${PYTHON_TEST_DIR}")
 
 add_test(NAME DBusFreedesktopPropertiesTest COMMAND DBusFreedesktopPropertiesTest)
 set_property(TEST DBusFreedesktopPropertiesTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
@@ -471,3 +507,10 @@ set_property(TEST DBusPolymorphicTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_EN
 add_test(NAME DBusLoadTest COMMAND DBusLoadTest)
 set_property(TEST DBusLoadTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
 
+add_test(NAME DBusObjectPathTest COMMAND DBusObjectPathTest)
+set_property(TEST DBusObjectPathTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
+
+add_test(NAME DBusUnixFDTest COMMAND DBusUnixFDTest)
+set_property(TEST DBusUnixFDTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
+
+message("TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER: = ${PYTHON_TEST_DIR}")

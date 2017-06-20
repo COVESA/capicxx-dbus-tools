@@ -1,0 +1,50 @@
+package test.objectpath
+
+interface TestInterface {
+
+    version { major 1 minor 0 }
+
+    typedef StringType is String
+
+    struct MyStruct {
+        StringType s0
+        StringType [] s1
+        String s2
+        String [] s3
+    }
+
+    union MyUnion {
+        StringType u0
+        String u2
+    }
+
+
+    attribute String a0
+    attribute StringType a1
+    attribute MyStruct a2
+    attribute MyUnion a3
+
+    method f0 {
+        in {
+            String arg0
+            StringType arg1
+            MyStruct arg2
+            MyUnion arg3
+        }
+    }
+
+    broadcast b0 {
+        out {
+            String arg0
+            StringType arg1
+            MyStruct arg2
+            MyUnion arg3
+        }
+    }
+
+    method stubCmd {
+        in {
+            UInt8 cmd
+        }
+    }
+}

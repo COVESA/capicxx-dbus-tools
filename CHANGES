@@ -1,5 +1,11 @@
 Changes
 =======
+
+v3.1.12
+- Add support for Unix FD type in DBus
+- Fix compiler warnings in generated code
+- Test adaptions
+
 v3.1.11.2
 - Export deployment data
 

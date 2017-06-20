@@ -1,0 +1,50 @@
+package test.unixfd
+
+interface TestInterface {
+
+    version { major 1 minor 0 }
+
+    typedef UnixFD is UInt32
+
+    struct MyStruct {
+        UnixFD fd0
+        UnixFD [] fd1
+        UInt32 fd2
+        UInt32 [] fd3
+    }
+
+    union MyUnion {
+        UnixFD fd0
+        Int32 fd1
+    }
+
+
+    attribute UInt32 a0
+    attribute UnixFD a1
+    attribute MyStruct a2
+    attribute MyUnion a3
+
+    method f0 {
+        in {
+            UInt32 arg0
+            UnixFD arg1
+            MyStruct arg2
+            MyUnion arg3
+        }
+    }
+
+    broadcast b0 {
+        out {
+            UInt32 arg0
+            UnixFD arg1
+            MyStruct arg2
+            MyUnion arg3
+        }
+    }
+
+    method stubCmd {
+        in {
+            UInt8 cmd
+        }
+    }
+}

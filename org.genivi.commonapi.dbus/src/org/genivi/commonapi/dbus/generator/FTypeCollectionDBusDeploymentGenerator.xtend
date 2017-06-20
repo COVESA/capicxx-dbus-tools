@@ -207,6 +207,10 @@ class FTypeCollectionDBusDeploymentGenerator {
         var String deployment = generateIndent(_indent)
         if (_type == FBasicTypeId.STRING)
             deployment = deployment + "CommonAPI::DBus::StringDeployment"
+        else if (_type == FBasicTypeId.UINT32)
+            deployment = deployment + "CommonAPI::DBus::IntegerDeployment"
+        else if (_type == FBasicTypeId.INT32)
+            deployment = deployment + "CommonAPI::DBus::IntegerDeployment"
         else
             deployment = deployment + "CommonAPI::EmptyDeployment"
 
@@ -415,9 +419,16 @@ class FTypeCollectionDBusDeploymentGenerator {
         if (_typeId == FBasicTypeId.STRING) {
             if (_accessor.getDBusIsObjectPathHelper(_source)) parameter = "true" else parameter = "false"
         }
+        if (_typeId == FBasicTypeId.UINT32 || _typeId == FBasicTypeId.INT32) {
+            if (_accessor.getDBusIsUnixFDHelper(_source)) parameter = "true" else parameter = "false"
+        }        
         return parameter
     }
 
+    def protected dispatch String getDeploymentParameter(FTypeDef _typeDef, EObject _source, PropertyAccessor _accessor) {
+        return _typeDef.getActualType().getDeploymentParameter(_source, _accessor)
+    }
+    
     def protected dispatch String getDeploymentParameter(FTypeRef _typeRef, EObject _source, PropertyAccessor _accessor) {
         if (_typeRef.derived != null) {
             return _typeRef.derived.getDeploymentParameter(_source, _accessor)

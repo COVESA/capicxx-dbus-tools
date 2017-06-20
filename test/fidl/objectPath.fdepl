@@ -1,0 +1,65 @@
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_deployment_spec.fdepl"
+import "objectPath.fidl"
+
+define org.genivi.commonapi.dbus.deployment for interface test.objectpath.TestInterface {
+
+    attribute a0 {
+        IsObjectPath = true
+    }
+
+    attribute a1 {
+        IsObjectPath = true
+    }
+
+    method f0 {
+        in {
+            arg0 {
+                IsObjectPath = true
+            }
+            arg1 {
+                IsObjectPath = true
+            }
+        }
+    }
+
+    broadcast b0 {
+        out {
+            arg0 {
+                IsObjectPath = true
+            }
+            arg1 {
+                IsObjectPath = true
+            }
+        }
+    }
+
+
+    // no deployment for typedefs possible
+
+    // array is array and no string
+
+    struct MyStruct {
+        s0 {
+            IsObjectPath = true
+        }
+        s1 {
+            IsObjectPath = true
+        }
+        s2 {
+            IsObjectPath = true
+        }
+        s3 {
+            IsObjectPath = true
+        }
+    }
+
+    union MyUnion {
+        u0 {
+            IsObjectPath = true
+        }
+        u2 {
+            IsObjectPath = true
+        }
+    }
+
+}

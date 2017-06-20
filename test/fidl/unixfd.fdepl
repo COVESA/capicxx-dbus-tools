@@ -1,0 +1,65 @@
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_deployment_spec.fdepl"
+import "unixfd.fidl"
+
+define org.genivi.commonapi.dbus.deployment for interface test.unixfd.TestInterface {
+
+    attribute a0 {
+        IsUnixFD = true
+    }
+
+    attribute a1 {
+        IsUnixFD = true
+    }
+
+    method f0 {
+        in {
+            arg0 {
+                IsUnixFD = true
+            }
+            arg1 {
+                IsUnixFD = true
+            }
+        }
+    }
+
+    broadcast b0 {
+        out {
+            arg0 {
+                IsUnixFD = true
+            }
+            arg1 {
+                IsUnixFD = true
+            }
+        }
+    }
+
+
+    // no deployment for typedefs possible
+
+    // array is array and no string
+
+    struct MyStruct {
+        fd0 {
+            IsUnixFD = true
+        }
+        fd1 {
+            IsUnixFD = true
+        }
+        fd2 {
+            IsUnixFD = true
+        }
+        fd3 {
+            IsUnixFD = true
+        }
+    }
+
+    union MyUnion {
+        fd0 {
+            IsUnixFD = true
+        }
+        fd1 {
+            IsUnixFD = true
+        }
+    }
+
+}

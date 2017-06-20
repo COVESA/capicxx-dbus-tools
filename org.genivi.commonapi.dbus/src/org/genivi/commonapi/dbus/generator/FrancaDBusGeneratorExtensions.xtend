@@ -124,6 +124,10 @@ class FrancaDBusGeneratorExtensions {
         var Boolean test = deploymentAccessor.getDBusIsObjectPathHelper(element);
         if (test != null && test)
             return "o"
+        // test for getIsUnixFD
+        var Boolean testFD = deploymentAccessor.getDBusIsUnixFDHelper(element);
+        if (testFD != null && testFD)
+            return "h"
 
         var PropertyAccessor.DBusVariantType variantType = deploymentAccessor.getDBusVariantTypeHelper(element);
         if (variantType != null && variantType == PropertyAccessor.DBusVariantType.DBus) {
@@ -313,6 +317,10 @@ class FrancaDBusGeneratorExtensions {
     def dispatch String getDeploymentType(FBasicTypeId _type, FInterface _interface, boolean _useTc) {
         if (_type == FBasicTypeId.STRING)
             return "CommonAPI::DBus::StringDeployment"
+        if (_type == FBasicTypeId.UINT32)
+            return "CommonAPI::DBus::IntegerDeployment" 
+        if (_type == FBasicTypeId.INT32)
+            return "CommonAPI::DBus::IntegerDeployment" 
        return "CommonAPI::EmptyDeployment"
     }
 

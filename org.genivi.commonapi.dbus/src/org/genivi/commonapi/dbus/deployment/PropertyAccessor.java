@@ -96,6 +96,18 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
                 if (isObjectPath == null) isObjectPath = false;
 		return isObjectPath;
 	}
+	public Boolean getIsUnixFD (EObject obj) {
+		Boolean isUnixFD = false;
+		try {
+			if (type_ == DeploymentType.INTERFACE)
+				isUnixFD = dbusInterface_.getIsUnixFD(obj);
+			if (type_ == DeploymentType.TYPE_COLLECTION)
+				isUnixFD = dbusTypeCollection_.getIsUnixFD(obj);
+		}
+		catch (java.lang.NullPointerException e) {}
+            if (isUnixFD == null) isUnixFD = false;
+		return isUnixFD;
+	}	
 	public DBusVariantType getDBusVariantType (EObject obj) {
 		DBusVariantType variantType = DBusVariantType.CommonAPI;
 		try {

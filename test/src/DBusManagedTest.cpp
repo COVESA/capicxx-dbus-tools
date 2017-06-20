@@ -35,6 +35,8 @@
 #include <array>
 #include <memory>
 
+#include <pugixml/pugixml.hpp>
+
 #define VERSION v1_0
 
 static const std::string serviceConnectionId = "managed-test-service";
@@ -78,47 +80,6 @@ static const std::string branchInstanceNameRoot = rootInstanceName + ".BranchInt
 static const std::string branchDbusServiceNameRoot = branchDbusInterfaceName + "_" + branchInstanceNameRoot;
 static const std::string branchDbusObjectPathRoot = rootDbusObjectPath + "/BranchInterface";
 
-
-const CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict getManagedObjects(const std::string& _dbusServiceName, const std::string& _dbusObjectPath,
-                                                                                                std::shared_ptr<CommonAPI::DBus::DBusConnection> _connection) {
-    auto dbusMessageCall = CommonAPI::DBus::DBusMessage::createMethodCall(
-                    CommonAPI::DBus::DBusAddress(_dbusServiceName, _dbusObjectPath, CommonAPI::DBus::DBusObjectManagerStub::getInterfaceName()),
-                    "GetManagedObjects");
-
-    CommonAPI::DBus::DBusError dbusError;
-    CommonAPI::CallInfo info(1000);
-    auto dbusMessageReply = _connection->sendDBusMessageWithReplyAndBlock(dbusMessageCall, dbusError, &info);
-
-    CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict dbusObjectPathAndInterfacesDict;
-    if(!dbusMessageReply)
-        return dbusObjectPathAndInterfacesDict;
-
-    CommonAPI::DBus::DBusInputStream dbusInputStream(dbusMessageReply);
-
-    dbusInputStream >> dbusObjectPathAndInterfacesDict;
-
-    return dbusObjectPathAndInterfacesDict;
-}
-
-bool isManaged(const std::string& _objectPath, const std::string& _interfaceName,
-               CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict& dbusObjectPathAndInterfacesDict)
-{
-    for(auto objectPathDict : dbusObjectPathAndInterfacesDict)
-    {
-        std::string objectPath = objectPathDict.first;
-        if(objectPath != _objectPath)
-            continue;
-        CommonAPI::DBus::DBusObjectManagerStub::DBusInterfacesAndPropertiesDict interfacesAndPropertiesDict = objectPathDict.second;
-        for(auto interfaceDict : interfacesAndPropertiesDict)
-        {
-            std::string interfaceName = interfaceDict.first;
-            if(interfaceName == _interfaceName)
-                return true;
-        }
-    }
-    return false;
-}
-
 class DBusManagedTest: public ::testing::Test {
 protected:
     virtual void SetUp() {
@@ -134,10 +95,90 @@ protected:
         manualDBusConnection_.reset();
     }
 
+    const CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict getManagedObjects(const std::string& _dbusServiceName,
+                                                                                                const std::string& _dbusObjectPath,
+                                                                                                std::shared_ptr<CommonAPI::DBus::DBusConnection> _connection) {
+        auto dbusMessageCall = CommonAPI::DBus::DBusMessage::createMethodCall(
+                        CommonAPI::DBus::DBusAddress(_dbusServiceName, _dbusObjectPath, CommonAPI::DBus::DBusObjectManagerStub::getInterfaceName()),
+                        "GetManagedObjects");
+
+        CommonAPI::DBus::DBusError dbusError;
+        CommonAPI::CallInfo info(1000);
+        auto dbusMessageReply = _connection->sendDBusMessageWithReplyAndBlock(dbusMessageCall, dbusError, &info);
+
+        CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict dbusObjectPathAndInterfacesDict;
+        if(!dbusMessageReply)
+            return dbusObjectPathAndInterfacesDict;
+
+        CommonAPI::DBus::DBusInputStream dbusInputStream(dbusMessageReply);
+
+        dbusInputStream >> dbusObjectPathAndInterfacesDict;
+
+        return dbusObjectPathAndInterfacesDict;
+    }
+
+    bool isManaged(const std::string& _dbusObjectPath,
+                   const std::string& _dbusInterfaceName,
+                   CommonAPI::DBus::DBusObjectManagerStub::DBusObjectPathAndInterfacesDict& dbusObjectPathAndInterfacesDict)
+    {
+        for(auto dbusObjectPathDict : dbusObjectPathAndInterfacesDict)
+        {
+            std::string dbusObjectPath = dbusObjectPathDict.first;
+            if(dbusObjectPath != _dbusObjectPath)
+                continue;
+            CommonAPI::DBus::DBusObjectManagerStub::DBusInterfacesAndPropertiesDict dbusInterfacesAndPropertiesDict = dbusObjectPathDict.second;
+            for(auto dbusInterfaceDict : dbusInterfacesAndPropertiesDict)
+            {
+                std::string dbusInterfaceName = dbusInterfaceDict.first;
+                if(dbusInterfaceName == _dbusInterfaceName)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    const std::string getIntrospection(const std::string& _dbusServiceName,
+                                       const std::string& _dbusObjectPath,
+                                       std::shared_ptr<CommonAPI::DBus::DBusConnection> _connection) {
+        std::string introspection = "";
+        auto dbusMessageCall = CommonAPI::DBus::DBusMessage::createMethodCall(
+            CommonAPI::DBus::DBusAddress(_dbusServiceName, _dbusObjectPath, "org.freedesktop.DBus.Introspectable"),
+            "Introspect");
+
+        CommonAPI::DBus::DBusError dbusError;
+        CommonAPI::CallInfo info(1000);
+        auto dbusMessageReply = _connection->sendDBusMessageWithReplyAndBlock(dbusMessageCall, dbusError, &info);
+
+        if(!dbusMessageReply || dbusMessageReply.isErrorType())
+            return introspection;
+
+        CommonAPI::DBus::DBusInputStream dbusInputStream(dbusMessageReply);
+
+        dbusInputStream >> introspection;
+
+        return introspection;
+    }
+
+    bool introspectionContains(const std::string& _dbusObjectPath,
+                               const std::string& _dbusInterfaceName,
+                               const std::string& _introspection) {
+        pugi::xml_document xmlDocument;
+        pugi::xml_parse_result parsedResult = xmlDocument.load_buffer(_introspection.c_str(), _introspection.length(), pugi::parse_minimal, pugi::encoding_utf8);
+
+        if(_introspection == "" || parsedResult.status != pugi::xml_parse_status::status_ok) {
+            return false;
+        }
+
+        const pugi::xml_node rootNode = xmlDocument.child("node");
+
+        bool objectPathFound, interfaceFound;
+        parseIntrospectionNode(rootNode, _dbusObjectPath, _dbusInterfaceName, objectPathFound, interfaceFound);
+
+        return (objectPathFound && interfaceFound);
+    }
+
     std::shared_ptr<CommonAPI::Runtime> runtime_;
-
     std::shared_ptr<CommonAPI::DBus::DBusConnection> manualDBusConnection_;
-
     CommonAPI::AvailabilityStatus leafStatus_;
 
 public:
@@ -145,11 +186,83 @@ public:
         (void)address;
         leafStatus_ = status;
     }
+
+private:
+
+    void parseIntrospectionObjectPath(const pugi::xml_node& _node,
+                                      const std::string& _dbusObjectPath,
+                                      const std::string& _dbusInterfaceName,
+                                      bool& _objectPathFound,
+                                      bool& _interfaceFound) {
+        std::string dbusObjectPath = std::string(_node.attribute("name").as_string());
+        if(dbusObjectPath == _dbusObjectPath) {
+            _objectPathFound = true;
+        }
+        for(pugi::xml_node subNode : _node.children()) {
+            parseIntrospectionNode(subNode,
+                                   _dbusObjectPath,
+                                   _dbusInterfaceName,
+                                   _objectPathFound,
+                                   _interfaceFound);
+        }
+    }
+
+    void parseIntrospectionInterface(const pugi::xml_node& _node,
+                                     const std::string& _dbusObjectPath,
+                                     const std::string& _dbusInterfaceName,
+                                     bool& _objectPathFound,
+                                     bool& _interfaceFound) {
+        std::string dbusInterfaceName = _node.attribute("name").as_string();
+        if(dbusInterfaceName == _dbusInterfaceName) {
+            _interfaceFound = true;
+        }
+        for(pugi::xml_node subNode : _node.children()) {
+            parseIntrospectionNode(subNode,
+                                   _dbusObjectPath,
+                                   _dbusInterfaceName,
+                                   _objectPathFound,
+                                   _interfaceFound);
+        }
+    }
+
+    void parseIntrospectionNode(const pugi::xml_node& _node,
+                                const std::string& _dbusObjectPath,
+                                const std::string& _dbusInterfaceName,
+                                bool& _objectPathFound,
+                                bool& _interfaceFound) {
+        std::string nodeName = std::string(_node.name());
+        if(nodeName == "node") {
+            std::string dbusObjectPath = std::string(_node.attribute("name").as_string());
+            if(dbusObjectPath == _dbusObjectPath) {
+                _objectPathFound = true;
+            }
+        } else if(nodeName == "interface") {
+            std::string dbusInterfaceName = _node.attribute("name").as_string();
+            if(dbusInterfaceName == _dbusInterfaceName) {
+                _interfaceFound = true;
+            }
+        }
+
+        for(pugi::xml_node& subNode : _node.children()) {
+            parseIntrospectionNode(subNode,
+                                   _dbusObjectPath,
+                                   _dbusInterfaceName,
+                                   _objectPathFound,
+                                   _interfaceFound);
+        }
+    }
 };
 
 TEST_F(DBusManagedTest, RegisterRoot) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName, rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -157,6 +270,13 @@ TEST_F(DBusManagedTest, RegisterRoot) {
     ASSERT_TRUE(isManaged(rootDbusObjectPath, rootDbusInterfaceName, dbusObjectPathAndInterfacesDict));
 
     runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName);
+
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict.clear();
@@ -168,12 +288,26 @@ TEST_F(DBusManagedTest, RegisterLeafUnmanaged) {
     auto leafStub = std::make_shared<VERSION::commonapi::tests::managed::LeafInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, leafInstanceNameRoot, leafStub, serviceConnectionId));
 
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
+
     //check that leaf is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(leafDbusServiceNameRoot,"/", manualDBusConnection_);
     ASSERT_FALSE(dbusObjectPathAndInterfacesDict.empty());
     ASSERT_TRUE(isManaged(leafDbusObjectPathRoot, leafDbusInterfaceName, dbusObjectPathAndInterfacesDict));
 
     runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::LeafInterfaceStubDefault::StubInterface::getInterface(), leafInstanceNameRoot);
+
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
 
     //check that leaf is unregistered
     dbusObjectPathAndInterfacesDict.clear();
@@ -184,6 +318,13 @@ TEST_F(DBusManagedTest, RegisterLeafUnmanaged) {
 TEST_F(DBusManagedTest, RegisterLeafManaged) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName, rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -225,6 +366,13 @@ TEST_F(DBusManagedTest, RegisterLeafManaged) {
         std::this_thread::sleep_for(std::chrono::microseconds(10 * 1000));
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
+
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
 
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
@@ -239,12 +387,26 @@ TEST_F(DBusManagedTest, RegisterLeafManaged) {
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict.clear();
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
 
     runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName);
+
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict.clear();
@@ -257,6 +419,13 @@ TEST_F(DBusManagedTest, RegisterLeafManaged) {
 TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeaf) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName , rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -297,6 +466,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeaf) {
         std::this_thread::sleep_for(std::chrono::microseconds(10 * 1000));
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
+
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
 
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
@@ -326,11 +502,25 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeaf) {
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
 
     ASSERT_TRUE(runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName));
+
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -342,6 +532,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeaf) {
 TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEvent) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName , rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -411,6 +608,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
 
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
+
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
@@ -432,11 +636,25 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
 
     ASSERT_TRUE(runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName));
+
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -449,6 +667,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
 TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEventCallMethodInProxyStatusEvent) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName , rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -522,6 +747,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
 
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
+
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
@@ -543,6 +775,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
@@ -555,6 +794,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
         std::this_thread::sleep_for(std::chrono::microseconds(10 * 1000));
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
+
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
 
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
@@ -573,11 +819,25 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
 
     ASSERT_TRUE(runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName));
+
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -589,6 +849,13 @@ TEST_F(DBusManagedTest, RegisterLeafManagedAndCreateProxyForLeafInAvailabilityEv
 TEST_F(DBusManagedTest, PropagateTeardown) {
     auto rootStub = std::make_shared<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>();
     ASSERT_TRUE(runtime_->registerService(domain, rootInstanceName, rootStub, serviceConnectionId));
+
+    //check that root is in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
 
     //check that root is registered
     auto dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -630,6 +897,13 @@ TEST_F(DBusManagedTest, PropagateTeardown) {
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::AVAILABLE);
 
+    //check that leaf is in introspection
+    ASSERT_TRUE(introspectionContains(leafDbusObjectPathRoot,
+                                      leafDbusInterfaceName,
+                                      getIntrospection(leafDbusServiceNameRoot,
+                                                       leafDbusObjectPathRoot,
+                                                       manualDBusConnection_)));
+
     //check that root manages leaf
     dbusObjectPathAndInterfacesDict.clear();
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
@@ -659,6 +933,20 @@ TEST_F(DBusManagedTest, PropagateTeardown) {
     }
     ASSERT_TRUE(leafStatus_ == CommonAPI::AvailabilityStatus::NOT_AVAILABLE);
 
+    //check that root is still in introspection
+    ASSERT_TRUE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
+
+    //check that leaf is not in introspection
+    ASSERT_FALSE(introspectionContains(leafDbusObjectPathRoot,
+                                       leafDbusInterfaceName,
+                                       getIntrospection(leafDbusServiceNameRoot,
+                                                        leafDbusObjectPathRoot,
+                                                        manualDBusConnection_)));
+
     //check that root no longer manages leaf
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, rootDbusObjectPath, manualDBusConnection_);
     ASSERT_TRUE(dbusObjectPathAndInterfacesDict.empty());
@@ -671,6 +959,13 @@ TEST_F(DBusManagedTest, PropagateTeardown) {
 
     runtime_->unregisterService(domain, VERSION::commonapi::tests::managed::RootInterfaceStubDefault::StubInterface::getInterface(), rootInstanceName);
 
+    //check that root is not in introspection
+    ASSERT_FALSE(introspectionContains(rootDbusObjectPath,
+                                      rootDbusInterfaceName,
+                                      getIntrospection(rootDbusServiceName,
+                                                       rootDbusObjectPath,
+                                                       manualDBusConnection_)));
+
     //check that root is unregistered
     dbusObjectPathAndInterfacesDict.clear();
     dbusObjectPathAndInterfacesDict = getManagedObjects(rootDbusServiceName, "/", manualDBusConnection_);
@@ -679,7 +974,7 @@ TEST_F(DBusManagedTest, PropagateTeardown) {
     proxyConnection->disconnect();
 }
 
-class DBusManagedTestExtended: public ::testing::Test {
+class DBusManagedTestExtended: public DBusManagedTest {
 protected:
     virtual void SetUp() {
         runtime_ = CommonAPI::Runtime::get();
@@ -788,10 +1083,6 @@ protected:
             leafProxies_.push_back(std::move(leafProxiesForRootX));
          }
     }
-
-    std::shared_ptr<CommonAPI::Runtime> runtime_;
-
-    std::shared_ptr<CommonAPI::DBus::DBusConnection> manualDBusConnection_;
 
     std::unordered_map<std::string, std::shared_ptr<VERSION::commonapi::tests::managed::RootInterfaceStubDefault>> rootStubs_;
     std::vector<std::shared_ptr<VERSION::commonapi::tests::managed::RootInterfaceDBusProxy>> rootProxies_;

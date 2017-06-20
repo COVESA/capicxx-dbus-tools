@@ -40,6 +40,15 @@
 #define VERSION v1_0
 
 class DBusCommunicationTest: public ::testing::Test {
+ public:
+
+    void recvTimeout(const CommonAPI::CallStatus& callStatus, const std::string &_message) {
+        std::lock_guard<std::mutex> timeoutsLock(timeoutsMutex_);
+        EXPECT_EQ(callStatus, CommonAPI::CallStatus::NOT_AVAILABLE);
+        timeoutsOccured_.push_back(true);
+        (void)_message;
+    }
+
  protected:
     virtual void SetUp() {
         runtime_ = CommonAPI::Runtime::get();
@@ -66,6 +75,9 @@ class DBusCommunicationTest: public ::testing::Test {
     static const std::string serviceAddress4_;
     static const std::string nonstandardAddress_;
     static const std::string serviceAddress5_;
+
+    std::mutex timeoutsMutex_;
+    std::vector<bool> timeoutsOccured_;
 };
 
 const std::string DBusCommunicationTest::domain_ = "local";
@@ -178,6 +190,94 @@ TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReply) {
         std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
+    ASSERT_TRUE(errorReplyEventReceived);
+    ASSERT_TRUE(errorReplyResponseReceived);
+}
+
+TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReplyProxyNotAvailable) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    int counter = 0;
+    while ( defaultTestProxy->isAvailable() && counter < 100 ) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+        counter++;
+    }
+    ASSERT_FALSE(defaultTestProxy->isAvailable());
+
+    bool errorReplyEventReceived = false;
+    defaultTestProxy->getDisconnectedErrorEvent().subscribe([&errorReplyEventReceived](const std::string &_errorMessage, const std::string &_errorDescription,
+            const int32_t _errorCode) {
+        (void)_errorMessage;
+        (void)_errorDescription;
+        (void)_errorCode;
+        errorReplyEventReceived = true;
+    });
+
+    std::function<void (const CommonAPI::CallStatus&, const std::string&)> timeoutCallback = 
+        std::bind(&DBusCommunicationTest::recvTimeout, this, std::placeholders::_1, std::placeholders::_2);
+
+    CommonAPI::CallInfo info(100);
+    defaultTestProxy->testErrorReplyMethodAsync("dummyStr", timeoutCallback, &info);
+
+    int t=0;
+    timeoutsMutex_.lock();
+    while(timeoutsOccured_.size() == 0 && t <= 8) {
+        timeoutsMutex_.unlock();
+        std::this_thread::sleep_for(std::chrono::microseconds(80000));
+        timeoutsMutex_.lock();
+        t++;
+    }
+
+    EXPECT_EQ(1u, timeoutsOccured_.size());
+    ASSERT_TRUE(timeoutsOccured_[0]);
+    timeoutsMutex_.unlock();
+    ASSERT_FALSE(errorReplyEventReceived);
+}
+
+TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReplyProxyBecomesAvailable) {
+    auto defaultTestProxy = runtime_->buildProxy<VERSION::commonapi::tests::TestInterfaceProxy>(domain_, serviceAddress_);
+    ASSERT_TRUE((bool)defaultTestProxy);
+
+    int counter = 0;
+    while ( defaultTestProxy->isAvailable() && counter < 100 ) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+        counter++;
+    }
+    ASSERT_FALSE(defaultTestProxy->isAvailable());
+
+    auto stub = std::make_shared<VERSION::commonapi::tests::TestInterfaceStubImpl>();
+    interface_ = stub->getStubAdapter()->getInterface();
+
+    bool errorReplyEventReceived = false;
+    defaultTestProxy->getDisconnectedErrorEvent().subscribe([&errorReplyEventReceived, &stub](const std::string &_errorMessage, const std::string &_errorDescription,
+            const int32_t _errorCode) {
+        EXPECT_EQ(stub->getErrorReplyMessage(), _errorMessage);
+        EXPECT_EQ(stub->getErrorReplyDescription(), _errorDescription);
+        EXPECT_EQ(stub->getErrorReplyCode(), _errorCode);
+        errorReplyEventReceived = true;
+    });
+
+    CommonAPI::CallInfo info(1000);
+    bool errorReplyResponseReceived = false;
+    defaultTestProxy->testErrorReplyMethodAsync("dummyStr", [&errorReplyResponseReceived](const CommonAPI::CallStatus &_status, const std::string &_message) {
+        (void)_message;
+        EXPECT_EQ(_status, CommonAPI::CallStatus::REMOTE_ERROR);
+        errorReplyResponseReceived = true;
+    }, &info);
+
+    bool serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+    for(unsigned int i = 0; !serviceRegistered && i < 100; ++i) {
+        serviceRegistered = runtime_->registerService(domain_, serviceAddress_, stub, "connection");
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(serviceRegistered);
+
+    counter = 0;
+    while (!defaultTestProxy->isAvailable() && 100 > counter++) {
+        std::this_thread::sleep_for(std::chrono::microseconds(20000));
+    }
+    ASSERT_TRUE(defaultTestProxy->isAvailable());
     ASSERT_TRUE(errorReplyEventReceived);
     ASSERT_TRUE(errorReplyResponseReceived);
 }

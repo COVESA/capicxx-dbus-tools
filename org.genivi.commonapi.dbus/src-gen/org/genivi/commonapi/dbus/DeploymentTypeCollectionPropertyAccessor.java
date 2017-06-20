@@ -42,7 +42,9 @@ public class DeploymentTypeCollectionPropertyAccessor
 	public Boolean getIsObjectPath (EObject obj) {
 		return target.getBoolean(obj, "IsObjectPath");
 	}
-	
+	public Boolean getIsUnixFD (EObject obj) {
+		return target.getBoolean(obj, "IsUnixFD");
+	}
 	public enum DBusVariantType {
 		DBus, CommonAPI
 	}

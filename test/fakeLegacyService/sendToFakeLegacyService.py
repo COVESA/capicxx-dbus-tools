@@ -11,14 +11,25 @@ import gobject
 import math
 import dbus
 import dbus.service
+import argparse
 
-BASE_PATH = 'fake.legacy.service'
-OBJECT_PATH = '/some/legacy/path/6259504'
+parser=argparse.ArgumentParser(
+    description='''Finish fake Legacy Service''')
+parser.add_argument('command', help='Command (e.g. finish)')
+parser.add_argument('service', help='DBus Service Name')
+parser.add_argument('object_path', help='DBus Object Path')
+parser.add_argument('interface', help='DBus Interface name')
+args=parser.parse_args()
+
+COMMAND = args.command
+SERVICE = args.service
+OBJECT_PATH = args.object_path
+INTERFACE = args.interface
     
 def finish(interface):
     try:
         bus = dbus.SessionBus()
-        remote_object = bus.get_object(BASE_PATH + '.connection', OBJECT_PATH)
+        remote_object = bus.get_object(SERVICE, OBJECT_PATH)
         iface = dbus.Interface(remote_object, interface)
         iface.finish()
         return 0
@@ -27,10 +38,8 @@ def finish(interface):
         return 1
 
 def main():
-    command=sys.argv[1]
-    interface=sys.argv[2]
-    if command=="finish":
-        return finish(interface)
+    if COMMAND == "finish":
+        return finish(INTERFACE)
     
     return 0
 

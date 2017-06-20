@@ -96,6 +96,7 @@ class FInterfaceDBusProxyGenerator {
 
         #include <string>
 
+        # if defined(_MSC_VER)
         #  if _MSC_VER >= 1300
         /*
          * Diamond inheritance is used for the CommonAPI::Proxy base class.
@@ -105,6 +106,7 @@ class FInterfaceDBusProxyGenerator {
          */
         #    pragma warning( disable : 4250 )
         #  endif
+        # endif
 
         «fInterface.generateVersionNamespaceBegin»
         «fInterface.model.generateNamespaceBeginDeclaration»

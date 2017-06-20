@@ -109,7 +109,9 @@ static const std::vector<std::string> commonApiAddresses = {
     "local:only.connection.service:v1_0:only.connection.instance",
     "local:only.object.service:v1_0:only.object.instance",
     "local:fake.legacy.service.LegacyInterface:v1_0:fake.legacy.service",
-    "local:fake.legacy.service.LegacyInterfaceNoObjectManager:v1_0:fake.legacy.service"
+    "local:fake.legacy.service.LegacyInterfaceNoObjectManager:v1_0:fake.legacy.service",
+    "local:commonapi.compatibility.interfaceA:v1_0:no.nothing.instance",
+    "local:commonapi.compatibility.interfaceC:v1_0:no.nothing.instance"
 };
 
 typedef std::vector<CommonAPI::DBus::DBusAddress>::value_type vt;
@@ -123,7 +125,9 @@ static const std::vector<CommonAPI::DBus::DBusAddress> dbusAddresses = {
                 vt("only.connection.service.v1_0_only.connection.instance", "/only/connection/instance", "only.connection.service.v1_0"),
                 vt("only.object.service.v1_0_only.object.instance", "/only/object/instance", "only.object.service.v1_0"),
                 vt("fake.legacy.service.connection", "/some/legacy/path/6259504", "fake.legacy.service.LegacyInterface"),
-                vt("fake.legacy.service.connection", "/some/legacy/path/6259504", "fake.legacy.service.LegacyInterfaceNoObjectManager")
+                vt("fake.legacy.service.connection", "/some/legacy/path/6259504", "fake.legacy.service.LegacyInterfaceNoObjectManager"),
+                vt("commonapi.compatibility.interfaceB.v1_0_no.nothing.instance", "/no/nothing/instance", "commonapi.compatibility.interfaceB.v1_0"),
+                vt("commonapi.compatibility.interfaceC_no.nothing.instance", "/no/nothing/instance", "commonapi.compatibility.interfaceC")
 };
 
 class AddressTranslatorTest: public ::testing::Test {
@@ -448,6 +452,18 @@ TEST_F(AddressTranslatorTest, ServicesUsingPredefinedAddressesCanCommunicate) {
     runtime->unregisterService(commonApiAddress.getDomain(), stub->getStubAdapter()->getInterface(), commonApiAddress.getInstance());
 }
 
+TEST_F(AddressTranslatorTest, InsertConnectionOnSystemAndSessionBus) {
+
+    // connection IDs that are used in test-commonapi-dbus.ini to configure
+    // the connections on the appropriate bus
+    const std::string connectionOnSystemBus = "connectionSystem";
+    const std::string connectionOnSessionBus = "connectionSession";
+
+    std::shared_ptr<CommonAPI::DBus::DBusAddressTranslator> translator = CommonAPI::DBus::DBusAddressTranslator::get();
+    ASSERT_EQ(CommonAPI::DBus::DBusType_t::SESSION, translator->getDBusBusType(connectionOnSessionBus));
+    ASSERT_EQ(CommonAPI::DBus::DBusType_t::SYSTEM, translator->getDBusBusType(connectionOnSystemBus));
+}
+
 #ifndef _WIN32
 
 const std::string domainOfFakeLegacyService = "local";
@@ -457,6 +473,9 @@ const std::string instanceOfFakeLegacyService = "fake.legacy.service";
 const std::string domainOfFakeLegacyServiceNoObjectManager = "local";
 const std::string interfaceOfFakeLegacyServiceNoObjectManager = "fake.legacy.service.LegacyInterfaceNoObjectManager:v1_0";
 const std::string instanceOfFakeLegacyServiceNoObjectManager = "fake.legacy.service";
+
+const std::string serviceNameOfFakeLegacyService = "fake.legacy.service.connection";
+const std::string objectPathOfFakeLegacyService = "/some/legacy/path/6259504";
 
 TEST_F(AddressTranslatorTest, CreatedProxyHasCorrectCommonApiAddress) {
     std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
@@ -473,10 +492,10 @@ TEST_F(AddressTranslatorTest, CreatedProxyHasCorrectCommonApiAddress) {
 
 void callPythonService(std::string _pythonFileNameAndCommand) {
     const char *pathToFolderForFakeLegacyService =
-            getenv("TEST_COMMONAPI_DBUS_ADDRESS_TRANSLATOR_FAKE_LEGACY_SERVICE_FOLDER");
+            getenv("TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER");
 
     ASSERT_NE(pathToFolderForFakeLegacyService, nullptr) << "Environment variable "
-            "TEST_COMMONAPI_DBUS_ADDRESS_TRANSLATOR_FAKE_LEGACY_SERVICE_FOLDER "
+            "TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER "
             "is not set!";
 
     std::stringstream stream;
@@ -487,11 +506,11 @@ void callPythonService(std::string _pythonFileNameAndCommand) {
 }
 
 void fakeLegacyServiceThread() {
-    callPythonService("fakeLegacyService.py withObjectManager");
+    callPythonService("fakeLegacyService.py " + serviceNameOfFakeLegacyService + " " + objectPathOfFakeLegacyService + " fake.legacy.service.LegacyInterface --withObjectManager");
 }
 
 void fakeLegacyServiceThreadNoObjectMananger() {
-    callPythonService("fakeLegacyService.py noObjectManager");
+    callPythonService("fakeLegacyService.py " + serviceNameOfFakeLegacyService + " " + objectPathOfFakeLegacyService + " fake.legacy.service.LegacyInterfaceNoObjectManager");
 }
 
 TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressed) {
@@ -531,7 +550,7 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressed) {
     }
 
     //end the fake legacy service via dbus
-    callPythonService("sendToFakeLegacyService.py finish fake.legacy.service.LegacyInterface");
+    callPythonService("sendToFakeLegacyService.py finish " + serviceNameOfFakeLegacyService + " " + objectPathOfFakeLegacyService + " fake.legacy.service.LegacyInterface");
 
     fakeServiceThread.join();
 }
@@ -574,10 +593,11 @@ TEST_F(AddressTranslatorTest, FakeLegacyServiceCanBeAddressedNoObjectManager) {
     }
 
     //end the fake legacy service via dbus
-    callPythonService("sendToFakeLegacyService.py finish fake.legacy.service.LegacyInterfaceNoObjectManager");
+    callPythonService("sendToFakeLegacyService.py finish " + serviceNameOfFakeLegacyService + " " + objectPathOfFakeLegacyService + " fake.legacy.service.LegacyInterfaceNoObjectManager");
 
     fakeServiceThreadNoObjectManager.join();
 }
+
 #endif // !_WIN32
 
 #ifndef __NO_MAIN__

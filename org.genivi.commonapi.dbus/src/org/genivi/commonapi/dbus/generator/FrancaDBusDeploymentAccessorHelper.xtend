@@ -35,6 +35,9 @@ class FrancaDBusDeploymentAccessorHelper {
         if (_accessor.getDBusIsObjectPathHelper(_element)) {
             return true
         }
+        if (_accessor.getDBusIsUnixFDHelper(_element)) {
+            return true
+        }        
         return _accessor.hasDeployment(_element.type)
     }
 
@@ -130,6 +133,12 @@ class FrancaDBusDeploymentAccessorHelper {
                 return true
             }
         } catch (NullPointerException e) {}
+        try {
+            val Boolean isUnixFD = _accessor.getDBusIsUnixFDHelper(_attribute)
+            if (isUnixFD != null && isUnixFD) {
+                return true
+            }
+        } catch (NullPointerException e) {}
         return false
     }
 
@@ -142,7 +151,15 @@ class FrancaDBusDeploymentAccessorHelper {
             return parentAccessor.getIsObjectPath(_obj);
         return new Boolean(false);
     }
-
+    def Boolean getDBusIsUnixFDHelper(PropertyAccessor _accessor, EObject _obj) {
+        var PropertyAccessor parentAccessor = _accessor;
+        var FTypeCollection tc = _obj.findTypeCollection
+        if (tc != null)
+            parentAccessor = tc.accessor
+        if (parentAccessor != null)
+            return parentAccessor.getIsUnixFD(_obj);
+        return new Boolean(false);
+    }
     def PropertyAccessor.DBusVariantType getDBusVariantTypeHelper(PropertyAccessor _accessor, EObject _obj) {
 
         var PropertyAccessor parentAccessor = _accessor;

@@ -98,7 +98,7 @@ class FrancaDBusGenerator implements IGenerator {
             for (itsEntry : models.entrySet) {
                 val itsModel = itsEntry.value
  
-                if (itsModel instanceof FModel) {
+                if (itsModel != null) {
                     for (i : itsModel.interfaces) {
                         if (!i.isDeployed(allCoreInterfaces)) {
                             val itsNewDeployment = FDeployFactory.eINSTANCE.createFDInterface()
