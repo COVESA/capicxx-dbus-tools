@@ -130,8 +130,9 @@ public class AllInfoMapsBuilder {
         File folder = new File(path);
         for (File file : folder.listFiles()) {
             if (file.isDirectory()) {
-                if (!(file.getName().equals("bin") || file.equals(".settings")))
-                    buildAllInfo(path + "/" + file.getName());
+                String directoryName = file.getName();
+                if (!(directoryName.equals("bin") || directoryName.equals(".settings")))
+                    buildAllInfo(path + "/" + directoryName);
             }
             if (file.isFile()) {
                 if (file.getName().endsWith(".fidl")) {

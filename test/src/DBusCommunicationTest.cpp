@@ -186,11 +186,14 @@ TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReply) {
         errorReplyResponseReceived = true;
     });
 
+    for(unsigned int i = 0; !errorReplyEventReceived && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
+    ASSERT_TRUE(errorReplyEventReceived);
+
     for(unsigned int i = 0; !errorReplyResponseReceived && i < 100; ++i) {
         std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
-
-    ASSERT_TRUE(errorReplyEventReceived);
     ASSERT_TRUE(errorReplyResponseReceived);
 }
 
@@ -278,7 +281,15 @@ TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReplyProxyBecomesAva
         std::this_thread::sleep_for(std::chrono::microseconds(20000));
     }
     ASSERT_TRUE(defaultTestProxy->isAvailable());
+
+    for(unsigned int i = 0; !errorReplyEventReceived && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
     ASSERT_TRUE(errorReplyEventReceived);
+
+    for(unsigned int i = 0; !errorReplyResponseReceived && i < 100; ++i) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    }
     ASSERT_TRUE(errorReplyResponseReceived);
 }
 

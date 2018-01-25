@@ -311,7 +311,7 @@ class FInterfaceDBusStubAdapterGenerator {
         CommonAPI::DBus::DBusGetAttributeStubDispatcher<
             «fInterface.stubFullClassName»,
             CommonAPI::Version
-            > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::get«fInterface.elementName»InterfaceVersionStubDispatcher(&«fInterface.stubClassName»::getInterfaceVersion, "uu");
+            > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::get«fInterface.elementName»InterfaceVersionStubDispatcher(&«fInterface.stubClassName»::lockInterfaceVersionAttribute, &«fInterface.stubClassName»::getInterfaceVersion, "uu");
 
         «FOR attribute : fInterface.attributes»
             «generateAttributeDispatcherDefinitions(attribute, fInterface, deploymentAccessor)»
@@ -611,6 +611,7 @@ class FInterfaceDBusStubAdapterGenerator {
                     «typeName»«IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»,
                     «deploymentType»«ENDIF»
                     > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fAttribute.dbusGetStubDispatcherVariable»(
+                        &«fInterface.stubFullClassName»::«fAttribute.stubClassLockMethodName»,
                         &«fInterface.stubFullClassName»::«fAttribute.stubClassGetMethodName»
                         «IF deploymentAccessor.getPropertiesType(fInterface)!=PropertyAccessor.PropertiesType.freedesktop», "«fAttribute.dbusSignature(deploymentAccessor)»"«ENDIF»
                         «IF deploymentAccessor.hasDeployment(fAttribute)», «fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor)»«ENDIF»
@@ -622,6 +623,7 @@ class FInterfaceDBusStubAdapterGenerator {
                         «typeName»«IF deploymentType != "CommonAPI::EmptyDeployment" && deploymentType != ""»,
                         «deploymentType»«ENDIF»
                         > «fInterface.dbusStubAdapterClassNameInternal»<_Stub, _Stubs...>::«fAttribute.dbusSetStubDispatcherVariable»(
+                                &«fInterface.stubFullClassName»::«fAttribute.stubClassLockMethodName»,
                                 &«fInterface.stubFullClassName»::«fAttribute.stubClassGetMethodName»,
                                 &«fInterface.stubRemoteEventClassName»::«fAttribute.stubRemoteEventClassSetMethodName»,
                                 &«fInterface.stubRemoteEventClassName»::«fAttribute.stubRemoteEventClassChangedMethodName»
