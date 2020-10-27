@@ -19,7 +19,7 @@ typeCollection EnumTypes {
 
 interface TestFreedesktopInterface {
     version { major 1 minor 0 }
-    
+
     attribute UInt32 TestPredefinedTypeAttribute
     attribute UInt32 TestReadonlyAttribute readonly
     attribute DerivedTypeCollection.TestStructExtended TestDerivedStructAttribute
@@ -33,5 +33,3 @@ interface TestFreedesktopDerivedInterface extends TestFreedesktopInterface {
 
     attribute UInt32 TestAttributedFromDerivedInterface
 }
-
-

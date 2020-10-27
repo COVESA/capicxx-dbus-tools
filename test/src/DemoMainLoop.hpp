@@ -261,15 +261,13 @@ class MainLoop {
      */
     void doSingleIteration(const int64_t& timeout = TIMEOUT_INFINITE) {
         {
-            std::lock_guard<std::mutex> itsLock(dispatchSourcesMutex_);
+            std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
             for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
                 dispatchSourceIterator != registeredDispatchSources_.end();
                 dispatchSourceIterator++) {
 
-                (dispatchSourceIterator->second)->mutex_->lock();
                 if ((dispatchSourceIterator->second)->deleteObject_) {
                     if (!(dispatchSourceIterator->second)->isExecuted_) {
-                        (dispatchSourceIterator->second)->mutex_->unlock();
                         bool contained = false;
                         for (std::set<std::pair<DispatchPriority, DispatchSourceToDispatchStruct*>>::iterator dispatchSourceIteratorInner = sourcesToDispatch_.begin();
                             dispatchSourceIteratorInner != sourcesToDispatch_.end(); dispatchSourceIteratorInner++) {
@@ -281,8 +279,6 @@ class MainLoop {
                         if (!contained) {
                             delete (dispatchSourceIterator->second)->dispatchSource_;
                             (dispatchSourceIterator->second)->dispatchSource_ = NULL;
-                            delete (dispatchSourceIterator->second)->mutex_;
-                            (dispatchSourceIterator->second)->mutex_ = NULL;
                             delete dispatchSourceIterator->second;
                             dispatchSourceIterator = registeredDispatchSources_.erase(dispatchSourceIterator);
                         }
@@ -290,12 +286,6 @@ class MainLoop {
                             break;
                         }
                     }
-                    else {
-                        (dispatchSourceIterator->second)->mutex_->unlock();
-                    }
-                }
-                else {
-                    (dispatchSourceIterator->second)->mutex_->unlock();
                 }
             }
         }
@@ -306,10 +296,8 @@ class MainLoop {
                 timeoutIterator != registeredTimeouts_.end();
                 timeoutIterator++) {
 
-                (timeoutIterator->second)->mutex_->lock();
                 if ((timeoutIterator->second)->deleteObject_) {
                     if (!(timeoutIterator->second)->isExecuted_) {
-                        (timeoutIterator->second)->mutex_->unlock();
                         bool contained = false;
                         for (std::set<std::pair<DispatchPriority, TimeoutToDispatchStruct*>>::iterator timeoutIteratorInner = timeoutsToDispatch_.begin();
                             timeoutIteratorInner != timeoutsToDispatch_.end(); timeoutIteratorInner++) {
@@ -321,8 +309,6 @@ class MainLoop {
                         if (!contained) {
                             delete (timeoutIterator->second)->timeout_;
                             (timeoutIterator->second)->timeout_ = NULL;
-                            delete (timeoutIterator->second)->mutex_;
-                            (timeoutIterator->second)->mutex_ = NULL;
                             delete timeoutIterator->second;
                             timeoutIterator = registeredTimeouts_.erase(timeoutIterator);
                         }
@@ -330,12 +316,6 @@ class MainLoop {
                             break;
                         }
                     }
-                    else {
-                        (timeoutIterator->second)->mutex_->unlock();
-                    }
-                }
-                else {
-                    (timeoutIterator->second)->mutex_->unlock();
                 }
             }
         }
@@ -346,10 +326,8 @@ class MainLoop {
                 watchesIterator != registeredWatches_.end();
                 watchesIterator++) {
 
-                (watchesIterator->second)->mutex_->lock();
                 if ((watchesIterator->second)->deleteObject_) {
                     if (!(watchesIterator->second)->isExecuted_) {
-                        (watchesIterator->second)->mutex_->unlock();
                         bool contained = false;
                         for (auto watchesIteratorInner = watchesToDispatch_.begin();
                             watchesIteratorInner != watchesToDispatch_.end(); watchesIteratorInner++) {
@@ -361,8 +339,6 @@ class MainLoop {
                         if (!contained) {
                             delete (watchesIterator->second)->watch_;
                             (watchesIterator->second)->watch_ = NULL;
-                            delete (watchesIterator->second)->mutex_;
-                            (watchesIterator->second)->mutex_ = NULL;
                             delete watchesIterator->second;
                             watchesIterator = registeredWatches_.erase(watchesIterator);
                         }
@@ -370,12 +346,6 @@ class MainLoop {
                             break;
                         }
                     }
-                    else {
-                        (watchesIterator->second)->mutex_->unlock();
-                    }
-                }
-                else {
-                    (watchesIterator->second)->mutex_->unlock();
                 }
             }
         }
@@ -398,22 +368,22 @@ class MainLoop {
     bool prepare(const int64_t& timeout = TIMEOUT_INFINITE) {
         currentMinimalTimeoutInterval_ = timeout;
 
-        dispatchSourcesMutex_.lock();
-        for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
-                dispatchSourceIterator != registeredDispatchSources_.end();
-                dispatchSourceIterator++) {
+        {
+            std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
+            for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
+                    dispatchSourceIterator != registeredDispatchSources_.end();
+                    dispatchSourceIterator++) {
 
-            int64_t dispatchTimeout = TIMEOUT_INFINITE;
-            dispatchSourcesMutex_.unlock();
-            if (!(dispatchSourceIterator->second->deleteObject_) &&
-                    (dispatchSourceIterator->second)->dispatchSource_->prepare(dispatchTimeout)) {
-                sourcesToDispatch_.insert(*dispatchSourceIterator);
-            } else if (dispatchTimeout > 0 && dispatchTimeout < currentMinimalTimeoutInterval_) {
-                currentMinimalTimeoutInterval_ = dispatchTimeout;
+                int64_t dispatchTimeout = TIMEOUT_INFINITE;
+
+                if (!(dispatchSourceIterator->second)->deleteObject_ &&
+                        (dispatchSourceIterator->second)->dispatchSource_->prepare(dispatchTimeout)) {
+                    sourcesToDispatch_.insert(*dispatchSourceIterator);
+                } else if (dispatchTimeout > 0 && dispatchTimeout < currentMinimalTimeoutInterval_) {
+                    currentMinimalTimeoutInterval_ = dispatchTimeout;
+                }
             }
-            dispatchSourcesMutex_.lock();
         }
-        dispatchSourcesMutex_.unlock();
 
         int64_t currentContextTime = getCurrentTimeInMs();
 
@@ -423,11 +393,7 @@ class MainLoop {
                     timeoutPriorityRange != registeredTimeouts_.end();
                     timeoutPriorityRange++) {
 
-                (timeoutPriorityRange->second)->mutex_->lock();
-                bool deleteObject = (timeoutPriorityRange->second)->deleteObject_;
-                (timeoutPriorityRange->second)->mutex_->unlock();
-
-                if (!deleteObject) {
+                if (!(timeoutPriorityRange->second)->deleteObject_) {
                     if (!(timeoutPriorityRange->second)->timeoutElapsed_) { // check that timeout is not elapsed
                         int64_t intervalToReady = (timeoutPriorityRange->second)->timeout_->getReadyTime()
                             - currentContextTime;
@@ -473,11 +439,7 @@ class MainLoop {
                         timeoutPriorityRange != registeredTimeouts_.end();
                         timeoutPriorityRange++) {
 
-                    (timeoutPriorityRange->second)->mutex_->lock();
-                    bool deleteObject = (timeoutPriorityRange->second)->deleteObject_;
-                    (timeoutPriorityRange->second)->mutex_->unlock();
-
-                    if (!deleteObject) {
+                    if (!(timeoutPriorityRange->second)->deleteObject_) {
                         if (!(timeoutPriorityRange->second)->timeoutElapsed_) { // check that timeout is not elapsed
                             int64_t intervalToReady =
                                 (timeoutPriorityRange->second)->timeout_->getReadyTime()
@@ -503,47 +465,43 @@ class MainLoop {
 
     bool check() {
         int managedFileDescriptorOffset = 1;
-         {
-             std::lock_guard<std::mutex> itsLock(fileDescriptorsMutex_);
-             for (auto fileDescriptor = managedFileDescriptors_.begin() + managedFileDescriptorOffset;
-                     fileDescriptor != managedFileDescriptors_.end(); ++fileDescriptor) {
-                 {
-                     std::lock_guard<std::mutex> itsWatchesLock(watchesMutex_);
-                     for (auto registeredWatchIterator = registeredWatches_.begin();
-                             registeredWatchIterator != registeredWatches_.end();
-                             registeredWatchIterator++) {
+        {
+            std::lock_guard<std::mutex> itsLock(fileDescriptorsMutex_);
+            for (auto fileDescriptor = managedFileDescriptors_.begin() + managedFileDescriptorOffset;
+                    fileDescriptor != managedFileDescriptors_.end(); ++fileDescriptor) {
+                {
+                    std::lock_guard<std::mutex> itsWatchesLock(watchesMutex_);
+                    for (auto registeredWatchIterator = registeredWatches_.begin();
+                            registeredWatchIterator != registeredWatches_.end();
+                            registeredWatchIterator++) {
 
-                         (registeredWatchIterator->second)->mutex_->lock();
-                         bool deleteObject = (registeredWatchIterator->second)->deleteObject_;
-                         (registeredWatchIterator->second)->mutex_->unlock();
+                        if (!(registeredWatchIterator->second)->deleteObject_) {
+                            if ((registeredWatchIterator->second)->fd_ == fileDescriptor->fd
+                                    && fileDescriptor->revents) {
+                                watchesToDispatch_.insert(*registeredWatchIterator);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-                         if (!deleteObject) {
-                             if ((registeredWatchIterator->second)->fd_ == fileDescriptor->fd
-                                     && fileDescriptor->revents) {
-                                 watchesToDispatch_.insert(*registeredWatchIterator);
-                             }
-                         }
-                     }
-                 }
-             }
-         }
+        {
+            std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
+            for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
+                    dispatchSourceIterator != registeredDispatchSources_.end();
+                    ++dispatchSourceIterator) {
 
-         dispatchSourcesMutex_.lock();
-         for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
-                 dispatchSourceIterator != registeredDispatchSources_.end();
-                 ++dispatchSourceIterator) {
-             dispatchSourcesMutex_.unlock();
-             if (!dispatchSourceIterator->second->deleteObject_&&
-                     dispatchSourceIterator->second->dispatchSource_->check()) {
-                 sourcesToDispatch_.insert(*dispatchSourceIterator);
-             }
-             dispatchSourcesMutex_.lock();
-         }
-         dispatchSourcesMutex_.unlock();
+                if (!(dispatchSourceIterator->second)->deleteObject_ &&
+                        dispatchSourceIterator->second->dispatchSource_->check()) {
+                    sourcesToDispatch_.insert(*dispatchSourceIterator);
+                }
+            }
+        }
 
-         return (!timeoutsToDispatch_.empty() ||
-                 !watchesToDispatch_.empty() ||
-                 !sourcesToDispatch_.empty());
+        return (!timeoutsToDispatch_.empty() ||
+                !watchesToDispatch_.empty() ||
+                !sourcesToDispatch_.empty());
     }
 
     void dispatch() {
@@ -602,17 +560,12 @@ class MainLoop {
             for (auto timeoutIterator = timeoutsToDispatch_.begin();
                     timeoutIterator != timeoutsToDispatch_.end(); timeoutIterator++) {
                 auto timeoutToDispatchStruct = std::get<1>(*timeoutIterator);
-                timeoutToDispatchStruct->mutex_->lock();
                 if (!timeoutToDispatchStruct->deleteObject_) {
                     timeoutToDispatchStruct->isExecuted_ = true;
-                    timeoutToDispatchStruct->mutex_->unlock();
                     timeoutToDispatchStruct->timeout_->dispatch();
-                    timeoutToDispatchStruct->mutex_->lock();
                     timeoutToDispatchStruct->isExecuted_ = false;
                 }
-                timeoutToDispatchStruct->mutex_->unlock();
             }
-
             timeoutsToDispatch_.clear();
         }
     }
@@ -623,17 +576,13 @@ class MainLoop {
             for (auto watchIterator = watchesToDispatch_.begin();
                     watchIterator != watchesToDispatch_.end(); watchIterator++) {
                 auto watchToDispatchStruct = std::get<1>(*watchIterator);
-                watchToDispatchStruct->mutex_->lock();
                 if (!watchToDispatchStruct->deleteObject_) {
                     watchToDispatchStruct->isExecuted_ = true;
-                    watchToDispatchStruct->mutex_->unlock();
                     Watch* watch = watchToDispatchStruct->watch_;
                     const unsigned int flags = (unsigned int)(watch->getAssociatedFileDescriptor().events);
                     watch->dispatch(flags);
-                    watchToDispatchStruct->mutex_->lock();
                     watchToDispatchStruct->isExecuted_ = false;
                 }
-                watchToDispatchStruct->mutex_->unlock();
             }
             watchesToDispatch_.clear();
         }
@@ -647,20 +596,15 @@ class MainLoop {
                     dispatchSourceIterator != sourcesToDispatch_.end() && !isBroken_;
                     dispatchSourceIterator++) {
                 auto dispatchSourceToDispatchStruct = std::get<1>(*dispatchSourceIterator);
-                dispatchSourceToDispatchStruct->mutex_->lock();
                 if (!dispatchSourceToDispatchStruct->deleteObject_) {
                     dispatchSourceToDispatchStruct->isExecuted_ = true;
-                    dispatchSourceToDispatchStruct->mutex_->unlock();
-                    while(!dispatchSourceToDispatchStruct->deleteObject_ &&
+                    bool deleteObject = dispatchSourceToDispatchStruct->deleteObject_;
+                    while(!deleteObject &&
                             dispatchSourceToDispatchStruct->dispatchSource_->dispatch());
-                    dispatchSourceToDispatchStruct->mutex_->lock();
                     dispatchSourceToDispatchStruct->isExecuted_ = false;
                 }
-                dispatchSourceToDispatchStruct->mutex_->unlock();
             }
-            {
-                sourcesToDispatch_.clear();
-            }
+            sourcesToDispatch_.clear();
         }
     }
 
@@ -668,14 +612,12 @@ class MainLoop {
 
     void cleanup() {
         {
-            std::lock_guard<std::mutex> itsLock(dispatchSourcesMutex_);
+            std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
             for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
                 dispatchSourceIterator != registeredDispatchSources_.end();) {
 
                 delete (dispatchSourceIterator->second)->dispatchSource_;
                 (dispatchSourceIterator->second)->dispatchSource_ = NULL;
-                delete (dispatchSourceIterator->second)->mutex_;
-                (dispatchSourceIterator->second)->mutex_ = NULL;
                 delete dispatchSourceIterator->second;
                 dispatchSourceIterator = registeredDispatchSources_.erase(dispatchSourceIterator);
             }
@@ -688,8 +630,6 @@ class MainLoop {
 
                 delete (timeoutIterator->second)->timeout_;
                 (timeoutIterator->second)->timeout_ = NULL;
-                delete (timeoutIterator->second)->mutex_;
-                (timeoutIterator->second)->mutex_ = NULL;
                 delete timeoutIterator->second;
                 timeoutIterator = registeredTimeouts_.erase(timeoutIterator);
             }
@@ -702,8 +642,6 @@ class MainLoop {
 
                 delete (watchesIterator->second)->watch_;
                 (watchesIterator->second)->watch_ = NULL;
-                delete (watchesIterator->second)->mutex_;
-                (watchesIterator->second)->mutex_ = NULL;
                 delete watchesIterator->second;
                 watchesIterator = registeredWatches_.erase(watchesIterator);
             }
@@ -730,23 +668,21 @@ class MainLoop {
     void registerDispatchSource(DispatchSource* dispatchSource, const DispatchPriority dispatchPriority) {
         DispatchSourceToDispatchStruct* dispatchSourceStruct =
                 new DispatchSourceToDispatchStruct(dispatchSource,
-                        new std::mutex, false, false);
-        std::lock_guard<std::mutex> itsLock(dispatchSourcesMutex_);
+                        false, false);
+        std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
         registeredDispatchSources_.insert(
             { dispatchPriority, dispatchSourceStruct });
     }
 
     void unregisterDispatchSource(DispatchSource* dispatchSource) {
         {
-            std::lock_guard<std::mutex> itsLock(dispatchSourcesMutex_);
+            std::lock_guard<std::recursive_mutex> itsLock(dispatchSourcesMutex_);
             for (auto dispatchSourceIterator = registeredDispatchSources_.begin();
                 dispatchSourceIterator != registeredDispatchSources_.end();
                 dispatchSourceIterator++) {
 
                 if ((dispatchSourceIterator->second)->dispatchSource_ == dispatchSource){
-                    (dispatchSourceIterator->second)->mutex_->lock();
                     (dispatchSourceIterator->second)->deleteObject_ = true;
-                    (dispatchSourceIterator->second)->mutex_->unlock();
                     break;
                 }
             }
@@ -761,9 +697,8 @@ class MainLoop {
         registerFileDescriptor(fdToRegister);
 
         std::lock_guard<std::mutex> itsLock(watchesMutex_);
-        std::mutex* mtx = new std::mutex;
 
-        WatchToDispatchStruct* watchStruct = new WatchToDispatchStruct(fdToRegister.fd, watch, mtx, false, false);
+        WatchToDispatchStruct* watchStruct = new WatchToDispatchStruct(fdToRegister.fd, watch, false, false);
         registeredWatches_.insert({ dispatchPriority, watchStruct});
     }
 
@@ -776,9 +711,7 @@ class MainLoop {
             watchIterator != registeredWatches_.end(); watchIterator++) {
 
             if ((watchIterator->second)->watch_ == watch) {
-                (watchIterator->second)->mutex_->lock();
                 (watchIterator->second)->deleteObject_ = true;
-                (watchIterator->second)->mutex_->unlock();
                 break;
             }
         }
@@ -786,7 +719,7 @@ class MainLoop {
 
     void registerTimeout(Timeout* timeout, const DispatchPriority dispatchPriority) {
         TimeoutToDispatchStruct* timeoutStruct = new TimeoutToDispatchStruct(
-                timeout, new std::mutex, false, false, false);
+                timeout, false, false, false);
         std::lock_guard<std::mutex> itsLock(timeoutsMutex_);
         registeredTimeouts_.insert(
             { dispatchPriority, timeoutStruct });
@@ -799,9 +732,7 @@ class MainLoop {
                 timeoutIterator++) {
 
             if ((timeoutIterator->second)->timeout_ == timeout) {
-                (timeoutIterator->second)->mutex_->lock();
                 (timeoutIterator->second)->deleteObject_ = true;
-                (timeoutIterator->second)->mutex_->unlock();
                 break;
             }
         }
@@ -814,16 +745,13 @@ class MainLoop {
 
     struct DispatchSourceToDispatchStruct {
         DispatchSource* dispatchSource_;
-        std::mutex* mutex_;
-        bool isExecuted_; /* execution flag: indicates, whether the dispatchSource is dispatched currently */
-        bool deleteObject_; /* delete flag: indicates, whether the dispatchSource can be deleted*/
+        std::atomic<bool> isExecuted_; /* execution flag: indicates, whether the dispatchSource is dispatched currently */
+        std::atomic<bool> deleteObject_; /* delete flag: indicates, whether the dispatchSource can be deleted*/
 
         DispatchSourceToDispatchStruct(DispatchSource* _dispatchSource,
-            std::mutex* _mutex,
             bool _isExecuted,
             bool _deleteObject) {
                 dispatchSource_ = _dispatchSource;
-                mutex_ = _mutex;
                 isExecuted_ = _isExecuted;
                 deleteObject_ = _deleteObject;
         }
@@ -831,18 +759,15 @@ class MainLoop {
 
     struct TimeoutToDispatchStruct {
         Timeout* timeout_;
-        std::mutex* mutex_;
-        bool isExecuted_; /* execution flag: indicates, whether the timeout is dispatched currently */
-        bool deleteObject_; /* delete flag: indicates, whether the timeout can be deleted*/
-        bool timeoutElapsed_; /* timeout elapsed flag: indicates, whether the timeout is elapsed*/
+        std::atomic<bool> isExecuted_; /* execution flag: indicates, whether the timeout is dispatched currently */
+        std::atomic<bool> deleteObject_; /* delete flag: indicates, whether the timeout can be deleted*/
+        std::atomic<bool> timeoutElapsed_; /* timeout elapsed flag: indicates, whether the timeout is elapsed*/
 
         TimeoutToDispatchStruct(Timeout* _timeout,
-            std::mutex* _mutex,
             bool _isExecuted,
             bool _deleteObject,
             bool _timeoutElapsed) {
                 timeout_ = _timeout;
-                mutex_ = _mutex;
                 isExecuted_ = _isExecuted;
                 deleteObject_ = _deleteObject;
                 timeoutElapsed_ = _timeoutElapsed;
@@ -852,18 +777,15 @@ class MainLoop {
     struct WatchToDispatchStruct {
         int fd_;
         Watch* watch_;
-        std::mutex* mutex_;
-        bool isExecuted_; /* execution flag: indicates, whether the watch is dispatched currently */
-        bool deleteObject_; /* delete flag: indicates, whether the watch can be deleted*/
+        std::atomic<bool> isExecuted_; /* execution flag: indicates, whether the watch is dispatched currently */
+        std::atomic<bool> deleteObject_; /* delete flag: indicates, whether the watch can be deleted*/
 
         WatchToDispatchStruct(int _fd,
             Watch* _watch,
-            std::mutex* _mutex,
             bool _isExecuted,
             bool _deleteObject) {
                 fd_ = _fd;
                 watch_ = _watch;
-                mutex_ = _mutex;
                 isExecuted_ = _isExecuted;
                 deleteObject_ = _deleteObject;
         }
@@ -873,7 +795,7 @@ class MainLoop {
     std::multimap<DispatchPriority, WatchToDispatchStruct*> registeredWatches_;
     std::multimap<DispatchPriority, TimeoutToDispatchStruct*> registeredTimeouts_;
 
-    std::mutex dispatchSourcesMutex_;
+    std::recursive_mutex dispatchSourcesMutex_;
     std::mutex watchesMutex_;
     std::mutex timeoutsMutex_;
 
@@ -897,7 +819,7 @@ class MainLoop {
 
     pollfd wakeFd_;
 
-    bool isBroken_;
+    std::atomic<bool> isBroken_;
 
     std::promise<bool>* stopPromise;
 };

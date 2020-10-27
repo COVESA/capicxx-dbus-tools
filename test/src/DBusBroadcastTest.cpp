@@ -64,6 +64,7 @@ public:
         fireTestSelectiveBroadcastSelective();
     }
 
+
     void onTestSelectiveBroadcastSelectiveSubscriptionChanged(
             const std::shared_ptr<CommonAPI::ClientId> clientId,
             const CommonAPI::SelectiveBroadcastSubscriptionEvent event) {

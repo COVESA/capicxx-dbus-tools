@@ -18,7 +18,7 @@ public:
     UnixFDStub();
     virtual ~UnixFDStub();
     void stubCmd(const std::shared_ptr<CommonAPI::ClientId> _client,
-        uint8_t _cmd, stubCmdReply_t _reply);
+        const uint8_t _cmd, const stubCmdReply_t _reply);
 
 private:
 };

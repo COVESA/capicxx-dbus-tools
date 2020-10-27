@@ -39,10 +39,10 @@
 class TestInterfaceStubFinal : public VERSION::commonapi::tests::TestInterfaceStubDefault {
 
 public:
-    void testPredefinedTypeMethod(const std::shared_ptr<CommonAPI::ClientId> _client, 
-                                    uint32_t _uint32InValue, 
-                                    std::string _stringInValue, 
-                                    testPredefinedTypeMethodReply_t _reply) {
+    void testPredefinedTypeMethod(const std::shared_ptr<CommonAPI::ClientId> _client,
+                                    const uint32_t _uint32InValue,
+                                    const std::string _stringInValue,
+                                    const testPredefinedTypeMethodReply_t _reply) {
         (void)_client;
         uint32_t uint32OutValue = _uint32InValue;
         std::string stringOutValue = _stringInValue;

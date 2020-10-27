@@ -15,7 +15,6 @@ interface TestInterface {
 
     union MyUnion {
         StringType u0
-        String u2
     }
 
 

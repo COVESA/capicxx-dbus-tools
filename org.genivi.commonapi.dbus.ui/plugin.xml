@@ -32,7 +32,7 @@
       <page
             class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
             id="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
-            name="CommonAPI-DBus">
+            name="CommonAPI D-Bus">
       </page>
    </extension>
    <extension
@@ -46,7 +46,7 @@
       <page
             class="org.genivi.commonapi.dbus.ui.preferences.CommonAPIDBusPreferencePage"
             id="org.genivi.commonapi.dbus.ui.preferences.property.CommonAPIDBusPreferencePage"
-            name="CommonAPI-DBus">
+            name="CommonAPI D-Bus">
                       <enabledWhen>
                          <or>
                             <instanceof

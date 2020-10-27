@@ -1,9 +1,7 @@
-/* Copyright (C) 2014, 2015 BMW Group
- * Author: Lutz Bichler (lutz.bichler@bmw.de)
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
 import com.google.inject.Inject
@@ -28,11 +26,13 @@ import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import java.util.List
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import org.franca.core.franca.FTypedElement
+import org.franca.core.franca.FIntegerInterval
 
 class FTypeCollectionDBusDeploymentGenerator {
-    @Inject private extension FrancaGeneratorExtensions
-    @Inject private extension FrancaDBusGeneratorExtensions
-    @Inject private extension FrancaDBusDeploymentAccessorHelper
+	@Inject extension FrancaGeneratorExtensions
+	@Inject extension FrancaDBusGeneratorExtensions
+	@Inject extension FrancaDBusDeploymentAccessorHelper
 
     def generateTypeCollectionDeployment(FTypeCollection tc, IFileSystemAccess fileSystemAccess,
         PropertyAccessor deploymentAccessor, IResource modelid) {
@@ -58,11 +58,9 @@ class FTypeCollectionDBusDeploymentGenerator {
         #ifndef «_tc.defineName.toUpperCase»_DBUS_DEPLOYMENT_HPP_
         #define «_tc.defineName.toUpperCase»_DBUS_DEPLOYMENT_HPP_
 
-        #if !defined (COMMONAPI_INTERNAL_COMPILATION)
-        #define COMMONAPI_INTERNAL_COMPILATION
-        #endif
+        «startInternalCompilation»
         #include <CommonAPI/DBus/DBusDeployment.hpp>
-        #undef COMMONAPI_INTERNAL_COMPILATION
+        «endInternalCompilation»
 
         «_tc.generateVersionNamespaceBegin»
         «_tc.model.generateNamespaceBeginDeclaration»
@@ -114,9 +112,11 @@ class FTypeCollectionDBusDeploymentGenerator {
 
     def protected String generateArrayDeploymentType(FTypeRef _elementType, int _indent) {
         var String deployment = generateIndent(_indent) + "CommonAPI::DBus::ArrayDeployment<\n"
-        if (_elementType.derived != null) {
+        if (_elementType.derived !== null) {
             deployment += generateDeploymentType(_elementType.derived, _indent + 1)
-        } else if (_elementType.predefined != null) {
+        } else if (_elementType.interval !== null) {
+            deployment += generateDeploymentType(_elementType.interval, _indent + 1)
+        } else if (_elementType.predefined !== null) {
             deployment += generateDeploymentType(_elementType.predefined, _indent + 1)
         }
         return deployment + "\n" + generateIndent(_indent) + ">"
@@ -128,18 +128,28 @@ class FTypeCollectionDBusDeploymentGenerator {
 
     def protected dispatch String generateDeploymentType(FMapType _map, int _indent) {
         var String deployment = generateIndent(_indent) + "CommonAPI::MapDeployment<\n"
-        if (_map.keyType.derived != null) {
+        if (_map.keyType.derived !== null) {
             deployment += generateDeploymentType(_map.keyType.derived, _indent + 1)
-        } else if (_map.keyType.predefined != null) {
+        } else if (_map.keyType.interval !== null) {
+            deployment += generateDeploymentType(_map.keyType.interval, _indent + 1)
+        } else if (_map.keyType.predefined !== null) {
             deployment += generateDeploymentType(_map.keyType.predefined, _indent + 1)
         }
         deployment += ",\n"
-        if (_map.valueType.derived != null) {
+        if (_map.valueType.derived !== null) {
             deployment += generateDeploymentType(_map.valueType.derived, _indent + 1)
-        } else if (_map.valueType.predefined != null) {
+        } else if (_map.valueType.interval !== null) {
+            deployment += generateDeploymentType(_map.valueType.interval, _indent + 1)
+        } else if (_map.valueType.predefined !== null) {
             deployment += generateDeploymentType(_map.valueType.predefined, _indent + 1)
         }
         return deployment + "\n" + generateIndent(_indent) + ">"
+    }
+
+    def protected dispatch String generateDeploymentType(FIntegerInterval _interval, int _indent) {
+        var String deployment = generateIndent(_indent)
+        deployment += "CommonAPI::EmptyDeployment"
+        return deployment
     }
 
     def protected dispatch String generateDeploymentType(FStructType _struct, int _indent) {
@@ -154,9 +164,11 @@ class FTypeCollectionDBusDeploymentGenerator {
             for (e : elements) {
                 if (e.array) {
                     deployment = deployment + generateArrayDeploymentType(e.type, _indent + 1)
-                } else if (e.type.derived != null) {
+                } else if (e.type.derived !== null) {
                     deployment = deployment + generateDeploymentType(e.type.derived, _indent + 1)
-                } else if (e.type.predefined != null) {
+                } else if (e.type.interval !== null) {
+                    deployment = deployment + generateDeploymentType(e.type.interval, _indent + 1)
+                } else if (e.type.predefined !== null) {
                     deployment = deployment + generateDeploymentType(e.type.predefined, _indent + 1)
                 } else {
                    deployment += "Warning struct with unknown element: " + e.type.fullName
@@ -178,9 +190,11 @@ class FTypeCollectionDBusDeploymentGenerator {
             for (e : elements) {
                 if (e.array) {
                     deployment = deployment + generateArrayDeploymentType(e.type, _indent + 1)
-                } else if (e.type.derived != null) {
+                } else if (e.type.derived !== null) {
                     deployment = deployment + generateDeploymentType(e.type.derived, _indent + 1)
-                } else if (e.type.predefined != null) {
+                } else if (e.type.interval !== null) {
+                    deployment = deployment + generateDeploymentType(e.type.interval, _indent + 1)
+                } else if (e.type.predefined !== null) {
                     deployment = deployment + generateDeploymentType(e.type.predefined, _indent + 1)
                 } else {
                    deployment += "Warning union with unknown element: " + e.type.fullName
@@ -194,10 +208,11 @@ class FTypeCollectionDBusDeploymentGenerator {
 
     def protected dispatch String generateDeploymentType(FTypeDef _typeDef, int _indent) {
         val FTypeRef actualType = _typeDef.actualType
-        if (actualType.derived != null)
+        if (actualType.derived !== null)
             return actualType.derived.generateDeploymentType(_indent)
-
-        if (actualType.predefined != null)
+        if (actualType.interval !== null)
+            return actualType.interval.generateDeploymentType(_indent)
+        if (actualType.predefined !== null)
             return actualType.predefined.generateDeploymentType(_indent)
 
         return "CommonAPI::EmptyDeployment"
@@ -251,7 +266,8 @@ class FTypeCollectionDBusDeploymentGenerator {
         if (_accessor.hasDeployment(_struct)) {
             var String declaration = ""
             for (structElement : _struct.elements) {
-                declaration += structElement.generateDeploymentDeclaration(_tc, _accessor)
+                var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(structElement)
+                declaration += structElement.generateDeploymentDeclaration(_tc, overwriteAccessor)
             }
             declaration += "COMMONAPI_EXPORT extern " + _struct.getDeploymentType(null, false) + " " + _struct.name + "Deployment;"
             return declaration + "\n"
@@ -263,7 +279,8 @@ class FTypeCollectionDBusDeploymentGenerator {
         if (_accessor.hasDeployment(_union)) {
             var String declaration = ""
             for (structElement : _union.elements) {
-                declaration += structElement.generateDeploymentDeclaration(_tc, _accessor)
+                var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(structElement)
+                declaration += structElement.generateDeploymentDeclaration(_tc, overwriteAccessor)
             }
             declaration += "COMMONAPI_EXPORT extern " + _union.getDeploymentType(null, false) + " " + _union.name + "Deployment;"
             return declaration + "\n"
@@ -317,22 +334,38 @@ class FTypeCollectionDBusDeploymentGenerator {
     }
 
     def protected dispatch String generateDeploymentDefinition(FStructType _struct, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
         if (_accessor.hasDeployment(_struct)) {
-            var String definition = _struct.elements.map[generateDeploymentDefinition(_tc, _accessor)].filter[!equals("")].join(";\n")
-            definition += _struct.getDeploymentType(null, false) + " " + _struct.name + "Deployment("
-            definition += _struct.getDeploymentParameter(_struct, _accessor)
-            definition += ");\n"
+            for (e : _struct.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentDefinition(_tc, overwriteAccessor)
+            }
+            // If structure is a top level type - not referred by a field or an array element -
+            // then we need to print out the deployment for the type also
+            if (_accessor.parent === null) {
+	            definition += _struct.getDeploymentType(_tc, true) + " " + _accessor.name + _struct.name + "Deployment("
+	            definition += _struct.getDeploymentParameter(_struct, _accessor)
+	            definition += ");\n"
+	        }
             return definition
         }
         return ""
     }
 
     def protected dispatch String generateDeploymentDefinition(FUnionType _union, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
         if (_accessor.hasDeployment(_union)) {
-            var String definition = _union.elements.map[generateDeploymentDefinition(_tc, _accessor)].filter[!equals("")].join(";\n")
-            definition += _union.getDeploymentType(null, false) + " " + _union.name + "Deployment("
-            definition += _union.getDeploymentParameter(_union, _accessor)
-            definition += ");\n"
+            for (e : _union.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentDefinition(_tc, overwriteAccessor)
+            }
+            // If union is a top level type - not referred by a field or an array element -
+            // then we need to print out the deployment for the type also
+            if (_accessor.parent === null) {
+	            definition += _union.getDeploymentType(_tc, true) + " " + _accessor.name + _union.name + "Deployment("
+	            definition += _union.getDeploymentParameter(_union, _accessor)
+	            definition += ");\n"
+	        }
             return definition
         }
         return ""
@@ -363,11 +396,15 @@ class FTypeCollectionDBusDeploymentGenerator {
     }
 
     def protected dispatch String generateDeploymentDefinition(FTypeRef _typeRef, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_accessor.isProperOverwrite())
+            if (_typeRef.derived !== null) {
+                return generateDeploymentDefinition(_typeRef.derived, _tc, _accessor)
+            }
         return ""
     }
 
     def protected dispatch String getDeploymentParameter(FArrayType _array, EObject _source, PropertyAccessor _accessor) {
-        var String parameter = getArrayElementTypeDeploymentParameter(_array.elementType, _array, _accessor)
+        var String parameter = getArrayElementTypeDeploymentParameter(_array.elementType, _array, _accessor.getOverwriteAccessor(_array))
         var String arrayDeploymentParameter = getArrayDeploymentParameter(_array, _source, _accessor)
         if (!arrayDeploymentParameter.isEmpty) {
             parameter += ", ";
@@ -385,13 +422,23 @@ class FTypeCollectionDBusDeploymentGenerator {
     }
 
     def protected dispatch String getDeploymentParameter(FStructType _struct, EObject _source, PropertyAccessor _accessor) {
+        var String parameter = getDerivedDeploymentParameter(_struct, _accessor)
+
+        // cut off the last comma
+        return parameter.substring(0, parameter.length -2)
+    }
+
+    def protected String getDerivedDeploymentParameter(FStructType _struct, PropertyAccessor _accessor) {
         var String parameter = ""
 
-        for (s : _struct.elements) {
-            parameter += s.getDeploymentRef(_struct, _accessor)
-            if (s != _struct.elements.last) parameter += ", "
+        if(_struct.base !== null) { // need to use the accessor for the base struct !
+            var baseAccessor = getDBusAccessor(_struct.base.eContainer as FTypeCollection)
+            parameter += getDerivedDeploymentParameter(_struct.base, baseAccessor)
         }
-
+        for (s : _struct.elements) {
+            var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(s);
+            parameter += s.getDeploymentRef(null, overwriteAccessor) + ", "
+        }
         return parameter
     }
 
@@ -399,15 +446,15 @@ class FTypeCollectionDBusDeploymentGenerator {
         var String parameter = ""
 
         var PropertyAccessor.DBusVariantType variantType = _accessor.getDBusVariantTypeHelper(_source)
-        if (variantType == null && _union != _source)
+        if (variantType === null && _union != _source)
             variantType = _accessor.getDBusVariantTypeHelper(_union)
 
-        if (variantType != null && variantType == PropertyAccessor.DBusVariantType.DBus)
+        if (variantType !== null && variantType == PropertyAccessor.DBusVariantType.DBus)
             parameter += "true, "
         else
             parameter += "false, "
         for (s : _union.elements) {
-            parameter += s.getDeploymentRef(_union, _accessor)
+            parameter += s.getDeploymentRef(null, _accessor.getOverwriteAccessor(s))
             if (s != _union.elements.last) parameter += ", "
         }
 
@@ -421,20 +468,22 @@ class FTypeCollectionDBusDeploymentGenerator {
         }
         if (_typeId == FBasicTypeId.UINT32 || _typeId == FBasicTypeId.INT32) {
             if (_accessor.getDBusIsUnixFDHelper(_source)) parameter = "true" else parameter = "false"
-        }        
+        }
         return parameter
     }
 
     def protected dispatch String getDeploymentParameter(FTypeDef _typeDef, EObject _source, PropertyAccessor _accessor) {
         return _typeDef.getActualType().getDeploymentParameter(_source, _accessor)
     }
-    
+
     def protected dispatch String getDeploymentParameter(FTypeRef _typeRef, EObject _source, PropertyAccessor _accessor) {
-        if (_typeRef.derived != null) {
+        if (_typeRef.derived !== null) {
             return _typeRef.derived.getDeploymentParameter(_source, _accessor)
         }
-
-        if (_typeRef.predefined != null) {
+        if (_typeRef.interval !== null) {
+            return _typeRef.interval.getDeploymentParameter(_source, _accessor)
+        }
+        if (_typeRef.predefined !== null) {
             return _typeRef.predefined.getDeploymentParameter(_source, _accessor)
         }
 
@@ -466,7 +515,18 @@ class FTypeCollectionDBusDeploymentGenerator {
         }
         return _argument.type.getDeploymentParameter(_argument, _accessor)
     }
-
+    def protected dispatch String getDeploymentParameter(FTypedElement _attribute, EObject _object, PropertyAccessor _accessor) {
+        if (_attribute.array) {
+            var String parameter = getArrayElementTypeDeploymentParameter(_attribute.type, _object, _accessor)
+            var String arrayDeploymentParameter = getArrayDeploymentParameter(_attribute, _attribute, _accessor)
+            if (!arrayDeploymentParameter.isEmpty) {
+                parameter += ", ";
+                parameter += arrayDeploymentParameter
+            }
+            return parameter
+        }
+        return _attribute.type.getDeploymentParameter(_attribute, _accessor)
+    }
     // Arrays may be either defined types or inline
     def protected String getArrayElementTypeDeploymentParameter(FTypeRef _elementType, EObject _source, PropertyAccessor _accessor) {
         return _elementType.getDeploymentRef(_accessor)
@@ -477,5 +537,162 @@ class FTypeCollectionDBusDeploymentGenerator {
 
         return parameter
     }
-}
+    def protected dispatch String generateDeploymentParameterDefinitions(FArrayType _array, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_accessor.hasDeployment(_array)) {
+			var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(_array)
+            var String definition = _array.elementType.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            return definition
+        }
+        return ""
+    }
 
+    def protected dispatch String generateDeploymentParameterDefinitions(FEnumerationType _enum, FTypeCollection _tc, PropertyAccessor _accessor) {
+            return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinitions(FMapType _map, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_accessor.hasDeployment(_map)) {
+            var String definition = _map.keyType.generateDeploymentParameterDefinition(_tc, _accessor) +
+                                    _map.valueType.generateDeploymentParameterDefinition(_tc, _accessor)
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinitions(FStructType _struct, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
+        if (_accessor.hasDeployment(_struct)) {
+            for (e : _struct.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            }
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinitions(FUnionType _union, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
+        if (_accessor.hasDeployment(_union)) {
+            for (e : _union.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            }
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinitions(FTypeDef _typeDef, FTypeCollection _tc, PropertyAccessor _accessor) {
+        return generateDeploymentParameterDefinitions(_typeDef.getActualType, _tc, _accessor)
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinitions(FTypeRef _typeRef, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_typeRef.derived !== null) {
+	        return generateDeploymentParameterDefinitions(_typeRef.derived, _tc, _accessor)
+	    }
+	    return ""
+    }
+    def protected dispatch String generateDeploymentParameterDefinition(FArrayType _array, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_accessor.hasDeployment(_array)) {
+			var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(_array)
+            var String definition = _array.elementType.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            definition += _array.getDeploymentType(_tc, true) + " " + _accessor.name + _array.name + "Deployment("
+            definition += _array.getDeploymentParameter(_array, _accessor)
+            definition += ");\n"
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FEnumerationType _enum, FTypeCollection _tc, PropertyAccessor _accessor) {
+            if (_accessor.hasDeployment(_enum)) {
+                var String definition = _enum.elementName + "Deployment_t " + _accessor.name + _enum.name + "Deployment("
+                definition += _enum.getDeploymentParameter(_enum, _accessor)
+                definition += ");\n"
+                return definition
+            }
+            return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FMapType _map, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_accessor.hasDeployment(_map)) {
+            var String definition = _map.keyType.generateDeploymentParameterDefinition(_tc, _accessor) +
+                                    _map.valueType.generateDeploymentParameterDefinition(_tc, _accessor)
+            definition += _map.getDeploymentType(_tc, true) + " " + _accessor.name + _map.name + "Deployment("
+            definition += _map.getDeploymentParameter(_map, _accessor)
+            definition += ");\n"
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FStructType _struct, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
+        if (_accessor.hasDeployment(_struct)) {
+            for (e : _struct.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            }
+            definition += _struct.getDeploymentType(_tc, true) + " " + _accessor.name + _struct.name + "Deployment("
+            definition += _struct.getDeploymentParameter(_struct, _accessor)
+            definition += ");\n"
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FUnionType _union, FTypeCollection _tc, PropertyAccessor _accessor) {
+        var String definition = ""
+        if (_accessor.hasDeployment(_union)) {
+            for (e : _union.elements) {
+				var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(e)
+                definition += e.generateDeploymentParameterDefinition(_tc, overwriteAccessor)
+            }
+            definition += _union.getDeploymentType(_tc, true) + " " + _accessor.name + _union.name + "Deployment("
+            definition += _union.getDeploymentParameter(_union, _accessor)
+            definition += ");\n"
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FField _field, FTypeCollection _tc, PropertyAccessor _accessor) {
+       if (_accessor.hasSpecificDeployment(_field) ||
+           (_field.array && _accessor.hasDeployment(_field))) {
+            var String definition = "";
+            definition = _field.type.generateDeploymentParameterDefinitions(_tc, _accessor)
+            // remove rightmost '_' for compatibility's sake
+            var String accessorName = _accessor.name
+            if (_accessor.name.length > 0)
+                accessorName = _accessor.name.substring(0, _accessor.name.length() - 1)
+            if (_field.array && _accessor.hasDeployment(_field)) {
+                definition += _field.type.getDeploymentType(_tc, false) + " " + accessorName + "ElementDeployment("
+                definition += getDeploymentParameter(_field.type, _field, _accessor)
+                definition += ");\n";
+            }
+
+            definition += _field.getDeploymentType(_tc, true) + " " + accessorName + "Deployment("
+            if (_field.array && _accessor.hasDeployment(_field)) {
+                definition += "&" + accessorName + "ElementDeployment, "
+                definition += getArrayDeploymentParameter(_field.type, _field, _accessor)
+            } else {
+                definition += getDeploymentParameter(_field, _field, _accessor)
+            }
+            definition += ");\n"
+            return definition
+        }
+        return ""
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FTypeDef _typeDef, FTypeCollection _tc, PropertyAccessor _accessor) {
+        return generateDeploymentParameterDefinition(_typeDef.getActualType, _tc, _accessor)
+    }
+
+    def protected dispatch String generateDeploymentParameterDefinition(FTypeRef _typeRef, FTypeCollection _tc, PropertyAccessor _accessor) {
+        if (_typeRef.derived !== null) {
+	        return generateDeploymentParameterDefinition(_typeRef.derived, _tc, _accessor)
+	    }
+	    return ""
+    }
+}

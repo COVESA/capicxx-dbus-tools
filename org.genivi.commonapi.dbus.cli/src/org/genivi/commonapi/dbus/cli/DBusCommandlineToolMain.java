@@ -1,11 +1,7 @@
-/*
- * Copyright (C) 2013 BMW Group Author: Manfred Bathelt (manfred.bathelt@bmw.de)
- * Author: Juergen Gehring (juergen.gehring@bmw.de) This Source Code Form is
- * subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the
- * MPL was not distributed with this file, You can obtain one at
- * http://mozilla.org/MPL/2.0/.
- */
-
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.cli;
 
 import java.io.File;
@@ -179,7 +175,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 	 */
 	public void validateDBus(Resource resource) {
 		EObject model = null;
-		CommandlineValidator cliValidator = new CommandlineValidator(
+		CommandLineValidatorDBus cliValidator = new CommandLineValidatorDBus(
 				cliMessageAcceptor);
 
 		//ConsoleLogger.printLog("validating " + resource.getURI().lastSegment());
@@ -188,11 +184,11 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 
 		if (model != null) {
 			if (model instanceof FDModel) {
-				// Many error logs would be displayed if a SomeIP deployment file had DBus
-				// deployment information (or vice versa).
-				// Therefore don't validate fdepl files for DBus at the moment
-				return;
-				// cliValidator.validateImports((FDModel) model, resource.getURI());
+				// check existence of imported fidl/fdepl files
+				cliValidator.validateImports((FDModel) model, resource.getURI());
+
+				// perform DBus specific deployment validation
+				cliValidator.validateDeployment(resource.getURI());
 			}
 			// check existence of imported fidl/fdepl files
 			if (model instanceof FModel) {
@@ -335,7 +331,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 	}
 
 	@Override
-    public String getFrancaVersion() {
+	public String getFrancaVersion() {
 		return Platform.getBundle("org.franca.core").getVersion().toString();
 	}
 

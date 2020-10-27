@@ -1,6 +1,12 @@
 Changes
 =======
 
+v3.2.0
+- Adapted to CommonAPI 3.2.0
+- Upgrade to Franca 0.13.1
+- Updated xtend to v2.20.0
+- Improve handling of derived enumerations
+
 v3.1.12.2
 - Fixed dependency to Eclipse Modeling Framework causing compilation error.
 

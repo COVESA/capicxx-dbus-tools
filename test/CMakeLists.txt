@@ -144,7 +144,7 @@ if (MSVC)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS /EHsc -DCOMMONAPI_INTERNAL_COMPILATION")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DCOMMONAPI_INTERNAL_COMPILATION")
 else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector -fasynchronous-unwind-tables -fno-omit-frame-pointer -D_GLIBCXX_USE_NANOSLEEP")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector -fasynchronous-unwind-tables -fno-omit-frame-pointer -D_GLIBCXX_USE_NANOSLEEP")
 endif()
 
 message("Compiler options: ${CMAKE_CXX_FLAGS}")
@@ -190,8 +190,7 @@ execute_process(COMMAND ${COMMONAPI_TOOL_GENERATOR} -sk Default -dest src-gen/co
 
 set(VERSION "v1")
 
-set(TestInterfaceSources src-gen/core/commonapi/tests/DerivedTypeCollection.cpp
-                         src-gen/core/${VERSION}/commonapi/tests/TestInterfaceStubDefault.cpp)
+set(TestInterfaceSources src-gen/core/commonapi/tests/DerivedTypeCollection.cpp)
 
 set(TestInterfaceDBusSources ${TestInterfaceSources}
                              src-gen/dbus/${VERSION}/commonapi/tests/TestInterfaceDBusProxy.cpp
@@ -199,28 +198,16 @@ set(TestInterfaceDBusSources ${TestInterfaceSources}
                              src-gen/dbus/${VERSION}/fake/legacy/service/LegacyInterfaceDBusProxy.cpp
                              src-gen/dbus/${VERSION}/fake/legacy/service/LegacyInterfaceNoObjectManagerDBusProxy.cpp)
 
-set(TestInterfaceManagerSources src-gen/core/${VERSION}/commonapi/tests/TestInterfaceManagerStubDefault.cpp)
-
 set(TestInterfaceManagerDBusSources ${TestInterfaceManagerSources}
                                     src-gen/dbus/${VERSION}/commonapi/tests/TestInterfaceManagerDBusProxy.cpp
                                     src-gen/dbus/${VERSION}/commonapi/tests/TestInterfaceManagerDBusStubAdapter.cpp)
 
-set(FreedesktopPropertiesSources src-gen/core/${VERSION}/commonapi/tests/TestFreedesktopInterfaceStubDefault.cpp
-                                 src-gen/core/${VERSION}/commonapi/tests/TestFreedesktopDerivedInterfaceStubDefault.cpp)
-
-set(FreedesktopPropertiesDBusSources ${FreedesktopPropertiesSources}
-                                     src-gen/dbus/${VERSION}/commonapi/tests/TestFreedesktopInterfaceDBusProxy.cpp
+set(FreedesktopPropertiesDBusSources src-gen/dbus/${VERSION}/commonapi/tests/TestFreedesktopInterfaceDBusProxy.cpp
                                      src-gen/dbus/${VERSION}/commonapi/tests/TestFreedesktopInterfaceDBusStubAdapter.cpp
                                      src-gen/dbus/${VERSION}/commonapi/tests/TestFreedesktopDerivedInterfaceDBusProxy.cpp
                                      src-gen/dbus/${VERSION}/commonapi/tests/TestFreedesktopDerivedInterfaceDBusStubAdapter.cpp)
 
-set(ManagedSources src-gen/core/${VERSION}/commonapi/tests/managed/LeafInterfaceStubDefault.cpp
-                   src-gen/core/${VERSION}/commonapi/tests/managed/BranchInterfaceStubDefault.cpp
-                   src-gen/core/${VERSION}/commonapi/tests/managed/RootInterfaceStubDefault.cpp
-                   src-gen/core/${VERSION}/commonapi/tests/managed/SecondRootStubDefault.cpp)
-
-set(ManagedDBusSources ${ManagedSources}
-                       src-gen/dbus/${VERSION}/commonapi/tests/managed/RootInterfaceDBusProxy.cpp
+set(ManagedDBusSources src-gen/dbus/${VERSION}/commonapi/tests/managed/RootInterfaceDBusProxy.cpp
                        src-gen/dbus/${VERSION}/commonapi/tests/managed/RootInterfaceDBusStubAdapter.cpp
                        src-gen/dbus/${VERSION}/commonapi/tests/managed/LeafInterfaceDBusProxy.cpp
                        src-gen/dbus/${VERSION}/commonapi/tests/managed/LeafInterfaceDBusStubAdapter.cpp
@@ -229,29 +216,33 @@ set(ManagedDBusSources ${ManagedSources}
                        src-gen/dbus/${VERSION}/commonapi/tests/managed/SecondRootDBusProxy.cpp
                        src-gen/dbus/${VERSION}/commonapi/tests/managed/SecondRootDBusStubAdapter.cpp)
 
-set(ExtendedInterfaceSources src-gen/core/${VERSION}/commonapi/tests/ExtendedInterfaceStubDefault.cpp)
-
-set(ExtendedInterfaceDBusSources ${ExtendedInterfaceSources}
-                                 src-gen/dbus/${VERSION}/commonapi/tests/ExtendedInterfaceDBusProxy.cpp
+set(ExtendedInterfaceDBusSources src-gen/dbus/${VERSION}/commonapi/tests/ExtendedInterfaceDBusProxy.cpp
                                  src-gen/dbus/${VERSION}/commonapi/tests/ExtendedInterfaceDBusStubAdapter.cpp)
 
-set(ObjectPathSources src-gen/core/${VERSION}/test/objectpath/TestInterfaceStubDefault.cpp)
-
-set(ObjectPathDBusSources ${ObjectPathSources}
-                          src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusProxy.cpp
+set(ObjectPathDBusSources src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusProxy.cpp
                           src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusDeployment.cpp
                           src-gen/dbus/${VERSION}/test/objectpath/TestInterfaceDBusStubAdapter.cpp)
 
-set(UnixFDSources src-gen/core/${VERSION}/test/unixfd/TestInterfaceStubDefault.cpp)
+set(VariantTypeDBusSources src-gen/dbus/${VERSION}/test/varianttype/TestInterfaceDBusProxy.cpp
+                           src-gen/dbus/${VERSION}/test/varianttype/TestInterfaceDBusDeployment.cpp
+                           src-gen/dbus/${VERSION}/test/varianttype/TestInterfaceDBusStubAdapter.cpp)
 
-set(UnixFDDBusSources ${UnixFDSources}
-                          src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusProxy.cpp
+set(UnixFDDBusSources     src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusProxy.cpp
                           src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusDeployment.cpp
                           src-gen/dbus/${VERSION}/test/unixfd/TestInterfaceDBusStubAdapter.cpp)
 
 set(TEST_LINK_LIBRARIES -Wl,--no-as-needed CommonAPI-DBus -Wl,--as-needed CommonAPI ${DBus_LDFLAGS} ${DL_LIBRARY} gtest ${PTHREAD_LIBRARY})
 
 set(TEST_LINK_LIBRARIES_WITHOUT_COMMONAPI_DBUS CommonAPI gtest ${PTHREAD_LIBRARY})
+
+##############################################################################
+# DBusVariantTypeTest
+##############################################################################
+
+add_executable(DBusVariantTypeTest src/DBusVariantTypeTest.cpp
+                               src/stubs/VariantTypeStubImpl.cpp
+                               ${VariantTypeDBusSources})
+target_link_libraries(DBusVariantTypeTest ${TEST_LINK_LIBRARIES})
 
 ##############################################################################
 # DBusObjectPathTest
@@ -426,6 +417,7 @@ add_dependencies(DBusPolymorphicTest gtest)
 add_dependencies(DBusLoadTest gtest)
 add_dependencies(DBusObjectPathTest gtest)
 add_dependencies(DBusUnixFDTest gtest)
+add_dependencies(DBusVariantTypeTest gtest)
 
 ##############################################################################
 # Add tests to the target build_tests
@@ -447,6 +439,7 @@ add_dependencies(build_tests DBusPolymorphicTest)
 add_dependencies(build_tests DBusLoadTest)
 add_dependencies(build_tests DBusObjectPathTest)
 add_dependencies(build_tests DBusUnixFDTest)
+add_dependencies(build_tests DBusVariantTypeTest)
 
 ##############################################################################
 # Add tests
@@ -512,5 +505,9 @@ set_property(TEST DBusObjectPathTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENV
 
 add_test(NAME DBusUnixFDTest COMMAND DBusUnixFDTest)
 set_property(TEST DBusUnixFDTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
+
+add_test(NAME DBusVariantTypeTest COMMAND DBusVariantTypeTest)
+set_property(TEST DBusVariantTypeTest APPEND PROPERTY ENVIRONMENT ${DBUS_TEST_ENVIRONMENT})
+
 
 message("TEST_COMMONAPI_DBUS_FAKE_LEGACY_SERVICE_FOLDER: = ${PYTHON_TEST_DIR}")

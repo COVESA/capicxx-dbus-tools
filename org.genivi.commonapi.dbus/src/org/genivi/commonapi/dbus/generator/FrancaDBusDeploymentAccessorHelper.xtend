@@ -1,8 +1,7 @@
-// Copyright (C) 2014, 2015 BMW Group
-// Author: Lutz Bichler (lutz.bichler@bmw.de)
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
 import javax.inject.Inject
@@ -22,22 +21,24 @@ import org.franca.core.franca.FTypedElement
 import org.franca.core.franca.FUnionType
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.franca.core.franca.FMapType
+import org.franca.core.franca.FInterface
+import org.franca.core.franca.FIntegerInterval
 
 class FrancaDBusDeploymentAccessorHelper {
-    @Inject private extension FrancaDBusGeneratorExtensions
+	@Inject extension FrancaDBusGeneratorExtensions
 
     static PropertyAccessor.DBusVariantType DBUS_DEFAULT_VARIANT_TYPE
         = PropertyAccessor.DBusVariantType.CommonAPI;
 
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypedElement _element) {
-        if (_accessor == null)
+        if (_accessor === null)
             return false
         if (_accessor.getDBusIsObjectPathHelper(_element)) {
             return true
         }
         if (_accessor.getDBusIsUnixFDHelper(_element)) {
             return true
-        }        
+        }
         return _accessor.hasDeployment(_element.type)
     }
 
@@ -55,7 +56,8 @@ class FrancaDBusDeploymentAccessorHelper {
 
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FStructType _struct) {
         for (element : _struct.elements) {
-            if (_accessor.hasDeployment(element)) {
+            var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(element);
+            if (overwriteAccessor.hasDeployment(element)) {
                 return true
             }
         }
@@ -73,14 +75,15 @@ class FrancaDBusDeploymentAccessorHelper {
             val PropertyAccessor.DBusVariantType variantType
                 = _accessor.getDBusVariantTypeHelper(_union)
 
-            if (variantType != null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
-                (type == null || variantType != _accessor.getDBusVariantTypeHelper(type))) {
+            if (variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
+                (type === null || variantType != _accessor.getDBusVariantTypeHelper(type))) {
                 return true
             }
         } catch (NullPointerException e) {}
 
         for (element : _union.elements) {
-            if (_accessor.hasDeployment(element)) {
+            var PropertyAccessor overwriteAccessor = _accessor.getOverwriteAccessor(element);
+            if (overwriteAccessor.hasDeployment(element)) {
                 return true
             }
         }
@@ -91,7 +94,9 @@ class FrancaDBusDeploymentAccessorHelper {
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypeDef _typeDef) {
         return _accessor.hasDeployment(_typeDef.actualType)
     }
-
+    def dispatch boolean hasDeployment(PropertyAccessor _accessor, FIntegerInterval _type) {
+        return false
+    }
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FBasicTypeId _type) {
         return false
     }
@@ -101,101 +106,106 @@ class FrancaDBusDeploymentAccessorHelper {
     }
 
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FTypeRef _type) {
-        if (_type.derived != null)
+        if (_type.derived !== null)
             return _accessor.hasDeployment(_type.derived)
-
-        if (_type.predefined != null)
+        if (_type.interval !== null)
+            return _accessor.hasDeployment(_type.interval)
+        if (_type.predefined !== null)
             return _accessor.hasDeployment(_type.predefined)
 
         return false
     }
-
+    def PropertyAccessor getSpecificAccessor(EObject _object) {
+        var container = _object.eContainer
+        while (container !== null) {
+            if(container instanceof FInterface) {
+                return getDBusAccessor(container)
+            }
+            if(container instanceof FTypeCollection) {
+                return getDBusAccessor(container)
+            }
+            container = container.eContainer
+        }
+        return null
+    }
     def boolean hasSpecificDeployment(PropertyAccessor _accessor,
                                       FTypedElement _attribute) {
         var FType type = null
-        if (_attribute.type.derived != null) {
+        if (_attribute.type.derived !== null) {
             type = _attribute.type.derived
         }
-
+		val specificAccessor = getSpecificAccessor(_attribute)
         try {
             val PropertyAccessor.DBusVariantType variantType
                 = _accessor.getDBusVariantTypeHelper(_attribute)
+			val PropertyAccessor.DBusVariantType defaultVariantType =
+			if (type !== null && specificAccessor !== null) {
+				specificAccessor.getDBusVariantTypeHelper(type)
+			}
+			else {
+				DBUS_DEFAULT_VARIANT_TYPE
+			}
 
-            if (variantType != null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
-                (type == null || variantType != _accessor.getDBusVariantTypeHelper(type))) {
+            if (variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
+                (type === null || variantType != defaultVariantType)) {
                 return true
             }
+
         } catch (NullPointerException e) {}
 
         try {
             val Boolean isPath = _accessor.getDBusIsObjectPathHelper(_attribute)
-            if (isPath != null && isPath) {
+            if (isPath !== null && isPath) {
                 return true
             }
         } catch (NullPointerException e) {}
         try {
             val Boolean isUnixFD = _accessor.getDBusIsUnixFDHelper(_attribute)
-            if (isUnixFD != null && isUnixFD) {
+            if (isUnixFD !== null && isUnixFD) {
                 return true
             }
         } catch (NullPointerException e) {}
+
+        // also check for overwrites
+        if (_accessor.isProperOverwrite()) {
+            return true
+        }
         return false
     }
 
     def Boolean getDBusIsObjectPathHelper(PropertyAccessor _accessor, EObject _obj) {
-        var PropertyAccessor parentAccessor = _accessor;
-        var FTypeCollection tc = _obj.findTypeCollection
-        if (tc != null)
-            parentAccessor = tc.accessor
-        if (parentAccessor != null)
-            return parentAccessor.getIsObjectPath(_obj);
-        return new Boolean(false);
+        return _accessor.getIsObjectPath(_obj);
     }
     def Boolean getDBusIsUnixFDHelper(PropertyAccessor _accessor, EObject _obj) {
-        var PropertyAccessor parentAccessor = _accessor;
-        var FTypeCollection tc = _obj.findTypeCollection
-        if (tc != null)
-            parentAccessor = tc.accessor
-        if (parentAccessor != null)
-            return parentAccessor.getIsUnixFD(_obj);
-        return new Boolean(false);
+        return _accessor.getIsUnixFD(_obj);
     }
     def PropertyAccessor.DBusVariantType getDBusVariantTypeHelper(PropertyAccessor _accessor, EObject _obj) {
 
-        var PropertyAccessor parentAccessor = _accessor;
-        var FTypeCollection tc = _obj.findTypeCollection
-        if (tc != null && tc.accessor != null) {
-            parentAccessor = tc.accessor
-        }
-
         if (_obj instanceof FAttribute) {
-            return parentAccessor.getDBusAttrVariantType(_obj)
+            return _accessor.getDBusVariantTypeHelper(_obj.type.derived)
         }
 
         if (_obj instanceof FArgument) {
-            return parentAccessor.getDBusArgVariantType(_obj)
+            return _accessor.getDBusVariantTypeHelper(_obj.type.derived)
         }
 
         if (_obj instanceof FField) {
-            var PropertyAccessor.DBusVariantType variantType = parentAccessor.getDBusStructVariantType(_obj)
-            if (variantType == null)
-                variantType = parentAccessor.getDBusUnionVariantType(_obj)
-            return variantType
-        }
-
-        if (_obj.eContainer() instanceof FUnionType) {
-            return parentAccessor.getDBusUnionVariantType(_obj)
+            return _accessor.getDBusVariantTypeHelper(_obj.type.derived)
         }
 
         if (_obj instanceof FTypeDef) {
-            if (_obj.actualType.derived != null) {
-                return parentAccessor.getDBusVariantType(_obj.actualType.derived)
+            if (_obj.actualType.derived !== null) {
+                if (_obj.actualType.derived instanceof FUnionType) {
+                    return _accessor.getDBusVariantType(_obj.actualType.derived as FUnionType)
+                }
             } else {
                 return DBUS_DEFAULT_VARIANT_TYPE
             }
         }
+        if (_obj instanceof FUnionType)
+            return _accessor.getDBusVariantType(_obj)
 
-        return parentAccessor.getDBusVariantType(_obj)
+        return DBUS_DEFAULT_VARIANT_TYPE
     }
 
 }

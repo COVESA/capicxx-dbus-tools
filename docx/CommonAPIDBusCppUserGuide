@@ -249,7 +249,7 @@ The D-Bus code generator can generate code completely without any deployment set
 
 [source,java]
 ----
-import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI_deployment_spec.fdepl"
+import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI-4_deployment_spec.fdepl"
 
 specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.core.deployment {
 	for interfaces {

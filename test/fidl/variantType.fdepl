@@ -1,0 +1,73 @@
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-4-DBus_deployment_spec.fdepl"
+import "variantType.fidl"
+
+define org.genivi.commonapi.dbus.deployment for interface test.varianttype.TestInterface {
+
+    union dBusTypeUnion {
+        DBusVariantType = DBus
+    }
+
+    union commonapiTypeUnion {
+        DBusVariantType = CommonAPI
+    }
+
+    attribute a_def_to_dbus {
+        #union {
+            DBusVariantType = DBus
+            s {
+                IsObjectPath = true
+            }
+        }
+    }
+    attribute a_dbus_to_capi {
+        #union {
+            DBusVariantType = CommonAPI
+        }
+    }
+    attribute a_capi_to_dbus {
+        #union {
+            DBusVariantType = DBus
+        }
+    }
+
+
+    method m0 {
+        in {
+            arg_def_to_dbus {
+                #union {
+                    DBusVariantType = DBus
+                }
+            }
+            arg_dbus_to_capi {
+                #union {
+                    DBusVariantType = CommonAPI
+                }
+            }
+            arg_capi_to_dbus {
+                #union {
+                    DBusVariantType = DBus
+                }
+            }
+        }
+    }
+
+    broadcast b0 {
+        out {
+            arg_def_to_dbus {
+                #union {
+                    DBusVariantType = DBus
+                }
+            }
+            arg_dbus_to_capi {
+                #union {
+                    DBusVariantType = CommonAPI
+                }
+            }
+            arg_capi_to_dbus {
+                #union {
+                    DBusVariantType = DBus
+                }
+            }
+        }
+    }
+}

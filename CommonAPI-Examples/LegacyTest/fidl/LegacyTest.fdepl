@@ -3,12 +3,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_deployment_spec.fdepl"
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-4-DBus_deployment_spec.fdepl"
 import "LegacyTest.fidl"
 
 define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.LegacyTest {
     DBusDefaultAttributeType = freedesktop
-    
+
     attribute objectpath {
         IsObjectPath = true
     }
@@ -46,7 +46,7 @@ define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.Leg
         }
     }
     union pathunion {
-         DBusVariantType = DBus    
+         DBusVariantType = DBus
         path {
             IsObjectPath = true
         }
@@ -54,11 +54,10 @@ define org.genivi.commonapi.dbus.deployment for interface commonapi.examples.Leg
 
 }
 
-define org.genivi.commonapi.dbus.deployment for provider Service {
+define org.genivi.commonapi.dbus.deployment for provider as Service {
 	instance commonapi.examples.LegacyTest {
 		InstanceId = "commonapi.examples.LegacyTest"
-		
-		DBusPredefined = true 
+
+		DBusPredefined = true
 	}
 }
-

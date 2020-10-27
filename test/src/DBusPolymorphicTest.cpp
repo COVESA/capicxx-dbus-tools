@@ -28,8 +28,8 @@ class PolymorphicTestStub : public VERSION::commonapi::tests::TestInterfaceStubD
 public:
 
     void TestArrayOfPolymorphicStructMethod(const std::shared_ptr<CommonAPI::ClientId> _client,
-        std::vector<std::shared_ptr<::commonapi::tests::DerivedTypeCollection::TestPolymorphicStruct>> inArray,
-        TestArrayOfPolymorphicStructMethodReply_t _reply) {
+        const std::vector<std::shared_ptr<::commonapi::tests::DerivedTypeCollection::TestPolymorphicStruct>> inArray,
+        const TestArrayOfPolymorphicStructMethodReply_t _reply) {
         (void)_client;
 
         numberOfContainedElements_ = static_cast<int>(inArray.size());
@@ -55,8 +55,8 @@ public:
 
     void TestMapOfPolymorphicStructMethod(
         const std::shared_ptr<CommonAPI::ClientId> clientId,
-        ::commonapi::tests::DerivedTypeCollection::MapIntToPolymorphic inMap,
-        TestMapOfPolymorphicStructMethodReply_t _reply) {
+        const ::commonapi::tests::DerivedTypeCollection::MapIntToPolymorphic inMap,
+        const TestMapOfPolymorphicStructMethodReply_t _reply) {
         (void)clientId;
 
         numberOfContainedElements_ = static_cast<int>(inMap.size());
@@ -85,8 +85,8 @@ public:
 
     void TestStructWithPolymorphicMemberMethod(
         const std::shared_ptr<CommonAPI::ClientId> _client,
-        ::commonapi::tests::DerivedTypeCollection::StructWithPolymorphicMember inStruct,
-        TestStructWithPolymorphicMemberMethodReply_t _reply) {
+        const ::commonapi::tests::DerivedTypeCollection::StructWithPolymorphicMember inStruct,
+        const TestStructWithPolymorphicMemberMethodReply_t _reply) {
         (void)_client;
 
         if (inStruct.getPolymorphicMember() != NULL) {

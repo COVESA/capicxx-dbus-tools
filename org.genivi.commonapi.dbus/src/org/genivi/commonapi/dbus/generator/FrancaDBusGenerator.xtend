@@ -1,7 +1,7 @@
-/* Copyright (C) 2013-2015 BMW Group
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
 import java.io.File
@@ -23,7 +23,6 @@ import org.franca.deploymodel.core.FDeployedInterface
 import org.franca.deploymodel.core.FDeployedTypeCollection
 import org.franca.deploymodel.dsl.fDeploy.FDInterface
 import org.franca.deploymodel.dsl.fDeploy.FDModel
-import org.franca.deploymodel.dsl.fDeploy.FDProvider
 import org.franca.deploymodel.dsl.fDeploy.FDTypes
 import org.franca.deploymodel.dsl.fDeploy.FDeployFactory
 import org.genivi.commonapi.core.generator.FDeployManager
@@ -31,26 +30,27 @@ import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
+import org.franca.deploymodel.dsl.fDeploy.FDExtensionRoot
 
 class FrancaDBusGenerator implements IGenerator {
-    @Inject private extension FrancaGeneratorExtensions
-    @Inject private extension FrancaDBusGeneratorExtensions
-    @Inject private extension FInterfaceDBusProxyGenerator
-    @Inject private extension FInterfaceDBusStubAdapterGenerator
-    @Inject private extension FInterfaceDBusDeploymentGenerator
+	@Inject extension FrancaGeneratorExtensions
+	@Inject extension FrancaDBusGeneratorExtensions
+	@Inject extension FInterfaceDBusProxyGenerator
+	@Inject extension FInterfaceDBusStubAdapterGenerator
+	@Inject extension FInterfaceDBusDeploymentGenerator
 
-    @Inject private FrancaPersistenceManager francaPersistenceManager
-    @Inject private FDeployManager fDeployManager
+    //@Inject FrancaPersistenceManager francaPersistenceManager
+	@Inject FDeployManager fDeployManager
 
     override doGenerate(Resource input, IFileSystemAccess fileSystemAccess) {
-        if (!input.URI.fileExtension.equals(francaPersistenceManager.fileExtension) &&
+        if (!input.URI.fileExtension.equals(FrancaPersistenceManager.FRANCA_FILE_EXTENSION) &&
             !input.URI.fileExtension.equals(FDeployManager.fileExtension)) {
                 return
         }
 
         var List<FDInterface> deployedInterfaces = new LinkedList<FDInterface>()
         var List<FDTypes> deployedTypeCollections = new LinkedList<FDTypes>()
-        var List<FDProvider> deployedProviders = new LinkedList<FDProvider>()
+        var List<FDExtensionRoot> deployedProviders = new LinkedList<FDExtensionRoot>()
 
         var IResource res = null
 
@@ -94,11 +94,11 @@ class FrancaDBusGenerator implements IGenerator {
         var missingCoreInterfaces = new LinkedList<FDInterface>()
         var missingCoreTypeCollections = new LinkedList<FDTypes>()
         val itsCoreSpecification = fDeployManager.getDeploymentSpecification(CORE_SPECIFICATION_NAME)
-        if (itsCoreSpecification != null) {
+        if (itsCoreSpecification !== null) {
             for (itsEntry : models.entrySet) {
                 val itsModel = itsEntry.value
  
-                if (itsModel != null) {
+                if (itsModel !== null) {
                     for (i : itsModel.interfaces) {
                         if (!i.isDeployed(allCoreInterfaces)) {
                             val itsNewDeployment = FDeployFactory.eINSTANCE.createFDInterface()
@@ -127,9 +127,9 @@ class FrancaDBusGenerator implements IGenerator {
         
         // Finally check/create/merge the DBus deployment
         var itsDBusSpecification = fDeployManager.getDeploymentSpecification(DBUS_SPECIFICATION_NAME)
-        if (itsDBusSpecification == null)
+        if (itsDBusSpecification === null)
             itsDBusSpecification = fDeployManager.getDeploymentSpecification(CORE_SPECIFICATION_NAME)
-        if (itsDBusSpecification != null) {
+        if (itsDBusSpecification !== null) {
             for (itsEntry : deployments.entrySet) {
                 val itsDeployment = itsEntry.value
     
@@ -220,7 +220,7 @@ class FrancaDBusGenerator implements IGenerator {
                                           Map<String, FModel> _models,
                                           List<FDInterface> _interfaces,
                                           List<FDTypes> _typeCollections,
-                                          List<FDProvider> _providers,
+                                          List<FDExtensionRoot> _providers,
                                           IFileSystemAccess _access,
                                           IResource _res,
                                           boolean _mustGenerate) {
@@ -271,7 +271,7 @@ class FrancaDBusGenerator implements IGenerator {
                                      Map<String, FModel> _models,
                                      List<FDInterface> _interfaces,
                                      List<FDTypes> _typeCollections,
-                                     List<FDProvider> _providers,
+                                     List<FDExtensionRoot> _providers,
                                      IFileSystemAccess _access,
                                      IResource _res) {
         val String modelName
@@ -290,7 +290,7 @@ class FrancaDBusGenerator implements IGenerator {
         if (withDependencies_) {
             for (itsEntry : _models.entrySet) {
                 var FModel itsModel = itsEntry.value
-                if (itsModel != null) {
+                if (itsModel !== null && itsModel != _model) {
                     doGenerateComponents(itsModel,
                         _interfaces, _typeCollections, _providers,
                         _access, _res)
@@ -332,20 +332,30 @@ class FrancaDBusGenerator implements IGenerator {
     def private void doGenerateComponents(FModel _model,
                                      List<FDInterface> _interfaces,
                                      List<FDTypes> _typeCollections,
-                                     List<FDProvider> _providers,
+                                     List<FDExtensionRoot> _providers,
                                      IFileSystemAccess _access,
                                      IResource _res) {
         var interfacesToGenerate = _model.interfaces.toSet
         var typeCollectionsToGenerate = _model.typeCollections.toSet
 
         typeCollectionsToGenerate.forEach [
-            it.generateTypeCollectionDeployment(_access, getAccessor(it), _res)
+            val currentTypeCollection = it
+            var PropertyAccessor deploymentAccessor = getDBusAccessor(it)
+            if (null === deploymentAccessor) {
+                if (_typeCollections.exists[it.target == currentTypeCollection]) {
+                    deploymentAccessor = new PropertyAccessor(
+                        new FDeployedTypeCollection(_typeCollections.filter[it.target == currentTypeCollection].last))
+                } else {
+                    deploymentAccessor = new PropertyAccessor()
+                }
+            }
+            it.generateTypeCollectionDeployment(_access, deploymentAccessor, _res)
         ]
 
         interfacesToGenerate.forEach [
             val currentInterface = it
-            var PropertyAccessor deploymentAccessor = getAccessor(it);
-            if (null == deploymentAccessor) {
+            var PropertyAccessor deploymentAccessor = getDBusAccessor(it)
+            if (null === deploymentAccessor) {
 	            if (_interfaces.exists[it.target == currentInterface]) {
 	                deploymentAccessor = new PropertyAccessor(
 	                    new FDeployedInterface(_interfaces.filter[it.target == currentInterface].last))
@@ -388,6 +398,6 @@ class FrancaDBusGenerator implements IGenerator {
         ]
     }
 
-    private boolean withDependencies_
-    private Set<String> generatedFiles_
+    boolean withDependencies_
+	Set<String> generatedFiles_
 }

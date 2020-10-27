@@ -1,0 +1,56 @@
+package test.varianttype
+
+interface TestInterface {
+
+    version { major 1 minor 0 }
+
+    union defaultTypeUnion {
+        String s
+        Int32 i
+    }
+
+    union dBusTypeUnion {
+        String s
+        Int32 i
+    }
+
+    union commonapiTypeUnion {
+        String s
+        Int32 i
+    }
+
+    attribute defaultTypeUnion a_def
+    attribute dBusTypeUnion a_dbus
+    attribute commonapiTypeUnion a_capi
+    attribute defaultTypeUnion a_def_to_dbus
+    attribute dBusTypeUnion a_dbus_to_capi
+    attribute commonapiTypeUnion a_capi_to_dbus
+
+    method m0 {
+        in {
+            defaultTypeUnion arg_def
+            dBusTypeUnion arg_dbus
+            commonapiTypeUnion arg_capi
+            defaultTypeUnion arg_def_to_dbus
+            dBusTypeUnion arg_dbus_to_capi
+            commonapiTypeUnion arg_capi_to_dbus
+        }
+    }
+
+    broadcast b0 {
+        out {
+            defaultTypeUnion arg_def
+            dBusTypeUnion arg_dbus
+            commonapiTypeUnion arg_capi
+            defaultTypeUnion arg_def_to_dbus
+            dBusTypeUnion arg_dbus_to_capi
+            commonapiTypeUnion arg_capi_to_dbus
+        }
+    }
+
+    method stubCmd {
+        in {
+            UInt8 cmd
+        }
+    }
+}

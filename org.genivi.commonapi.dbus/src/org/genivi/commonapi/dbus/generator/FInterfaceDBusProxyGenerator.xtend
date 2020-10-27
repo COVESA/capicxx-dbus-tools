@@ -1,12 +1,11 @@
-/* Copyright (C) 2013 BMW Group
- * Author: Manfred Bathelt (manfred.bathelt@bmw.de)
- * Author: Juergen Gehring (juergen.gehring@bmw.de)
- * Author: Lutz Bichler (lutz.bichler@bmw.de)
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
+import java.util.LinkedList
+import java.util.List
 import javax.inject.Inject
 import org.eclipse.core.resources.IResource
 import org.eclipse.xtext.generator.IFileSystemAccess
@@ -16,26 +15,25 @@ import org.franca.core.franca.FInterface
 import org.franca.core.franca.FMethod
 import org.franca.core.franca.FModelElement
 import org.franca.core.franca.FVersion
+import org.franca.deploymodel.dsl.fDeploy.FDExtensionRoot
+import org.franca.deploymodel.ext.providers.FDeployedProvider
+import org.franca.deploymodel.ext.providers.ProviderUtils
 import org.genivi.commonapi.core.generator.FTypeGenerator
 import org.genivi.commonapi.core.generator.FrancaGeneratorExtensions
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
+import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
+import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
 
 import static com.google.common.base.Preconditions.*
-import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
-import org.genivi.commonapi.dbus.preferences.FPreferencesDBus
-import java.util.List
-import org.franca.deploymodel.dsl.fDeploy.FDProvider
-import org.franca.deploymodel.core.FDeployedProvider
-import java.util.LinkedList
 
 class FInterfaceDBusProxyGenerator {
-    @Inject private extension FrancaGeneratorExtensions
-    @Inject private extension FrancaDBusGeneratorExtensions
+	@Inject extension FrancaGeneratorExtensions
+	@Inject extension FrancaDBusGeneratorExtensions
 
     var boolean generateSyncCalls = true
 
     def generateDBusProxy(FInterface fInterface, IFileSystemAccess fileSystemAccess,
-        PropertyAccessor deploymentAccessor, List<FDProvider> providers, IResource modelid) {
+        PropertyAccessor deploymentAccessor, List<FDExtensionRoot> providers, IResource modelid) {
 
         if(FPreferencesDBus::getInstance.getPreference(PreferenceConstantsDBus::P_GENERATE_CODE_DBUS, "true").equals("true")) {
             generateSyncCalls = FPreferencesDBus::getInstance.getPreference(PreferenceConstantsDBus::P_GENERATE_SYNC_CALLS_DBUS, "true").equals("true")
@@ -59,14 +57,12 @@ class FInterfaceDBusProxyGenerator {
         #define «fInterface.defineName»_DBUS_PROXY_HPP_
 
         #include <«fInterface.proxyBaseHeaderPath»>
-        «IF fInterface.base != null»
+        «IF fInterface.base !== null»
             #include <«fInterface.base.dbusProxyHeaderPath»>
         «ENDIF»
         #include "«fInterface.dbusDeploymentHeaderPath»"
 
-        #if !defined (COMMONAPI_INTERNAL_COMPILATION)
-        #define COMMONAPI_INTERNAL_COMPILATION
-        #endif
+        «startInternalCompilation»
 
         #include <CommonAPI/DBus/DBusAddress.hpp>
         #include <CommonAPI/DBus/DBusFactory.hpp>
@@ -92,7 +88,7 @@ class FInterfaceDBusProxyGenerator {
             #include <CommonAPI/DBus/DBusDeployment.hpp>
         «ENDIF»
 
-        #undef COMMONAPI_INTERNAL_COMPILATION
+        «endInternalCompilation»
 
         #include <string>
 
@@ -113,13 +109,13 @@ class FInterfaceDBusProxyGenerator {
 
         class «fInterface.dbusProxyClassName»
             : virtual public «fInterface.proxyBaseClassName»,
-              virtual public «IF fInterface.base != null»«fInterface.base.getTypeCollectionName(fInterface)»DBusProxy«ELSE»CommonAPI::DBus::DBusProxy«ENDIF» {
+              virtual public «IF fInterface.base !== null»«fInterface.base.getTypeCollectionName(fInterface)»DBusProxy«ELSE»CommonAPI::DBus::DBusProxy«ENDIF» {
         public:
             «fInterface.dbusProxyClassName»(
                 const CommonAPI::DBus::DBusAddress &_address,
                 const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection);
 
-            virtual ~«fInterface.dbusProxyClassName»() { }
+            virtual ~«fInterface.dbusProxyClassName»();
 
             «FOR attribute : fInterface.attributes»
             virtual «attribute.generateGetMethodDefinition»;
@@ -144,6 +140,8 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
 
             virtual void getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const;
+
+            virtual std::future<void> getCompletionFuture();
 
         private:
 
@@ -204,6 +202,8 @@ class FInterfaceDBusProxyGenerator {
             «FOR managed : fInterface.managedInterfaces»
             CommonAPI::DBus::DBusProxyManager «managed.proxyManagerMemberName»;
             «ENDFOR»
+
+            std::promise<void> completed_;
         };
 
         «fInterface.model.generateNamespaceEndDeclaration»
@@ -213,7 +213,7 @@ class FInterfaceDBusProxyGenerator {
 
     '''
 
-    def private generateDBusProxySource(FInterface fInterface, PropertyAccessor deploymentAccessor, List<FDProvider> providers,
+    def private generateDBusProxySource(FInterface fInterface, PropertyAccessor deploymentAccessor, List<FDExtensionRoot> providers,
         IResource modelid) '''
         «generateCommonApiDBusLicenseHeader()»
         «FTypeGenerator::generateComments(fInterface, false)»
@@ -231,7 +231,7 @@ class FInterfaceDBusProxyGenerator {
         void initialize«fInterface.dbusProxyClassName»() {
              «FOR p : providers»
                  «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
-                 «FOR i : p.instances.filter[target == fInterface]»
+                 «FOR i : ProviderUtils.getInstances(p).filter[target == fInterface]»
                      CommonAPI::DBus::DBusAddressTranslator::get()->insert(
                          "local:«fInterface.fullyQualifiedNameWithVersion»:«providerAccessor.getInstanceId(i)»",
                          "«providerAccessor.getDBusServiceName(i)»",
@@ -251,7 +251,7 @@ class FInterfaceDBusProxyGenerator {
         «fInterface.dbusProxyClassName»::«fInterface.dbusProxyClassName»(
             const CommonAPI::DBus::DBusAddress &_address,
             const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection)
-            :   CommonAPI::DBus::DBusProxy(_address, _connection)«IF fInterface.base != null»,«ENDIF»
+            :   CommonAPI::DBus::DBusProxy(_address, _connection)«IF fInterface.base !== null»,«ENDIF»
                 «fInterface.generateDBusBaseInstantiations»
                 «FOR attribute : fInterface.attributes BEFORE ',' SEPARATOR ','»
                     «attribute.generateDBusVariableInit(deploymentAccessor, fInterface)»
@@ -270,7 +270,7 @@ class FInterfaceDBusProxyGenerator {
         {
             «FOR p : providers»
                 «val PropertyAccessor providerAccessor = new PropertyAccessor(new FDeployedProvider(p))»
-                «FOR i : p.instances.filter[target == fInterface]»
+                «FOR i : ProviderUtils.getInstances(p).filter[target == fInterface]»
                     «IF providerAccessor.getDBusPredefined(i)»
                         CommonAPI::DBus::DBusServiceRegistry::get(_connection)->setDBusServicePredefined(_address.getService());
                     «ENDIF»
@@ -278,51 +278,56 @@ class FInterfaceDBusProxyGenerator {
             «ENDFOR»
         }
 
-              «FOR attribute : fInterface.attributes»
-                  «attribute.generateGetMethodDefinitionWithin(fInterface.dbusProxyClassName)» {
-                      return «attribute.dbusClassVariableName»;
-                  }
-              «ENDFOR»
+        «fInterface.dbusProxyClassName»::~«fInterface.dbusProxyClassName»() {
+            completed_.set_value();
+        }
 
-              «FOR broadcast : fInterface.broadcasts»
+        «FOR attribute : fInterface.attributes»
+            «attribute.generateGetMethodDefinitionWithin(fInterface.dbusProxyClassName)» {
+                return «attribute.dbusClassVariableName»;
+            }
+        «ENDFOR»
+
+        «FOR broadcast : fInterface.broadcasts»
             «broadcast.generateGetMethodDefinitionWithin(fInterface.dbusProxyClassName)» {
                 return «broadcast.dbusClassVariableName»;
             }
-              «ENDFOR»
+        «ENDFOR»
 
-            «FOR method : fInterface.methods»
-                «var errorClasses = new LinkedList()»
-                «FOR broadcast : fInterface.broadcasts»
-                    «IF broadcast.isErrorType(method, deploymentAccessor)»
-                        «{errorClasses.add('&' + broadcast.dbusClassVariableName);""}»
+        «FOR method : fInterface.methods»
+            «var errorClasses = new LinkedList()»
+            «FOR broadcast : fInterface.broadcasts»
+                «IF broadcast.isErrorType(method, deploymentAccessor)»
+                    «{errorClasses.add('&' + broadcast.dbusClassVariableName);""}»
+                «ENDIF»
+            «ENDFOR»
+            «val timeout = method.getTimeout(deploymentAccessor)»
+            «val inParams = method.generateInParams(deploymentAccessor)»
+            «IF generateSyncCalls || method.isFireAndForget»
+            «val outParams = method.generateOutParams(deploymentAccessor, false)»
+            «FTypeGenerator::generateComments(method, false)»
+            «method.generateDefinitionWithin(fInterface.dbusProxyClassName, false)» {
+                «method.generateProxyHelperDeployments(fInterface, false, deploymentAccessor)»
+                «IF method.isFireAndForget»
+                    «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethod(
+                «ELSE»
+                    «IF timeout != 0»
+                        static CommonAPI::CallInfo info(«timeout»);
                     «ENDIF»
-                «ENDFOR»
-                «val timeout = method.getTimeout(deploymentAccessor)»
-                «val inParams = method.generateInParams(deploymentAccessor)»
-                «IF generateSyncCalls || method.isFireAndForget»
-                «val outParams = method.generateOutParams(deploymentAccessor, false)»
-                «FTypeGenerator::generateComments(method, false)»
-                «method.generateDefinitionWithin(fInterface.dbusProxyClassName, false)» {
-                    «method.generateProxyHelperDeployments(fInterface, false, deploymentAccessor)»
-                    «IF method.isFireAndForget»
-                        «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethod(
-                    «ELSE»
-                        «IF timeout != 0»
-                            static CommonAPI::CallInfo info(«timeout»);
-                        «ENDIF»
-                        «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethodWithReply(
-                    «ENDIF»
+                    «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethodWithReply(
+                «ENDIF»
                     *this,
                     "«method.elementName»",
                     "«method.dbusInSignature(deploymentAccessor)»",
-            «IF !method.isFireAndForget»(_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),«ENDIF»
-            «IF inParams != ""»«inParams»,«ENDIF»
-            _internalCallStatus«IF method.hasError»,
-            deploy_error«ENDIF»«IF outParams != ""»,
-            «outParams»«ENDIF»«IF !method.isFireAndForget && !errorClasses.empty»,
-            «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
-            «method.generateOutParamsValue(deploymentAccessor)»
+                    «IF !method.isFireAndForget»(_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),«ENDIF»
+                    «IF inParams != ""»«inParams»,«ENDIF»
+                    _internalCallStatus«IF method.hasError»,
+                    deploy_error«ENDIF»«IF outParams != ""»,
+                    «outParams»«ENDIF»«IF !method.isFireAndForget && !errorClasses.empty»,
+                    «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
+                «method.generateOutParamsValue(deploymentAccessor)»
             }
+
             «ENDIF»
             «IF !method.isFireAndForget»
                 «method.generateAsyncDefinitionWithin(fInterface.dbusProxyClassName, false)» {
@@ -331,36 +336,40 @@ class FInterfaceDBusProxyGenerator {
                         static CommonAPI::CallInfo info(«timeout»);
                     «ENDIF»
                     return «method.generateDBusProxyHelperClass(fInterface, deploymentAccessor)»::callMethodAsync(
-                    *this,
-                    "«method.elementName»",
-                    "«method.dbusInSignature(deploymentAccessor)»",
-                    (_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),
-                    «IF inParams != ""»«inParams»,«ENDIF»
-                    «method.generateCallback(fInterface, deploymentAccessor)»«IF !errorClasses.empty»,
-                    «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
+                        *this,
+                        "«method.elementName»",
+                        "«method.dbusInSignature(deploymentAccessor)»",
+                        (_info ? _info : «IF timeout != 0»&info«ELSE»&CommonAPI::DBus::defaultCallInfo«ENDIF»),
+                        «IF inParams != ""»«inParams»,«ENDIF»
+                        «method.generateCallback(fInterface, deploymentAccessor)»«IF !errorClasses.empty»,
+                        «'std::make_tuple(' + errorClasses.map[it].join(', ') + ')'»«ENDIF»);
                 }
             «ENDIF»
-              «ENDFOR»
+        «ENDFOR»
 
         «FOR managed : fInterface.managedInterfaces»
             CommonAPI::ProxyManager& «fInterface.dbusProxyClassName»::«managed.proxyManagerGetterName»() {
-            return «managed.proxyManagerMemberName»;
-                  }
+                return «managed.proxyManagerMemberName»;
+            }
         «ENDFOR»
 
         void «fInterface.dbusProxyClassName»::getOwnVersion(uint16_t& ownVersionMajor, uint16_t& ownVersionMinor) const {
-                  «val FVersion itsVersion = fInterface.version»
-                  «IF itsVersion != null»
-                      ownVersionMajor = «fInterface.version.major»;
-                      ownVersionMinor = «fInterface.version.minor»;
-                  «ELSE»
-                      ownVersionMajor = 0;
-                      ownVersionMinor = 0;
-                  «ENDIF»
-              }
+            «val FVersion itsVersion = fInterface.version»
+            «IF itsVersion !== null»
+                ownVersionMajor = «fInterface.version.major»;
+                ownVersionMinor = «fInterface.version.minor»;
+            «ELSE»
+                ownVersionMajor = 0;
+                ownVersionMinor = 0;
+            «ENDIF»
+        }
 
-              «fInterface.model.generateNamespaceEndDeclaration»
-              «fInterface.generateVersionNamespaceEnd»
+        std::future<void> «fInterface.dbusProxyClassName»::getCompletionFuture() {
+            return completed_.get_future();
+        }
+
+        «fInterface.model.generateNamespaceEndDeclaration»
+        «fInterface.generateVersionNamespaceEnd»
      '''
 
     def private dbusClassVariableName(FModelElement fModelElement) {
@@ -473,7 +482,7 @@ class FInterfaceDBusProxyGenerator {
                 ret = ret + ', "' + fAttribute.dbusSignature(deploymentAccessor) + '", "' + fAttribute.dbusGetMethodName +
                     '"'
         }
-        val String deployment = fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor)
+        val String deployment = fAttribute.getDeploymentRef(fAttribute.array, null, fInterface, deploymentAccessor.getOverwriteAccessor(fAttribute))
         if (deployment != "")
             ret += ", " + deployment
 
@@ -521,11 +530,11 @@ class FInterfaceDBusProxyGenerator {
         «ENDIF»
         «FOR a : _method.inArgs»
             CommonAPI::Deployable< «a.getTypeName(_method, true)», «a.getDeploymentType(_interface, true)»> deploy_«a.name»(_«a.
-            name», «a.getDeploymentRef(a.array, _method, _interface, _accessor)»);
+            name», «a.getDeploymentRef(a.array, _method, _interface, _accessor.getOverwriteAccessor(a))»);
         «ENDFOR»
         «FOR a : _method.outArgs»
             CommonAPI::Deployable< «a.getTypeName(_method, true)», «a.getDeploymentType(_interface, true)»> deploy_«a.name»(«a.
-            getDeploymentRef(a.array, _method, _interface, _accessor)»);
+            getDeploymentRef(a.array, _method, _interface, _accessor.getOverwriteAccessor(a))»);
         «ENDFOR»
     '''
 

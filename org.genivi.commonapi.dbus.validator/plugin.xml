@@ -6,7 +6,7 @@
                   <validator
                         class="org.genivi.commonapi.dbus.validator.ValidatorDBusUi"
                         mode="FAST"
-                        name="ValidatorDBus">
+                        name="Franca D-Bus Validator">
                   </validator>
                </extension>
                <extension
@@ -14,7 +14,7 @@
                 <page
                       class="org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage"
                       id="org.genivi.commonapi.dbus.validator.preference"
-                      name="CommonAPI-DBus Validator">
+                      name="CommonAPI D-Bus Validator">
                 </page>
              </extension>
 </plugin>

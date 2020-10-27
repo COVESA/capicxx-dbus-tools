@@ -20,36 +20,36 @@ typeCollection DerivedTypeCollection {
     <** @description : Common errors. **>
     enumeration TestEnum {
          <** @description : default **>
-        E_UNKNOWN = "0x00"
+        E_UNKNOWN = 0x00
         <** @description : no error - positive reply **>
-        E_OK = "0x01"
+        E_OK = 0x01
         <** @description : value out of range **>
-        E_OUT_OF_RANGE = "0x02"
+        E_OUT_OF_RANGE = 0x02
         <** @description : not used **>
-        E_NOT_USED = "0x03"
+        E_NOT_USED = 0x03
     }
-    
+
     array TestArrayTestStruct of TestStruct
-    
+
     enumeration TestEnumExtended2 extends TestEnumExtended {
         <** @description : new error **>
-        E_NEW2 = "0x05"
+        E_NEW2 = 0x05
     }
-    
+
     enumeration TestEnumMissingValue {
          <** @description : default **>
-        E1 = "A"
+        E1 = 0x0A
         E2
-        E3 = "2"
+        E3 = 0x02
     }
-    
+
     enumeration TestEnumExtended extends TestEnum {
         <** @description : new error **>
-        E_NEW = "0x04"
+        E_NEW = 0x04
     }
 
     array TestArrayUInt64 of UInt64
-    
+
     struct TestStruct {
         <** @description : the name of the property **>
         PredefinedTypeCollection.TestString testString
@@ -57,30 +57,28 @@ typeCollection DerivedTypeCollection {
         <** @description : the actual value **>
         UInt16 uintValue
     }
-    
+
     struct TestPolymorphicStruct polymorphic {
         <** @description : the name of the property **>
         PredefinedTypeCollection.TestString testString
 
         <** @description : the actual value **>
-        UInt16 uintValue        
+        UInt16 uintValue
     }
-    
+
     struct TestExtendedPolymorphicStruct extends TestPolymorphicStruct {
         UInt32 additionalValue
     }
-    
+
     map MapIntToPolymorphic { UInt8 to DerivedTypeCollection.TestPolymorphicStruct }
-    
+
     struct StructWithPolymorphicMember {
         UInt32 numberValue
         DerivedTypeCollection.TestPolymorphicStruct polymorphicMember
     }
-       
+
     struct StructWithEnumKeyMap {
         TestEnumMap testMap
     }
-    
+
 }
-
-

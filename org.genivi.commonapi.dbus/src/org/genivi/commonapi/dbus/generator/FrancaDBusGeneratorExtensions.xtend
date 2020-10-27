@@ -1,15 +1,11 @@
-/* Copyright (C) 2013 BMW Group
- * Author: Manfred Bathelt (manfred.bathelt@bmw.de)
- * Author: Juergen Gehring (juergen.gehring@bmw.de)
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.generator
 
 import java.util.Collection
-import java.util.HashMap
 import java.util.HashSet
-import java.util.Map
 import java.util.Set
 import javax.inject.Inject
 import org.eclipse.emf.common.util.EList
@@ -38,11 +34,17 @@ import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus
 import org.osgi.framework.FrameworkUtil
 
 import static com.google.common.base.Preconditions.*
+import org.franca.core.franca.FIntegerInterval
 
 class FrancaDBusGeneratorExtensions {
-    @Inject private extension FrancaGeneratorExtensions
-    @Inject private extension FrancaDBusDeploymentAccessorHelper
-    def String dbusDeploymentHeaderFile(FInterface fInterface) {
+	@Inject extension FrancaGeneratorExtensions
+    @Inject extension FrancaDBusDeploymentAccessorHelper
+        
+    def PropertyAccessor getDBusAccessor(FTypeCollection _tc) {
+        return getAccessor(_tc) as PropertyAccessor
+    }
+        
+    def String dbusDeploymentHeaderFile(FInterface fInterface) {        
         return fInterface.elementName + "DBusDeployment.hpp"
     }
     def String dbusDeploymentSourceFile(FInterface fInterface) {
@@ -57,11 +59,11 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def dbusInSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
-        fMethod.inArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
+        fMethod.inArgs.map[getTypeDbusSignature(deploymentAccessor.getOverwriteAccessor(it))].join;
     }
 
     def dbusOutSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
-        var signature = fMethod.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join;
+        var signature = fMethod.outArgs.map[getTypeDbusSignature(deploymentAccessor.getOverwriteAccessor(it))].join;
 
         if (fMethod.hasError)
             signature = fMethod.dbusErrorSignature(deploymentAccessor) + signature
@@ -72,12 +74,12 @@ class FrancaDBusGeneratorExtensions {
     def dbusErrorSignature(FMethod fMethod, PropertyAccessor deploymentAccessor) {
         checkArgument(fMethod.hasError, 'FMethod has no error: ' + fMethod)
 
-        if (fMethod.errorEnum != null)
+        if (fMethod.errorEnum !== null)
             return fMethod.errorEnum.dbusFTypeSignature(deploymentAccessor)
 
         return fMethod.errors.dbusFTypeSignature(deploymentAccessor)
     }
-    
+
     def dbusErrorReplyOutSignature(FBroadcast fBroadcast, FMethod fMethod, PropertyAccessor deploymentAccessor) {
         checkArgument(fBroadcast.isErrorType(deploymentAccessor), 'FBroadcast is no valid error type: ' + fBroadcast)
 
@@ -101,11 +103,11 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def String dbusSignature(FAttribute fAttribute, PropertyAccessor deploymentAccessor) {
-        fAttribute.getTypeDbusSignature(deploymentAccessor)
+        fAttribute.getTypeDbusSignature(deploymentAccessor.getOverwriteAccessor(fAttribute))
     }
 
     def String dbusSignature(FBroadcast fBroadcast, PropertyAccessor deploymentAccessor) {
-        fBroadcast.outArgs.map[getTypeDbusSignature(deploymentAccessor)].join
+        fBroadcast.outArgs.map[getTypeDbusSignature(deploymentAccessor.getOverwriteAccessor(it))].join
     }
 
     def getTypeDbusSignature(FTypedElement element, PropertyAccessor deploymentAccessor) {
@@ -118,33 +120,37 @@ class FrancaDBusGeneratorExtensions {
 
     def String typeDbusSignature(FTypedElement element, PropertyAccessor deploymentAccessor) {
         var FTypeRef fTypeRef = element.type
-        if (fTypeRef == null)
+        if (fTypeRef === null)
             return "";
         // test for getIsObjectPath
         var Boolean test = deploymentAccessor.getDBusIsObjectPathHelper(element);
-        if (test != null && test)
+        if (test !== null && test)
             return "o"
         // test for getIsUnixFD
         var Boolean testFD = deploymentAccessor.getDBusIsUnixFDHelper(element);
-        if (testFD != null && testFD)
+        if (testFD !== null && testFD)
             return "h"
 
         var PropertyAccessor.DBusVariantType variantType = deploymentAccessor.getDBusVariantTypeHelper(element);
-        if (variantType != null && variantType == PropertyAccessor.DBusVariantType.DBus) {
+        if (variantType !== null && variantType == PropertyAccessor.DBusVariantType.DBus) {
             return "v"
         }
 
-        if (fTypeRef.derived != null)
+        if (fTypeRef.derived !== null)
             return fTypeRef.derived.dbusFTypeSignature(deploymentAccessor)
+        if (fTypeRef.interval !== null)
+            return FBasicTypeId::INT32.dbusSignature
         return fTypeRef.predefined.dbusSignature
     }
 
     def String dbusSignature(FTypeRef fTypeRef, PropertyAccessor deploymentAccessor) {
-        if (fTypeRef == null)
+        if (fTypeRef === null)
             return "";
 
-        if (fTypeRef.derived != null)
+        if (fTypeRef.derived !== null)
             return fTypeRef.derived.dbusFTypeSignature(deploymentAccessor)
+        if (fTypeRef.interval !== null)
+            return dbusSignature(FBasicTypeId::INT32)
         return fTypeRef.predefined.dbusSignature
     }
 
@@ -153,7 +159,7 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def private dispatch dbusFTypeSignature(FArrayType fArrayType, PropertyAccessor deploymentAccessor) {
-        return 'a' + fArrayType.elementType.dbusSignature(deploymentAccessor)
+        return 'a' + fArrayType.elementType.dbusSignature(deploymentAccessor.getOverwriteAccessor(fArrayType))
     }
 
     def private dispatch dbusFTypeSignature(FMapType fMap, PropertyAccessor deploymentAccessor) {
@@ -168,7 +174,7 @@ class FrancaDBusGeneratorExtensions {
 
     def private dispatch dbusFTypeSignature(FEnumerationType fEnumerationType, PropertyAccessor deploymentAccessor) {
         val FBasicTypeId backingType = fEnumerationType.getBackingType(deploymentAccessor)
-        
+
         if (backingType == FBasicTypeId.UNDEFINED)
             return FBasicTypeId.INT32.dbusSignature
 
@@ -177,16 +183,16 @@ class FrancaDBusGeneratorExtensions {
 
     def private dispatch dbusFTypeSignature(FUnionType fUnionType, PropertyAccessor deploymentAccessor) {
         var PropertyAccessor.DBusVariantType variantType = deploymentAccessor.getDBusVariantTypeHelper(fUnionType);
-        if (variantType != null && variantType == PropertyAccessor.DBusVariantType.DBus) {
+        if (variantType !== null && variantType == PropertyAccessor.DBusVariantType.DBus) {
             return "v"
         }
         return '(yv)'
     }
 
     def private String getElementsDBusSignature(FStructType fStructType, PropertyAccessor deploymentAccessor) {
-        var signature = fStructType.elements.map[getTypeDbusSignature(deploymentAccessor)].join
+        var signature = fStructType.elements.map[getTypeDbusSignature(deploymentAccessor.getOverwriteAccessor(it))].join
 
-        if (fStructType.base != null) {
+        if (fStructType.base !== null) {
             signature = fStructType.base.getElementsDBusSignature(deploymentAccessor) + signature
         }
 
@@ -242,7 +248,7 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def private dispatch boolean isVariantType(FTypeRef _typeRef) {
-        if (_typeRef.derived != null)
+        if (_typeRef.derived !== null)
             return _typeRef.derived.isVariantType()
 
         return false
@@ -259,23 +265,15 @@ class FrancaDBusGeneratorExtensions {
     def addRequiredHeaders(FType fType, Collection<String> generatedHeaders) {
         generatedHeaders.add(fType.FTypeCollection.dbusDeploymentHeaderPath)
     }
-    private static Map<FTypeCollection, PropertyAccessor> accessors__ = new HashMap<FTypeCollection, PropertyAccessor>()
-
-    def insertAccessor(FTypeCollection _tc, PropertyAccessor _pa) {
-        accessors__.put(_tc, _pa)
-    }
 
     def FTypeCollection findTypeCollection(EObject fType) {
-        if (fType.eContainer == null)
+        if (fType.eContainer === null)
             return null
         if (fType.eContainer instanceof FTypeCollection)
             return fType.eContainer as FTypeCollection
         return findTypeCollection(fType.eContainer)
     }
 
-    def PropertyAccessor getAccessor(FTypeCollection _tc) {
-        return accessors__.get(_tc)
-    }
     def getFTypeCollection(FType fType) {
         fType.eContainer as FTypeCollection
     }
@@ -294,52 +292,56 @@ class FrancaDBusGeneratorExtensions {
     ////////////////////////////////////////
     // Get deployment type for an element //
     ////////////////////////////////////////
-    def dispatch String getDeploymentType(FTypeDef _typeDef, FInterface _interface, boolean _useTc) {
+    def dispatch String getDeploymentType(FTypeDef _typeDef, FTypeCollection _interface, boolean _useTc) {
         return _typeDef.actualType.getDeploymentType(_interface, _useTc)
     }
 
-    def dispatch String getDeploymentType(FTypedElement _typedElement, FInterface _interface, boolean _useTc) {
+    def dispatch String getDeploymentType(FTypedElement _typedElement, FTypeCollection _interface, boolean _useTc) {
         if (_typedElement.array)
             return "CommonAPI::DBus::ArrayDeployment< " + _typedElement.type.getDeploymentType(_interface, _useTc) + " >"
         return _typedElement.type.getDeploymentType(_interface, _useTc)
     }
 
-    def dispatch String getDeploymentType(FTypeRef _typeRef, FInterface _interface, boolean _useTc) {
-        if (_typeRef.derived != null)
+    def dispatch String getDeploymentType(FTypeRef _typeRef, FTypeCollection _interface, boolean _useTc) {
+        if (_typeRef.derived !== null)
             return _typeRef.derived.getDeploymentType(_interface, _useTc)
-
-        if (_typeRef.predefined != null)
+        if (_typeRef.interval !== null)
+            return _typeRef.interval.getDeploymentType(_interface, _useTc)
+        if (_typeRef.predefined !== null)
             return _typeRef.predefined.getDeploymentType(_interface, _useTc)
 
         return "CommonAPI::EmptyDeployment"
     }
+    def dispatch String getDeploymentType(FIntegerInterval _interval, FTypeCollection _interface, boolean _useTc) {
+       return "CommonAPI::EmptyDeployment"
+    }
+    def dispatch String getDeploymentType(FBasicTypeId _type, FTypeCollection _interface, boolean _useTc) {
 
-    def dispatch String getDeploymentType(FBasicTypeId _type, FInterface _interface, boolean _useTc) {
         if (_type == FBasicTypeId.STRING)
             return "CommonAPI::DBus::StringDeployment"
         if (_type == FBasicTypeId.UINT32)
-            return "CommonAPI::DBus::IntegerDeployment" 
+            return "CommonAPI::DBus::IntegerDeployment"
         if (_type == FBasicTypeId.INT32)
-            return "CommonAPI::DBus::IntegerDeployment" 
+            return "CommonAPI::DBus::IntegerDeployment"
        return "CommonAPI::EmptyDeployment"
     }
 
-    def dispatch String getDeploymentType(FEnumerationType _enum, FInterface _interface, boolean _useTc) {
+    def dispatch String getDeploymentType(FEnumerationType _enum, FTypeCollection _interface, boolean _useTc) {
         return "CommonAPI::EmptyDeployment"
     }
 
-    def dispatch String getDeploymentType(FType _type, FInterface _interface, boolean _useTc) {
+    def dispatch String getDeploymentType(FType _type, FTypeCollection _interface, boolean _useTc) {
         var String deploymentType = ""
 
         if (_useTc) {
             if (_type.eContainer instanceof FTypeCollection && !(_type.eContainer instanceof FInterface)) {
                 deploymentType += (_type.eContainer as FModelElement).getFullName + "_::"
             }
-            else if (_interface != null) {
+            else if (_interface !== null) {
                 deploymentType += _interface.getFullName + "_::"
             }
         }
-        else if (_interface != null) {
+        else if (_interface !== null) {
             deploymentType += _interface.getFullName + "_::"
         }
 
@@ -352,21 +354,24 @@ class FrancaDBusGeneratorExtensions {
     def String getDeploymentName(FTypedElement _typedElement, FModelElement _element, FInterface _interface, PropertyAccessor _accessor) {
         if (_accessor.hasSpecificDeployment(_typedElement) ||
             _typedElement.array && _accessor.hasDeployment(_typedElement)) {
+            var String accessorName = _accessor.name
+            // remove rightmost '_' for compatibility's sake
+            if (_accessor.name.length > 0)
+                accessorName = _accessor.name.substring(0, _accessor.name.length() - 1)
+
             var String deployment = ""
-            if (_element != null) {
+            if (_element !== null) {
                 val container = _element.eContainer()
                 if (container instanceof FTypeCollection) {
                     deployment += container.getFullName + "_::"
                 }
-                if (!(_element instanceof FTypedElement && _element == _typedElement))
-                    deployment += _element.name + "_"
             } else {
                 val container = _typedElement.eContainer()
                 if (container instanceof FTypeCollection) {
                     deployment += container.getFullName + "_::"
                 }
             }
-            deployment += _typedElement.name + "Deployment"
+            deployment += accessorName + "Deployment"
             return deployment
         } else {
             return _typedElement.type.getDeploymentName(_interface, _accessor)
@@ -378,25 +383,29 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def dispatch String getDeploymentName(FTypeRef _typeRef, FInterface _interface, PropertyAccessor _accessor) {
-        if (_typeRef.derived != null) {
+        if (_typeRef.derived !== null) {
             return _typeRef.derived.getDeploymentName(_interface, _accessor)
+        }
+        else if (_typeRef.interval !== null) {
+            return _typeRef.interval.getDeploymentName(_interface, _accessor)
         }
         return _typeRef.predefined.getDeploymentName(_interface, _accessor)
     }
 
     def dispatch String getDeploymentName(FType _type, FInterface _interface, PropertyAccessor _accessor) {
-        if (_accessor.hasDeployment(_type)) {
-            var String name = ""
-            val EObject container = _type.eContainer()
-            if (container instanceof FTypeCollection) {
-                name += container.getFullName + "_::"
+        if (_accessor.hasDeployment(_type) ) {
+            val container = _type.eContainer() as  FTypeCollection
+            if (_accessor.isProperOverwrite()) {
+                return container.getFullName + "_::" + _accessor.getName() +  _type.name + "Deployment"
+            } else {
+                return container.getFullName + "_::" + _type.name + "Deployment"
             }
-            name += _type.name + "Deployment"
-            return name
         }
         return ""
     }
-
+    def dispatch String getDeploymentName(FIntegerInterval _interval, FInterface _interface, PropertyAccessor _accessor) {
+        return ""
+    }
     def dispatch String getDeploymentName(FBasicTypeId _typeId, FInterface _interface, PropertyAccessor _accessor) {
         return ""
     }
@@ -405,10 +414,11 @@ class FrancaDBusGeneratorExtensions {
     // Get reference (C++ pointer) to a deployment parameter //
     ///////////////////////////////////////////////////////////
     def String getDeploymentRef(FTypedElement _typedElement, boolean _isArray, FModelElement _element, FInterface _interface, PropertyAccessor _accessor) {
-        val String name = _typedElement.getDeploymentName(_element, _interface, _accessor)
-        if (name != "")
-            return "&" + name
-
+        if (_accessor !== null) {
+	        val String name = _typedElement.getDeploymentName(_element, _interface, _accessor)
+	        if (name != "")
+	            return "&" + name
+		}
         var String deployment = "static_cast< "
         deployment += _typedElement.getDeploymentType(_interface, true)
         deployment += "* >(nullptr)"
@@ -441,7 +451,7 @@ class FrancaDBusGeneratorExtensions {
 
     def String getErrorDeploymentRef(FMethod _method, FInterface _interface, PropertyAccessor _accessor) {
         var String name = ""
-        if ( _method.errorEnum != null) {
+        if ( _method.errorEnum !== null) {
             name += _method.errorEnum.getDeploymentName(_interface, _accessor)
             if (name != "")
                 return "&" + name
@@ -457,7 +467,7 @@ class FrancaDBusGeneratorExtensions {
     }
 
     def String getDeployables(EList<FArgument> _arguments, FInterface _interface, PropertyAccessor _accessor) {
-        return _arguments.map[getDeployable(_interface, _accessor)].join(", ")
+        return _arguments.map[getDeployable(_interface, _accessor.getOverwriteAccessor(it))].join(", ")
     }
 
     def String getDeploymentTypes(EList<FArgument> _arguments, FInterface _interface, PropertyAccessor _accessor) {
@@ -466,7 +476,7 @@ class FrancaDBusGeneratorExtensions {
 
     def boolean hasDeployedArgument(FBroadcast _broadcast, PropertyAccessor _accessor) {
         for (a : _broadcast.outArgs) {
-            if (_accessor.hasDeployment(a)) {
+            if (_accessor.getOverwriteAccessor(a).hasDeployment(a)) {
                 return true
             }
         }
@@ -476,14 +486,14 @@ class FrancaDBusGeneratorExtensions {
     def String getDeployments(FBroadcast _broadcast,
                               FInterface _interface,
                               PropertyAccessor _accessor) {
-        return "std::make_tuple(" + _broadcast.outArgs.map[getDeploymentRef(it.array, _broadcast, _interface, _accessor)].join(", ")  + ")"
+        return "std::make_tuple(" + _broadcast.outArgs.map[getDeploymentRef(it.array, _broadcast, _interface, if (_accessor === null) _accessor else _accessor.getOverwriteAccessor(it))].join(", ")  + ")"
    }
 
     def boolean hasDeployedArgument(FMethod _method, PropertyAccessor _accessor,
                                              boolean _in, boolean _out) {
         if (_in) {
             for (a : _method.inArgs) {
-                if (_accessor.hasDeployment(a)) {
+                if (_accessor.getOverwriteAccessor(a).hasDeployment(a)) {
                     return true
                 }
             }
@@ -491,7 +501,7 @@ class FrancaDBusGeneratorExtensions {
 
         if (_out) {
             for (a : _method.outArgs) {
-                if (_accessor.hasDeployment(a)) {
+                if (_accessor.getOverwriteAccessor(a).hasDeployment(a)) {
                     return true
                 }
             }
@@ -506,12 +516,12 @@ class FrancaDBusGeneratorExtensions {
                               boolean _withInArgs, boolean _withOutArgs) {
         var String inArgsDeployments = ""
         if (_withInArgs) {
-            inArgsDeployments = _method.inArgs.map[getDeploymentRef(it.array, _method, _interface, _accessor)].join(", ")
+            inArgsDeployments = _method.inArgs.map[getDeploymentRef(it.array, _method, _interface,  if (_accessor === null) _accessor else _accessor.getOverwriteAccessor(it))].join(", ")
         }
 
         var String outArgsDeployments = ""
         if (_withOutArgs) {
-            outArgsDeployments = _method.outArgs.map[getDeploymentRef(it.array, _method, _interface, _accessor)].join(", ")
+            outArgsDeployments = _method.outArgs.map[getDeploymentRef(it.array, _method, _interface, if (_accessor === null) _accessor else _accessor.getOverwriteAccessor(it))].join(", ")
             if (_method.hasError) {
                 var String errorDeployment = _method.getErrorDeploymentRef(_interface, _accessor)
                 if (outArgsDeployments != "")
@@ -551,7 +561,7 @@ class FrancaDBusGeneratorExtensions {
     def String generateDeployedStubSignature(FMethod _method, FInterface _interface, PropertyAccessor _accessor) {
         var String arguments = "const std::shared_ptr<CommonAPI::ClientId> _client"
         for (a : _method.inArgs) {
-            arguments += ", const " + a.getDeployable(_interface, _accessor) + " &_" + a.name
+            arguments += ", const " + a.getDeployable(_interface, _accessor.getOverwriteAccessor(a)) + " &_" + a.name
         }
         arguments += ", " + _method.elementName + "DBusReply_t _reply"
         return arguments
@@ -566,7 +576,7 @@ class FrancaDBusGeneratorExtensions {
             signature += ', '
 
         if (!_method.outArgs.empty)
-            signature += _method.outArgs.map[getDeployable(_interface, _accessor) + ' _' + elementName].join(', ')
+            signature += _method.outArgs.map[getDeployable(_interface, _accessor.getOverwriteAccessor(it)) + ' _' + elementName].join(', ')
 
         return signature
     }
@@ -575,7 +585,7 @@ class FrancaDBusGeneratorExtensions {
         var arguments = ' _client'
 
         for (a : _method.inArgs) {
-            if (_accessor.hasDeployment(a)) {
+            if (_accessor.getOverwriteAccessor(a).hasDeployment(a)) {
                 arguments += ", _" + a.name + ".getValue()"
             } else {
                 arguments += ", _" + a.name
@@ -592,17 +602,36 @@ class FrancaDBusGeneratorExtensions {
     // Get reference (C++ pointer) to a deployment parameter //
     ///////////////////////////////////////////////////////////
     def String getDeploymentRef(FTypedElement _typedElement, FModelElement _element, PropertyAccessor _accessor) {
+
         val String name = _typedElement.getDeploymentName(_element, null, _accessor)
         if (name != "")
             return "&" + name
 
-        return "static_cast< " + _typedElement.getDeploymentType(null, false) + "* >(nullptr)"
+        var String elemType = ''
+        if (_typedElement.type.derived !== null) {
+            var containerName =_typedElement.type.derived.eContainer.fullName
+            var typeName =_typedElement.type.derived.name
+            elemType = containerName + "_::" + typeName + "Deployment_t"
+        } else {
+            elemType = _typedElement.getDeploymentType(null, false)
+        }
+
+        return "static_cast< " + elemType + "* >(nullptr)"
     }
 
     def String getDeploymentRef(FTypeRef _typeRef, PropertyAccessor _accessor) {
         val String name = _typeRef.getDeploymentName(null, _accessor)
         if (name != "")
             return "&" + name
+
+        if(_typeRef.derived !== null) {
+            if(_typeRef.derived instanceof FEnumerationType) {
+                return "static_cast< " + _typeRef.derived.getDeploymentType(null, true) + "* >(nullptr)"
+            }
+            var containerName =_typeRef.derived.eContainer.fullName
+            var typeName =_typeRef.derived.name
+            return "static_cast< " + containerName + "_::" + typeName + "Deployment_t* >(nullptr)"
+        }
 
         return "static_cast< " + _typeRef.getDeploymentType(null, false) + "* >(nullptr)"
     }
@@ -637,7 +666,7 @@ class FrancaDBusGeneratorExtensions {
     def Set<String> getDeploymentInputIncludes(FInterface _interface, PropertyAccessor _accessor) {
        var Set<String> ret = new HashSet<String>()
        for(x: _interface.attributes) {
-          if(x.type.derived != null) {
+          if(x.type.derived !== null) {
              ret.add(dbusDeploymentHeaderPath(x.type.derived.eContainer as FTypeCollection))
           }
             if(x.type.derived instanceof FTypeDef) {
@@ -646,7 +675,7 @@ class FrancaDBusGeneratorExtensions {
        }
        for(x: _interface.broadcasts) {
            for(y: x.outArgs) {
-              if(y.type.derived != null) {
+              if(y.type.derived !== null) {
                   ret.add(dbusDeploymentHeaderPath(y.type.derived.eContainer as FTypeCollection))
               }
             if(y.type.derived instanceof FTypeDef) {
@@ -659,7 +688,7 @@ class FrancaDBusGeneratorExtensions {
        }
        for(x: _interface.methods) {
           for(y: x.outArgs) {
-             if(y.type.derived != null) {
+             if(y.type.derived !== null) {
                ret.add(dbusDeploymentHeaderPath(y.type.derived.eContainer as FTypeCollection))
              }
             if(y.type.derived instanceof FTypeDef) {
@@ -667,7 +696,7 @@ class FrancaDBusGeneratorExtensions {
             }
           }
           for(y: x.inArgs) {
-             if(y.type.derived != null) {
+             if(y.type.derived !== null) {
                ret.add(dbusDeploymentHeaderPath(y.type.derived.eContainer as FTypeCollection))
              }
             if(y.type.derived instanceof FTypeDef) {
@@ -684,7 +713,7 @@ class FrancaDBusGeneratorExtensions {
     def addDeploymentHeaderforTypeDef(FTypeDef typedef, Set<String> headers) {
 
         var derived = typedef.actualType.derived
-        if(derived != null && (derived.eContainer as FTypeCollection) != null) {
+        if(derived !== null && (derived.eContainer as FTypeCollection) !== null) {
             headers.add(dbusDeploymentHeaderPath((typedef.actualType.derived.eContainer as FTypeCollection)))
         }
     }

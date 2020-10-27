@@ -21,26 +21,31 @@ TestInterfaceStubImpl::~TestInterfaceStubImpl() {
 
 }
 
-void TestInterfaceStubImpl::testErrorReplyMethod(const std::shared_ptr<CommonAPI::ClientId> _client,
-                                                 const CommonAPI::CallId_t _callId,
-                                                 std::string _name, testErrorReplyMethodReply_t _reply,
-                                                 testErrorReplyMethodDisconnectedErrorReply_t _testErrorReplyMethodDisconnectedErrorReply) {
+void TestInterfaceStubImpl::testErrorReplyMethod(
+        const std::shared_ptr<CommonAPI::ClientId> _client,
+        const CommonAPI::CallId_t _callId,
+        const std::string _name,
+        const testErrorReplyMethodReply_t _reply,
+        const testErrorReplyMethodDisconnectedErrorReply_t _testErrorReplyMethodDisconnectedErrorReply) {
     (void)_reply;
     (void)_client;
     (void)_name;
     _testErrorReplyMethodDisconnectedErrorReply(_callId, errorReplyDescription_, errorReplyCode_);
 }
 
-void TestInterfaceStubImpl::testOverloadedMethod(const std::shared_ptr<CommonAPI::ClientId> _clientId, uint8_t _x,
-                          testOverloadedMethodReply_t _reply) {
+void TestInterfaceStubImpl::testOverloadedMethod(
+        const std::shared_ptr<CommonAPI::ClientId> _clientId,
+        const uint8_t _x, const testOverloadedMethodReply_t _reply) {
     (void)_clientId;
 
     uint8_t y = _x;
     _reply(y);
 }
 
-void TestInterfaceStubImpl::testOverloadedMethod(const std::shared_ptr<CommonAPI::ClientId> _clientId, uint8_t _x, uint8_t _y,
-                          testOverloadedMethodReply_t _reply) {
+void TestInterfaceStubImpl::testOverloadedMethod(
+        const std::shared_ptr<CommonAPI::ClientId> _clientId,
+        const uint8_t _x, const uint8_t _y,
+        const testOverloadedMethodReply_t _reply) {
     (void)_clientId;
 
     uint8_t z = (uint8_t)(_x + _y);

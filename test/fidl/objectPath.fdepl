@@ -1,4 +1,4 @@
-import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-DBus_deployment_spec.fdepl"
+import "platform:/plugin/org.genivi.commonapi.dbus/deployment/CommonAPI-4-DBus_deployment_spec.fdepl"
 import "objectPath.fidl"
 
 define org.genivi.commonapi.dbus.deployment for interface test.objectpath.TestInterface {
@@ -55,9 +55,6 @@ define org.genivi.commonapi.dbus.deployment for interface test.objectpath.TestIn
 
     union MyUnion {
         u0 {
-            IsObjectPath = true
-        }
-        u2 {
             IsObjectPath = true
         }
     }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.genivi.commonapi.dbus.cli.feature"
-      label="CommonAPI D-Bus CLI Generator Feature"
-      version="3.1.12.qualifier"
+      label="GENIVI CommonAPI D-Bus Console Interface Feature"
+      version="3.2.0.qualifier"
       provider-name="BMW AG">
 
    <description url="http://www.example.com/description">

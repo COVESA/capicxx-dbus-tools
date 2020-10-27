@@ -12,7 +12,7 @@
  * DBus protocol and refers to the component model deployment concept.
  */
 
-import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI_deployment_spec.fdepl"
+import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI-4_deployment_spec.fdepl"
 
 specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.core.deployment {
 
@@ -67,24 +67,6 @@ specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.
 
     for integers {
         IsUnixFD: Boolean (default: false);
-    }
-
-    // From here workaround for missing Franca deployment features.
-
-    for attributes {
-        DBusAttrVariantType:   {DBus, CommonAPI} (default: CommonAPI);
-    }
-
-    for arguments {
-        DBusArgVariantType:     {DBus, CommonAPI} (default: CommonAPI);
-    }
-
-    for struct_fields {
-        DBusStructVariantType:  {DBus, CommonAPI} (default: CommonAPI);
-    }
-
-    for union_fields {
-        DBusUnionVariantType:   {DBus, CommonAPI} (default: CommonAPI);
     }
 
 }

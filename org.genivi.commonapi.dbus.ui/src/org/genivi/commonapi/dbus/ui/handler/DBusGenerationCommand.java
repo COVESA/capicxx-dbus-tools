@@ -1,11 +1,10 @@
-/* Copyright (C) 2013 BMW Group
- * Author: Manfred Bathelt (manfred.bathelt@bmw.de)
- * Author: Juergen Gehring (juergen.gehring@bmw.de)
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+/* Copyright (C) 2013-2020 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+   This Source Code Form is subject to the terms of the Mozilla Public
+   License, v. 2.0. If a copy of the MPL was not distributed with this
+   file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.genivi.commonapi.dbus.ui.handler;
+
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -13,9 +12,15 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.emf.common.util.BasicDiagnostic;
+import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.xtext.builder.EclipseResourceFileSystemAccess2;
+import org.franca.deploymodel.dsl.fDeploy.FDModel;
+import org.genivi.commonapi.core.preferences.PreferenceConstants;
+import org.genivi.commonapi.core.ui.CommonApiUiPlugin;
 import org.genivi.commonapi.core.ui.handler.GenerationCommand;
+import org.genivi.commonapi.core.verification.DeploymentValidator;
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
@@ -128,6 +133,21 @@ public class DBusGenerationCommand  extends GenerationCommand {
 		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_STUB_DBUS, generatStub);
 		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_DEPENDENCIES_DBUS, generatInclude);
 		instance.setPreference(PreferenceConstantsDBus.P_GENERATE_SYNC_CALLS_DBUS, generatSyncCalls);
-	}   
-
+	}
+    public boolean isCoreDeploymentValidatorEnabled()
+    {
+        IPreferenceStore prefs = CommonApiUiPlugin.getValidatorPreferences();
+        return prefs != null && prefs.getBoolean(PreferenceConstants.P_ENABLE_CORE_DEPLOYMENT_VALIDATOR);
+    }
+    @Override
+    protected List<Diagnostic> validateDeployment(List<FDModel> fdepls)
+    {
+        if (!isCoreDeploymentValidatorEnabled())
+            return null;
+        BasicDiagnostic diagnostics = new BasicDiagnostic();
+        DeploymentValidator coreValidator = new DeploymentValidator();
+        coreValidator.validate(fdepls, diagnostics);
+        return diagnostics.getChildren();
+    }
 }
+
