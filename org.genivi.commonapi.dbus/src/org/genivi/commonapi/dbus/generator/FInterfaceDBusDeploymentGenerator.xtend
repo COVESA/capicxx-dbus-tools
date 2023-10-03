@@ -72,7 +72,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
         // Interface-specific deployment types
         «FOR t: _interface.types»
             «IF !(t instanceof FEnumerationType)»
-                «val deploymentType = t.generateDeploymentType(0)»
+                «val deploymentType = t.generateDeploymentType(0, _accessor)»
                 typedef «deploymentType» «t.name»Deployment_t;
 
             «ENDIF»
@@ -187,7 +187,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             var String definition = ""
             if (_attribute.array) {
                 definition += _attribute.type.getDeploymentType(_interface, true) + " " + _attribute.name + "ElementDeployment("
-                definition += getDeploymentParameter(_attribute.type, _attribute, _accessor)
+                definition += getDeploymentParameter(_attribute.type, _attribute, _interface, _accessor)
                 definition += ");\n";
             }
             else {
@@ -199,7 +199,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             if (_attribute.array) {
                 definition += "&" + _attribute.name + "ElementDeployment"                
             } else {
-                definition += _attribute.getDeploymentParameter(_attribute, _accessor)
+                definition += _attribute.getDeploymentParameter(_attribute, _interface, _accessor)
             }
             definition += ");"
             return definition
@@ -212,7 +212,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             var String definition = ""
             if (_argument.array) {
                 definition += _argument.type.getDeploymentType(_interface, true) + " " + _method.name + "_" + _argument.name + "ElementDeployment("
-                definition += getDeploymentParameter(_argument.type, _argument, _accessor)
+                definition += getDeploymentParameter(_argument.type, _argument, _interface, _accessor)
                 definition += ");\n";
             }
             else {
@@ -224,7 +224,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             if (_argument.array) {
                 definition += "&" + _method.name + "_" + _argument.name + "ElementDeployment"                
             } else {
-                definition += _argument.getDeploymentParameter(_argument, _accessor)
+                definition += _argument.getDeploymentParameter(_argument, _interface, _accessor)
             }
             definition += ");"
             return definition
@@ -236,7 +236,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             var String definition = ""
             if (_argument.array) {
                 definition += _argument.type.getDeploymentType(_interface, true) + " " + _broadcast.name + "_" + _argument.name + "ElementDeployment("
-                definition += getDeploymentParameter(_argument.type, _argument, _accessor)
+                definition += getDeploymentParameter(_argument.type, _argument, _interface, _accessor)
                 definition += ");\n";
             }
             else {
@@ -248,7 +248,7 @@ class FInterfaceDBusDeploymentGenerator extends FTypeCollectionDBusDeploymentGen
             if (_argument.array) {
                 definition += "&" + _broadcast.name + "_" + _argument.name + "ElementDeployment"                
             } else {
-                definition += _argument.getDeploymentParameter(_argument, _accessor)
+                definition += _argument.getDeploymentParameter(_argument, _interface, _accessor)
             }
             definition += ");"
             return definition

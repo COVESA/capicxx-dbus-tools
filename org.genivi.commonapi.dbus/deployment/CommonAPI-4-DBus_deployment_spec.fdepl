@@ -55,14 +55,14 @@ specification org.genivi.commonapi.dbus.deployment extends org.genivi.commonapi.
         /*
          * define mapping of specific Franca attribute to D-Bus signal/freedesktop property.
          */
-        DBusAttributeType:             {CommonAPI, freedesktop}      (default: CommonAPI);
+        DBusAttributeType:             {CommonAPI, freedesktop}      (optional);
     }
 
 	for strings {
-		IsObjectPath: Boolean (default: false);
+		IsObjectPath: Boolean (optional);
 	}
 	for unions {
-		DBusVariantType: {DBus, CommonAPI} (default: CommonAPI);
+		DBusVariantType: {DBus, CommonAPI} (default: DBus);
 	}
 
     for integers {

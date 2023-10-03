@@ -8,6 +8,7 @@ import org.franca.core.franca.FModel;
 import org.genivi.commonapi.dbus.verification.ValidatorDBus;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.xtext.validation.ValidationMessageAcceptor;
+import org.genivi.commonapi.core.verification.ValidateElements;
 import org.genivi.commonapi.dbus.preferences.PreferenceConstantsDBus;
 import org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin;
 import org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPage;
@@ -17,12 +18,17 @@ import org.genivi.commonapi.dbus.validator.preference.ValidatorDBusPreferencesPa
  */
 public class ValidatorDBusUi extends ValidatorDBus {
 
+    private ValidateElements validateElements = new ValidateElements();
+
     @Override
     public void validateModel(FModel model,
             ValidationMessageAcceptor messageAcceptor) {
         if (!isValidatorEnabled()) {
             return;
         }
+
+        validateElements.verifyEqualInOutAndAddSuffix(model);
+
         super.validateModel(model, messageAcceptor);
     }
 
