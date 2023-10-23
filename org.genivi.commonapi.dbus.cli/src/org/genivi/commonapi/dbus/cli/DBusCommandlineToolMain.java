@@ -24,6 +24,7 @@ import org.genivi.commonapi.console.CommandlineTool;
 import org.genivi.commonapi.console.ConsoleLogger;
 import org.genivi.commonapi.core.generator.GeneratorFileSystemAccess;
 import org.genivi.commonapi.core.verification.CommandlineValidator;
+import org.genivi.commonapi.core.verification.ValidateElements;
 import org.genivi.commonapi.core.verification.ValidatorCore;
 import org.genivi.commonapi.dbus.generator.FrancaDBusGenerator;
 import org.genivi.commonapi.dbus.preferences.FPreferencesDBus;
@@ -42,6 +43,7 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 	protected Injector injector;
 	protected IGenerator francaGenerator;
 	protected String SCOPE = "DBus validation: ";
+	private ValidateElements validateElements = new ValidateElements();
 
 	private ValidationMessageAcceptor cliMessageAcceptor = new AbstractValidationMessageAcceptor() {
 
@@ -184,6 +186,8 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 
 		if (model != null) {
 			if (model instanceof FDModel) {
+				validateElements.verifyEqualInOutAndAddSuffix((FDModel) model);
+
 				// check existence of imported fidl/fdepl files
 				cliValidator.validateImports((FDModel) model, resource.getURI());
 
@@ -192,6 +196,8 @@ public class DBusCommandlineToolMain extends CommandlineTool {
 			}
 			// check existence of imported fidl/fdepl files
 			if (model instanceof FModel) {
+				validateElements.verifyEqualInOutAndAddSuffix((FModel) model);
+
 				cliValidator.validateImports((FModel) model, resource.getURI());
 
 				// validate against GENIVI rules

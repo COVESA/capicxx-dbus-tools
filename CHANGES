@@ -1,5 +1,31 @@
 Changes
 =======
+v3.2.12
+- Generate D-bus Code fails using fidl
+
+v3.2.9
+- Fix reserve identifier error
+
+v3.2.8
+- Update dependencies
+
+v3.2.7
+- Update Generator to change the Parameter name "info"
+
+v3.2.6
+- Modify generation of TypeCollections without name
+- Accept Methods with Parameters with the same name
+- accept duplicate argument names for method in and out
+
+v3.2.5
+- Accept an Interface with a method with the same name
+
+v3.2.4
+- Adapt method signature to match CAPI 3.1
+
+v3.2.2
+- Rework deployment handling
+- Adapt README and test/README,txt to new core generator name
 
 v3.2.0
 - Adapted to CommonAPI 3.2.0

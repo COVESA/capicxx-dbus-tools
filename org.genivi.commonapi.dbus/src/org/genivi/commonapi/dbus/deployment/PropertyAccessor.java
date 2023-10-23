@@ -210,33 +210,31 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 	
 	
 	public Boolean getIsObjectPath (EObject obj) {
-		Boolean isObjectPath = false;
+
 		try {
 			if (type_ != DeploymentType.PROVIDER)
-				isObjectPath = dbusDataAccessor_.getIsObjectPath(obj);
+				return dbusDataAccessor_.getIsObjectPath(obj);
 		}
 		catch (java.lang.NullPointerException e) {}
-                if (isObjectPath == null) isObjectPath = false;
-		return isObjectPath;
+                
+		return null;
 	}
 	public Boolean getIsUnixFD (EObject obj) {
-		Boolean isUnixFD = false;
+
 		try {
 			if (type_ != DeploymentType.PROVIDER)
-				isUnixFD = dbusDataAccessor_.getIsUnixFD(obj);
+				return dbusDataAccessor_.getIsUnixFD(obj);
 		}
 		catch (java.lang.NullPointerException e) {}
-            if (isUnixFD == null) isUnixFD = false;
-		return isUnixFD;
+
+		return null;
 	}	
 	public DBusVariantType getDBusVariantType (FUnionType obj) {
-		DBusVariantType variantType = DBusVariantType.CommonAPI;
 		try {
-			if (type_ != DeploymentType.PROVIDER)
-				variantType = from(dbusDataAccessor_.getDBusVariantType(obj));
-	}
+			return from(dbusDataAccessor_.getDBusVariantType(obj));
+		}
 		catch (java.lang.NullPointerException e) {}
-		return variantType;
+		return null;
 	}
 		
 	private DBusVariantType from(Deployment.Enums.DBusVariantType type)
@@ -249,7 +247,7 @@ public class PropertyAccessor extends org.genivi.commonapi.core.deployment.Prope
 				return DBusVariantType.DBus;
 			}
 		}
-		return DBusVariantType.CommonAPI;
+		return null;
 	}
 
 	public String getDBusInterfaceName (FDExtensionElement obj) {

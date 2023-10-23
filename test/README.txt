@@ -31,7 +31,7 @@ cd build
 cmake \
 -DCommonAPI_DIR=$(readlink -f ../../../ascgit017.CommonAPI/build) \
 -DCommonAPI-DBus_DIR=$(readlink -f ../../../ascgit017.CommonAPI-D-Bus/build) \
--DCOMMONAPI_TOOL_GENERATOR=$(readlink -f ../../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.core.cli.product/target/products/org.genivi.commonapi.core.cli.product/linux/gtk/x86_64/commonapi-generator-linux-x86_64) \
+-DCOMMONAPI_TOOL_GENERATOR=$(readlink -f ../../../ascgit017.CommonAPI-Tools/org.genivi.commonapi.core.cli.product/target/products/org.genivi.commonapi.core.cli.product/linux/gtk/x86_64/commonapi-core-generator-linux-x86_64) \
 -DCOMMONAPI_DBUS_TOOL_GENERATOR=$(readlink -f ../../org.genivi.commonapi.dbus.cli.product/target/products/org.genivi.commonapi.dbus.cli.product/linux/gtk/x86_64/commonapi-dbus-generator-linux-x86_64) \
 ..
 

@@ -12,6 +12,9 @@ import org.franca.core.franca.FAttribute
 import org.franca.core.franca.FBasicTypeId
 import org.franca.core.franca.FEnumerationType
 import org.franca.core.franca.FField
+import org.franca.core.franca.FIntegerInterval
+import org.franca.core.franca.FInterface
+import org.franca.core.franca.FMapType
 import org.franca.core.franca.FStructType
 import org.franca.core.franca.FType
 import org.franca.core.franca.FTypeCollection
@@ -19,10 +22,8 @@ import org.franca.core.franca.FTypeDef
 import org.franca.core.franca.FTypeRef
 import org.franca.core.franca.FTypedElement
 import org.franca.core.franca.FUnionType
+
 import org.genivi.commonapi.dbus.deployment.PropertyAccessor
-import org.franca.core.franca.FMapType
-import org.franca.core.franca.FInterface
-import org.franca.core.franca.FIntegerInterval
 
 class FrancaDBusDeploymentAccessorHelper {
 	@Inject extension FrancaDBusGeneratorExtensions
@@ -70,13 +71,15 @@ class FrancaDBusDeploymentAccessorHelper {
     }
 
     def dispatch boolean hasDeployment(PropertyAccessor _accessor, FUnionType _union) {
+		if (hasDBusVariantTypeDeployment(_accessor, _union))
+			return true;
+
         try {
-            var FType type = null
             val PropertyAccessor.DBusVariantType variantType
                 = _accessor.getDBusVariantTypeHelper(_union)
-
-            if (variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
-                (type === null || variantType != _accessor.getDBusVariantTypeHelper(type))) {
+            var PropertyAccessor.DBusVariantType defaultVariantType = DBUS_DEFAULT_VARIANT_TYPE
+           
+            if (variantType !== null && variantType != defaultVariantType) {
                 return true
             }
         } catch (NullPointerException e) {}
@@ -134,9 +137,11 @@ class FrancaDBusDeploymentAccessorHelper {
         if (_attribute.type.derived !== null) {
             type = _attribute.type.derived
         }
-		val specificAccessor = getSpecificAccessor(_attribute)
+		var PropertyAccessor specificAccessor = null
+		if (type !== null)
+			specificAccessor = getSpecificAccessor(type)
         try {
-            val PropertyAccessor.DBusVariantType variantType
+            var PropertyAccessor.DBusVariantType variantType
                 = _accessor.getDBusVariantTypeHelper(_attribute)
 			val PropertyAccessor.DBusVariantType defaultVariantType =
 			if (type !== null && specificAccessor !== null) {
@@ -146,8 +151,7 @@ class FrancaDBusDeploymentAccessorHelper {
 				DBUS_DEFAULT_VARIANT_TYPE
 			}
 
-            if (variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE &&
-                (type === null || variantType != defaultVariantType)) {
+            if (variantType !== null && variantType != defaultVariantType) {
                 return true
             }
 
@@ -174,11 +178,29 @@ class FrancaDBusDeploymentAccessorHelper {
     }
 
     def Boolean getDBusIsObjectPathHelper(PropertyAccessor _accessor, EObject _obj) {
-        return _accessor.getIsObjectPath(_obj);
+                
+		var isObjectPath = _accessor.getIsObjectPath(_obj)
+		if (isObjectPath === null) {
+			val itsSpecificAccessor = getSpecificAccessor(_obj)
+			if (itsSpecificAccessor !== null)
+				isObjectPath = itsSpecificAccessor.getIsObjectPath(_obj) 
+		}
+		
+		return isObjectPath !== null ? isObjectPath : false
     }
+    
     def Boolean getDBusIsUnixFDHelper(PropertyAccessor _accessor, EObject _obj) {
-        return _accessor.getIsUnixFD(_obj);
+
+		var isUnixFD = _accessor.getIsUnixFD(_obj)
+		if (isUnixFD === null) {
+			val itsSpecificAccessor = getSpecificAccessor(_obj)
+			if (itsSpecificAccessor !== null)
+				isUnixFD = itsSpecificAccessor.getIsUnixFD(_obj)
+		}
+		
+		return isUnixFD !== null ? isUnixFD : false        
     }
+    
     def PropertyAccessor.DBusVariantType getDBusVariantTypeHelper(PropertyAccessor _accessor, EObject _obj) {
 
         if (_obj instanceof FAttribute) {
@@ -208,4 +230,16 @@ class FrancaDBusDeploymentAccessorHelper {
         return DBUS_DEFAULT_VARIANT_TYPE
     }
 
+	def boolean hasDBusVariantTypeDeployment(PropertyAccessor _accessor, EObject _object) {
+		var PropertyAccessor.DBusVariantType variantType = _accessor.getDBusVariantTypeHelper(_object)
+        if (variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE) {
+            return true
+        }
+        var newAccessor = getSpecificAccessor(_object)
+        if (newAccessor !== null) {
+            variantType = newAccessor.getDBusVariantTypeHelper(_object)
+            return variantType !== null && variantType != DBUS_DEFAULT_VARIANT_TYPE
+        }
+        return false
+    }
 }

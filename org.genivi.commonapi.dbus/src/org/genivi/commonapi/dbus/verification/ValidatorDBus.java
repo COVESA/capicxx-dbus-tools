@@ -154,7 +154,6 @@ public class ValidatorDBus implements IFrancaExternalValidator
             for (FInterface fInterface : model.getInterfaces())
             {
                 validateTypeCollectionName(model, messageAcceptor, filePath, fInterface);
-                validateFInterfaceElements(messageAcceptor, fInterface);
             }
             resourceList.clear();
             importList.clear();
@@ -459,29 +458,6 @@ public class ValidatorDBus implements IFrancaExternalValidator
                         messageAcceptor);
                 return;
             }
-        }
-    }
-
-    private void validateFInterfaceElements(ValidationMessageAcceptor messageAcceptor, FInterface fInterface)
-    {
-        for (FMethod fMethod : fInterface.getMethods())
-        {
-            for (FArgument out : fMethod.getOutArgs())
-            {
-                validateMethodArgument(messageAcceptor, fMethod, out);
-            }
-            for (FArgument in : fMethod.getInArgs())
-            {
-                validateMethodArgument(messageAcceptor, fMethod, in);
-            }
-        }
-    }
-
-    private void validateMethodArgument(ValidationMessageAcceptor messageAcceptor, FMethod fMethod, FArgument arg)
-    {
-        if (arg.getName().equals(fMethod.getName()))
-        {
-            acceptError("Parameters cannot share name with method", arg, FrancaPackage.Literals.FMODEL_ELEMENT__NAME, -1, messageAcceptor);
         }
     }
 
