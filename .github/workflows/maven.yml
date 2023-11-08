@@ -26,11 +26,6 @@ jobs:
       with:
         java-version: 8
 
-    - name: install dbus
-      run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y dbus libdbus-1-dev
-
     - name: Build capicxx-core-tools
       run: mvn -f org.genivi.commonapi.core.releng/pom.xml -D target.id=org.genivi.commonapi.core.target clean verify
       working-directory: capicxx-core-tools
