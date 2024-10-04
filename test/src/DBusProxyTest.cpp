@@ -7,6 +7,16 @@
 #define _GLIBCXX_USE_NANOSLEEP
 #endif
 
+#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <thread>
+#include <vector>
+
+#include <gtest/gtest.h>
+
 #include <CommonAPI/CommonAPI.hpp>
 
 #ifndef COMMONAPI_INTERNAL_COMPILATION
@@ -35,15 +45,6 @@
 #include <v1/fake/legacy/service/LegacyInterfaceNoObjectManagerProxy.hpp>
 
 #include "DBusTestUtils.hpp"
-
-#include <gtest/gtest.h>
-
-#include <algorithm>
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <vector>
 
 static const std::string domain = "local";
 static const std::string commonApiAddress = "CommonAPI.DBus.tests.DBusProxyTestService";
@@ -285,7 +286,7 @@ TEST_F(ProxyTest, CallMethodFromParentInterface) {
         std::this_thread::sleep_for(std::chrono::microseconds(10 * 1000));
     }
     EXPECT_TRUE(extendedProxy->isAvailable());
-    
+
     bool wasCalled = false;
     extendedProxy->testEmptyMethodAsync(
                     [&](const CommonAPI::CallStatus& callStatus) {
@@ -294,7 +295,7 @@ TEST_F(ProxyTest, CallMethodFromParentInterface) {
                     });
     std::this_thread::sleep_for(std::chrono::microseconds(100000));
     EXPECT_TRUE(wasCalled);
-    
+
     deregisterExtendedStub();
 }
 
@@ -341,7 +342,7 @@ TEST_F(ProxyTest, CanHandleRemoteAttributeFromParentInterface) {
     uint32_t value;
 
     std::this_thread::sleep_for(std::chrono::microseconds(50000));
-    
+
     auto& testAttribute = extendedProxy->getTestPredefinedTypeAttributeAttribute();
 
     testAttribute.getValue(callStatus, value);
@@ -354,7 +355,7 @@ TEST_F(ProxyTest, CanHandleRemoteAttributeFromParentInterface) {
 
     EXPECT_EQ(callStatus, CommonAPI::CallStatus::SUCCESS);
     EXPECT_EQ(value, responseValue);
-    
+
     std::this_thread::sleep_for(std::chrono::microseconds(50000));
     deregisterExtendedStub();
 }
@@ -518,7 +519,7 @@ public:
                 auto addressTranslator = CommonAPI::DBus::DBusAddressTranslator::get();
                 CommonAPI::DBus::DBusAddress dbusAddress;
                 addressTranslator->translate(capiAddress, dbusAddress);
-                
+
                 fakeLegacyServices_.push_back(dbusAddress);
                 if(_withObjectManager) {
                     startFakeLegacyServiceWithObjectMananger(dbusAddress);
@@ -606,7 +607,7 @@ public:
                     "is not set!";
 
             std::stringstream stream;
-            stream << "python " << pathToFolderForFakeLegacyService << "/" << _pythonFileNameAndCommand + " &";
+            stream << "python3 " << pathToFolderForFakeLegacyService << "/" << _pythonFileNameAndCommand + " &";
 
             int resultCode = system(stream.str().c_str());
             EXPECT_EQ(0, resultCode);

@@ -11,6 +11,7 @@
 #endif
 
 #include <dbus/dbus.h>
+
 #include <CommonAPI/DBus/DBusServiceRegistry.hpp>
 #include <CommonAPI/DBus/DBusMessage.hpp>
 

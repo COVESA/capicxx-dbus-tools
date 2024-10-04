@@ -3,20 +3,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <gtest/gtest.h>
-
+#include <array>
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <functional>
+#include <future>
+#include <iostream>
 #include <memory>
 #include <stdint.h>
 #include <string>
-#include <array>
-#include <utility>
+#include <thread>
 #include <tuple>
 #include <type_traits>
-#include <future>
+#include <utility>
+
+#include <gtest/gtest.h>
 
 #include <CommonAPI/CommonAPI.hpp>
 
