@@ -3,21 +3,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <gtest/gtest.h>
-
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <stdint.h>
 #include <string>
-#include <utility>
+#include <thread>
 #include <tuple>
 #include <type_traits>
+#include <utility>
+
 #ifndef _WIN32
 #include <glib.h>
 #endif
+
+#include <gtest/gtest.h>
 
 #include <CommonAPI/CommonAPI.hpp>
 
@@ -365,7 +367,7 @@ class DBusInGLibMainLoopTest: public ::testing::Test {
         dbusChannel_ = g_io_channel_unix_new(fileDesc.fd);
 
         GSource* gWatch = g_io_create_watch(dbusChannel_, static_cast<GIOCondition>(fileDesc.events));
-        g_source_set_callback(gWatch, reinterpret_cast<GSourceFunc>(&gWatchDispatcher), watch, NULL);
+        g_source_set_callback(gWatch, G_SOURCE_FUNC(&gWatchDispatcher), watch, NULL);
 
         const auto& dependentSources = watch->getDependentDispatchSources();
         for (auto dependentSourceIterator = dependentSources.begin();

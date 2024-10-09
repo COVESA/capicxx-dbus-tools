@@ -1,5 +1,9 @@
 Changes
 =======
+v3.2.15
+- Update gitignore and cleanup project
+- Added workflow to build the project in Ubuntu, Windows, and macOS
+
 v3.2.12
 - Generate D-bus Code fails using fidl
 

@@ -7,22 +7,18 @@
 #define COMMONAPI_INTERNAL_COMPILATION
 #endif
 
+#include <chrono>
+#include <cstdint>
+#include <unordered_map>
+#include <vector>
+
+#include <dbus/dbus.h>
+#include <gtest/gtest.h>
+
 #include <CommonAPI/DBus/DBusInputStream.hpp>
 #include <CommonAPI/DBus/DBusOutputStream.hpp>
 
 #include "DBusTestUtils.hpp"
-
-#include <unordered_map>
-
-#include <gtest/gtest.h>
-
-#include <dbus/dbus.h>
-
-#include <chrono>
-#include <cstdint>
-#include <vector>
-
-
 
 class InputStreamTest: public ::testing::Test {
   protected:

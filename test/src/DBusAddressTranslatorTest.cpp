@@ -3,10 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
-#include <gtest/gtest.h>
 #include <fstream>
 #include <thread>
+
+#include <gtest/gtest.h>
 
 #include <CommonAPI/CommonAPI.hpp>
 
@@ -448,7 +448,7 @@ TEST_F(AddressTranslatorTest, ServicesUsingPredefinedAddressesCanCommunicate) {
     defaultTestProxy->testVoidPredefinedTypeMethod(v1, v2, stat);
 
     ASSERT_EQ(stat, CommonAPI::CallStatus::SUCCESS);
-    
+
     runtime->unregisterService(commonApiAddress.getDomain(), stub->getStubAdapter()->getInterface(), commonApiAddress.getInstance());
 }
 
@@ -499,7 +499,7 @@ void callPythonService(std::string _pythonFileNameAndCommand) {
             "is not set!";
 
     std::stringstream stream;
-    stream << "python " << pathToFolderForFakeLegacyService << "/" << _pythonFileNameAndCommand;
+    stream << "python3 " << pathToFolderForFakeLegacyService << "/" << _pythonFileNameAndCommand;
 
     int resultCode = system(stream.str().c_str());
     EXPECT_EQ(0, resultCode);

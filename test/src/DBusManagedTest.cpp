@@ -7,6 +7,14 @@
 #define _GLIBCXX_USE_NANOSLEEP
 #endif
 
+#include <algorithm>
+#include <array>
+#include <memory>
+#include <thread>
+
+#include <gtest/gtest.h>
+#include <pugixml/pugixml.hpp>
+
 #include <CommonAPI/CommonAPI.hpp>
 
 #define COMMONAPI_INTERNAL_COMPILATION
@@ -29,13 +37,6 @@
 
 #include "v1/commonapi/tests/managed/RootInterfaceDBusStubAdapter.hpp"
 #include "v1/commonapi/tests/managed/LeafInterfaceDBusStubAdapter.hpp"
-
-#include <gtest/gtest.h>
-#include <algorithm>
-#include <array>
-#include <memory>
-
-#include <pugixml/pugixml.hpp>
 
 #define VERSION v1_0
 

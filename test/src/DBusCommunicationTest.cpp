@@ -3,20 +3,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <gtest/gtest.h>
-
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <stdint.h>
 #include <string>
-#include <utility>
+#include <thread>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include <dbus/dbus.h>
+#include <gtest/gtest.h>
 
 #include <CommonAPI/CommonAPI.hpp>
 
@@ -217,7 +217,7 @@ TEST_F(DBusCommunicationTest, RemoteAsyncMethodCallWithErrorReplyProxyNotAvailab
         errorReplyEventReceived = true;
     });
 
-    std::function<void (const CommonAPI::CallStatus&, const std::string&)> timeoutCallback = 
+    std::function<void (const CommonAPI::CallStatus&, const std::string&)> timeoutCallback =
         std::bind(&DBusCommunicationTest::recvTimeout, this, std::placeholders::_1, std::placeholders::_2);
 
     CommonAPI::CallInfo info(100);

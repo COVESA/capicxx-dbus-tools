@@ -6,15 +6,11 @@
 #ifndef DEMO_MAIN_LOOP_H_
 #define DEMO_MAIN_LOOP_H_
 
-#if !defined (COMMONAPI_INTERNAL_COMPILATION)
-#define COMMONAPI_INTERNAL_COMPILATION
-#endif
-
-#include <CommonAPI/MainLoopContext.hpp>
-
-#include <vector>
-#include <set>
+#include <cassert>
 #include <map>
+#include <set>
+#include <vector>
+
 #ifdef _WIN32
 #include <WinSock2.h>
 #else
@@ -23,9 +19,11 @@
 #include <unistd.h>
 #endif
 
+#if !defined (COMMONAPI_INTERNAL_COMPILATION)
+#define COMMONAPI_INTERNAL_COMPILATION
+#endif
 
-#include <cassert>
-
+#include <CommonAPI/MainLoopContext.hpp>
 
 namespace CommonAPI {
 

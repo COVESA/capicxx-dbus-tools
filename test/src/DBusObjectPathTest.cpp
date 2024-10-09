@@ -8,14 +8,16 @@
 * @file DBusObjectPathTest
 */
 
-#include <functional>
 #include <condition_variable>
-#include <mutex>
-#include <thread>
 #include <fstream>
+#include <functional>
+#include <mutex>
 #include <numeric>
+#include <thread>
+
 #include <gtest/gtest.h>
-#include "CommonAPI/CommonAPI.hpp"
+
+#include <CommonAPI/CommonAPI.hpp>
 
 #ifndef COMMONAPI_INTERNAL_COMPILATION
 #define COMMONAPI_INTERNAL_COMPILATION

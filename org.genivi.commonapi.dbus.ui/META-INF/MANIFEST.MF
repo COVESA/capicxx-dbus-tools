@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GENIVI CommonAPI D-Bus UI
 Bundle-SymbolicName: org.genivi.commonapi.dbus.ui;singleton:=true
-Bundle-Version: 3.2.14.qualifier
+Bundle-Version: 3.2.15.qualifier
 Bundle-Activator: org.genivi.commonapi.dbus.ui.CommonApiDBusUiPlugin
 Bundle-Vendor: BMW AG
 Require-Bundle: org.eclipse.ui,
@@ -14,8 +14,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.xtext.builder;bundle-version="[2.7.0,3.0.0)";visibility:=reexport,
  org.eclipse.xtext.generator;bundle-version="[2.7.0,3.0.0)";visibility:=reexport,
  com.google.inject;bundle-version="[5.0.1,6.0.0)";visibility:=reexport,
- org.genivi.commonapi.core.ui;bundle-version="3.2.14";visibility:=reexport,
- org.genivi.commonapi.dbus;bundle-version="3.2.14";visibility:=reexport,
+ org.genivi.commonapi.core.ui;bundle-version="3.2.15";visibility:=reexport,
+ org.genivi.commonapi.dbus;bundle-version="3.2.15";visibility:=reexport,
  org.franca.core.dsl.ui;bundle-version="[0.13.1,0.14.0)",
  org.franca.deploymodel.dsl.ui;bundle-version="[0.13.1,0.14.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
