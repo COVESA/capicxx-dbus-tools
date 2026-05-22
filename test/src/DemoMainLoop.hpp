@@ -68,6 +68,7 @@ class MainLoop {
         if (iResult != 0) {
             printf("getaddrinfo failed with error: %d\n", iResult);
             WSACleanup();
+            return;
         }
 
         // Create a SOCKET for connecting to server
@@ -76,6 +77,7 @@ class MainLoop {
             printf("socket failed with error: %ld\n", WSAGetLastError());
             freeaddrinfo(result);
             WSACleanup();
+            return;
         }
 
         // Setup the TCP listening socket
@@ -85,6 +87,7 @@ class MainLoop {
             freeaddrinfo(result);
             closesocket(ListenSocket);
             WSACleanup();
+            return;
         }
 
         sockaddr* connected_addr = new sockaddr();
@@ -105,6 +108,7 @@ class MainLoop {
             printf("listen failed with error: %d\n", WSAGetLastError());
             closesocket(ListenSocket);
             WSACleanup();
+            return;
         }
 
         wsaData;
@@ -127,6 +131,7 @@ class MainLoop {
         if (iResult != 0) {
             printf("getaddrinfo failed with error: %d\n", iResult);
             WSACleanup();
+            return;
         }
 
         // Attempt to connect to an address until one succeeds
@@ -138,6 +143,7 @@ class MainLoop {
             if (wakeFd_.fd == INVALID_SOCKET) {
                 printf("socket failed with error: %ld\n", WSAGetLastError());
                 WSACleanup();
+                return;
             }
 
             // Connect to server.
@@ -156,6 +162,7 @@ class MainLoop {
         if (wakeFd_.fd == INVALID_SOCKET) {
             printf("Unable to connect to server!\n");
             WSACleanup();
+            return;
         }
 
         // Accept a client socket
@@ -164,6 +171,7 @@ class MainLoop {
             printf("accept failed with error: %d\n", WSAGetLastError());
             closesocket(ListenSocket);
             WSACleanup();
+            return;
         }
 
         wakeFd_.events = POLLIN;
@@ -207,8 +215,6 @@ class MainLoop {
         int iResult = shutdown(wakeFd_.fd, SD_SEND);
         if (iResult == SOCKET_ERROR) {
             printf("shutdown failed with error: %d\n", WSAGetLastError());
-            closesocket(wakeFd_.fd);
-            WSACleanup();
         }
 
         // cleanup
